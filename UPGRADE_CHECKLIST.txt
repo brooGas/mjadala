@@ -1,0 +1,13 @@
+PRE-DEPLOY CHECKLIST
+[ ] Back up current repository
+[ ] Add the bundle's files without deleting unrelated existing files
+[ ] Run MIGRATION_PROFILE_FIELDS.sql in Supabase
+[ ] Run MIGRATION_PRIVATE_GROUPS.sql only if not already applied
+[ ] Do not rerun the already-working Moments migration
+[ ] Deploy to Vercel
+[ ] Test sign-in and existing discussions
+[ ] Test profile bio save and photo upload
+[ ] Create a Group with account A; invite account B by nickname
+[ ] Confirm B can read/send messages in that Group
+[ ] Confirm account C, not invited, cannot see that Group or its messages
+[ ] Test Moments expiry/limits and @nickname links

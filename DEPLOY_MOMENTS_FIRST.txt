@@ -1,0 +1,36 @@
+MJADALA MOMENTS — DEPLOYMENT ORDER
+
+This package includes the updated frontend and two Supabase Edge Functions. Do not run the SQL until you have confirmed you are in the correct Supabase project and reviewed the migration.
+
+PART A — WEBSITE FILES (GitHub/Vercel)
+1. Replace the existing repository-root index.html with this package's index.html.
+2. Keep the existing manifest.json, sw.js, terms.html, vercel.json, icons, and LICENSE. You may also update README.md, CHANGELOG.md, UPGRADE_NOTES.md and MIGRATION_MOMENTS.sql from this package if you want, but do not delete existing files.
+3. Supabase Edge Function files stored in GitHub do NOT deploy automatically just because Vercel deploys. Continue with Part B.
+
+PART B — DATABASE (Supabase SQL Editor)
+1. Before running MIGRATION_MOMENTS.sql, verify this is the correct Mjadala project.
+2. Read the migration. It creates a separate private bucket and new Moments tables/functions; it does not delete existing rooms/messages/users. It replaces the rooms_create policy so only staff can create future public rooms.
+3. Only run after you are comfortable with the policy change. If anything unexpected appears, stop and ask before proceeding.
+
+PART C — DEPLOY EDGE FUNCTIONS
+The function source files are:
+- supabase/functions/upload-moment/index.ts
+- supabase/functions/cleanup-expired-moments/index.ts
+These must be deployed to the same Supabase project using Supabase CLI or the Edge Functions dashboard editor. Create functions named exactly upload-moment and cleanup-expired-moments.
+
+Secrets:
+- upload-moment needs the project-provided SUPABASE_URL, SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY server-side.
+- cleanup-expired-moments needs SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY and a strong CLEANUP_SECRET.
+Never put SUPABASE_SERVICE_ROLE_KEY or CLEANUP_SECRET in index.html, GitHub frontend files, or Vercel client-side environment variables.
+
+PART D — SCHEDULE CLEANUP
+Configure a trusted scheduler to POST to /functions/v1/cleanup-expired-moments every 15 minutes with header x-cleanup-secret equal to CLEANUP_SECRET. Test it manually first. Expired Moments are hidden at 24 hours; physical image deletion occurs at the next successful cleanup run (normally within about 15 minutes).
+
+PART E — TEST
+Use a test account first: upload one photo; confirm it appears; upload the exact same photo again and confirm rejection; post five distinct photos and confirm a sixth is rejected; confirm expiry/cleanup later. Existing Groups and @tagging are not included in this release.
+
+LIMITATIONS / HONEST STATUS
+- The frontend upload button is connected to the upload-moment Edge Function in this package.
+- The feed uses signed URLs and the SQL policies to show active photos to authenticated users.
+- The database migration and Edge Functions still need deployment in Supabase. Until then, Moments upload will not work.
+- Staff-only room creation takes effect only after the SQL migration is applied.

@@ -21,3 +21,11 @@ Keep `terms.html`, icons, `vercel.json`, and `README.md` unless intentionally ch
 5. Add Groups and @mentions in the next feature release, then add a trusted scheduled worker for expired image cleanup.
 
 **Do not run `MIGRATION_MOMENTS.sql` until the current policies and Storage setup have been reviewed.** It adds tables/policies and changes who may create public rooms; it does not replace the existing app database.
+
+
+## Package refresh (2026-10-25)
+- Updated the light/dark theme palette to ivory, charcoal, and sunset amber.
+- Kept the existing Moments upload and duplicate/limit logic, theme toggle, and clickable mention code from this package.
+- Included the existing private-groups SQL migration in the package; it must be reviewed/applied in Supabase before a group UI can work.
+- This package does not yet contain a complete private-groups interface or editable profile screen. Do not treat those features as complete until separately implemented and tested.
+- Replace the deployed site files only after retaining a backup of the current version.
