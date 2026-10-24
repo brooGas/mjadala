@@ -34,6 +34,9 @@
   .link { background:none; color:var(--green); margin-top:10px; width:100%; }
   .err { color:#b3261e; font-size:13px; min-height:18px; margin-bottom:6px; }
   .copy { text-align:center; margin:12px 0 0 !important; font-size:12px !important; }
+  .copy a, .agree a { color:var(--green); }
+  .agree { display:none; font-size:13px; color:var(--muted); margin-bottom:10px; line-height:1.4; }
+  .auth-card .agree input { width:auto; margin:0 8px 0 0; vertical-align:middle; }
   #roomlist { flex:1; overflow-y:auto; }
   .room { background:var(--card); padding:14px; border-bottom:1px solid #eee; display:block; width:100%; text-align:left; }
   .room b { display:block; }
@@ -64,10 +67,11 @@
     <p>Discuss what matters. Use a nickname, not your real name.</p>
     <input id="u" placeholder="Nickname (3-20 letters/numbers)" autocomplete="username" autocapitalize="none">
     <input id="p" type="password" placeholder="Password (6+ characters)" autocomplete="current-password">
+    <label class="agree" id="agree"><input type="checkbox" id="agreebox">I am 18 or older and I agree to the <a href="/terms.html#terms" target="_blank">Terms</a> and <a href="/terms.html#privacy" target="_blank">Privacy Policy</a>.</label>
     <div class="err" id="autherr"></div>
     <button class="primary" id="authbtn">Log in</button>
     <button class="link" id="authswitch">New here? Create an account</button>
-    <p class="copy">&copy; 2026 Mark Sixstars</p>
+    <p class="copy">&copy; 2026 Mark Sixstars &middot; <a href="/terms.html#terms" target="_blank">Terms</a> &middot; <a href="/terms.html#privacy" target="_blank">Privacy</a></p>
   </div>
 </section>
 
@@ -137,6 +141,7 @@ function setMode(m) {
   mode = m;
   $("authbtn").textContent = mode === "login" ? "Log in" : "Create account";
   $("authswitch").textContent = mode === "login" ? "New here? Create an account" : "Have an account? Log in";
+  $("agree").style.display = mode === "register" ? "block" : "none";
   $("autherr").textContent = "";
 }
 $("authswitch").onclick = () => setMode(mode === "login" ? "register" : "login");
@@ -149,6 +154,7 @@ $("authbtn").onclick = async () => {
     if (!/^[A-Za-z0-9_]{3,20}$/.test(nick)) throw new Error("Nickname: 3-20 letters, numbers or underscore");
     if (pw.length < 6) throw new Error("Password must be at least 6 characters");
     if (mode === "register") {
+      if (!$("agreebox").checked) throw new Error("Please tick the box to agree to the Terms and Privacy Policy");
       // _ is a wildcard in ilike, so escape it to match exactly
       const { data: taken } = await sb.from("profiles").select("id").ilike("nickname", nick.replace(/_/g, "\\_")).limit(1);
       if (taken && taken.length) throw new Error("That nickname is taken");
