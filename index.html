@@ -318,11 +318,6 @@ $("newroom").onclick = async () => {
 };
 
 /* ---------- Moments ---------- */
-async function imageHash(file) {
-  const bytes = await file.arrayBuffer();
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, "0")).join("");
-}
 function momentError(e) {
   const message = friendly(e);
   if (/at most five|maximum.*five/i.test(message)) return "You already have five active Moments. Delete one or wait for one to expire.";
@@ -381,21 +376,19 @@ $("moment-upload").onclick = async () => {
   if (file.size > 5 * 1024 * 1024) { status.textContent = "Photo must be 5 MB or smaller."; return; }
   if (me.is_banned) { status.textContent = "Your account is restricted from posting."; return; }
   button.disabled = true; button.textContent = "Uploading…";
-  let path = null;
   try {
-    const hash = await imageHash(file);
-    const { data: reserved, error: reserveError } = await sb.rpc("reserve_moment_upload", { p_content_hash: hash });
-    if (reserveError) throw reserveError;
-    path = reserved;
-    const { error: uploadError } = await sb.storage.from("mjadala-moments").upload(path, file, { contentType: file.type, upsert: false });
-    if (uploadError) throw uploadError;
-    const { error: createError } = await sb.rpc("create_moment_record", {
-      p_storage_path: path, p_content_hash: hash, p_caption: $("moment-caption").value.trim()
+    const { data: { session }, error: sessionError } = await sb.auth.getSession();
+    if (sessionError || !session?.access_token) throw new Error("Your session expired. Log in again.");
+    const form = new FormData();
+    form.append("image", file, file.name || "moment-image");
+    form.append("caption", $("moment-caption").value.trim());
+    const response = await fetch(SUPABASE_URL + "/functions/v1/upload-moment", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + session.access_token, "apikey": SUPABASE_KEY },
+      body: form
     });
-    if (createError) {
-      await sb.storage.from("mjadala-moments").remove([path]);
-      throw createError;
-    }
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || "Moment upload failed. Please try again.");
     fileInput.value = ""; $("moment-caption").value = "";
     status.textContent = "Moment posted. It will expire in 24 hours.";
     await loadMoments();
