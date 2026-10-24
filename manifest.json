@@ -1,15 +1,25 @@
 {
   "name": "Mjadala",
   "short_name": "Mjadala",
-  "description": "Discuss what matters.",
+  "description": "Thoughtful conversations, communities, and 24-hour Moments.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0b6b4f",
-  "theme_color": "#0b6b4f",
+  "background_color": "#f4f7f5",
+  "theme_color": "#0b7658",
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
   ]
 }

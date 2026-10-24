@@ -32,3 +32,8 @@ Supabase -> SQL Editor -> run (use your own nickname):
 - index.html contains only the PUBLIC Supabase URL and publishable key. That is
   normal. NEVER put a service_role / secret key in any file.
 - The database rules (supabase/schema.sql) are what protect the data.
+
+
+## Releases and upgrades
+
+See `CHANGELOG.md` for the current release and `UPGRADE_NOTES.md` before uploading updates. SQL migrations are manual Supabase steps and never run merely because a file is uploaded to GitHub.

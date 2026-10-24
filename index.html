@@ -6,74 +6,53 @@
 <meta name="author" content="Mark Sixstars">
 <meta name="copyright" content="Copyright (c) 2026 Mark Sixstars">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b6b4f">
+<meta name="theme-color" content="#0b7658">
+<meta name="description" content="Mjadala is a community for thoughtful conversations and 24-hour photo Moments.">
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <title>Mjadala</title>
 <style>
-  :root { --green:#0b6b4f; --bg:#efeae2; --card:#fff; --mine:#d9fdd3; --text:#111b21; --muted:#667781; }
-  * { box-sizing: border-box; margin:0; padding:0; }
-  html,body { height:100%; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color:var(--text); background:var(--bg); }
-  button { font:inherit; cursor:pointer; border:0; }
-  input { font:inherit; }
-  .screen { display:none; height:100dvh; flex-direction:column; }
-  .screen.active { display:flex; }
-  header { background:var(--green); color:#fff; padding:12px 14px; display:flex; align-items:center; gap:10px; padding-top:calc(12px + env(safe-area-inset-top)); }
-  header h1 { font-size:18px; flex:1; }
-  header small { opacity:.8; font-size:12px; display:block; font-weight:400; }
-  header button { background:transparent; color:#fff; font-size:20px; padding:4px 8px; }
-  header button.txt { font-size:13px; border:1px solid rgba(255,255,255,.6); border-radius:14px; padding:4px 10px; }
-  #auth { justify-content:center; align-items:center; padding:20px; background:var(--green); }
-  .auth-card { background:#fff; border-radius:14px; padding:22px; width:100%; max-width:380px; }
-  .auth-card h2 { color:var(--green); margin-bottom:4px; }
-  .auth-card p { color:var(--muted); font-size:14px; margin-bottom:14px; }
-  .auth-card input { width:100%; padding:12px; border:1px solid #ccd; border-radius:8px; margin-bottom:10px; }
-  .primary { background:var(--green); color:#fff; padding:12px; border-radius:8px; width:100%; font-weight:600; }
-  .primary:disabled { opacity:.6; }
-  .link { background:none; color:var(--green); margin-top:10px; width:100%; }
-  .err { color:#b3261e; font-size:13px; min-height:18px; margin-bottom:6px; }
-  .copy { text-align:center; margin:12px 0 0 !important; font-size:12px !important; }
-  .copy a, .agree a { color:var(--green); }
-  .agree { display:none; font-size:13px; color:var(--muted); margin-bottom:10px; line-height:1.4; }
-  .auth-card .agree input { width:auto; margin:0 8px 0 0; vertical-align:middle; }
-  #roomlist { flex:1; overflow-y:auto; }
-  .room { background:var(--card); padding:14px; border-bottom:1px solid #eee; display:block; width:100%; text-align:left; }
-  .room b { display:block; }
-  .room span { color:var(--muted); font-size:13px; }
-  .fab { position:fixed; right:16px; bottom:calc(16px + env(safe-area-inset-bottom)); background:var(--green); color:#fff; border-radius:28px; padding:14px 18px; font-weight:600; box-shadow:0 3px 10px rgba(0,0,0,.25); }
-  .rules { background:#fff8e1; color:#5d4a00; font-size:12px; padding:8px 14px; }
-  .banned { background:#fdecea; color:#b3261e; font-size:13px; padding:8px 14px; display:none; }
-  #msgs { flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:6px; }
-  .msg { max-width:82%; background:var(--card); padding:7px 10px; border-radius:10px; align-self:flex-start; word-wrap:break-word; overflow-wrap:anywhere; box-shadow:0 1px 1px rgba(0,0,0,.08); }
-  .msg.mine { background:var(--mine); align-self:flex-end; }
-  .msg.hidden-msg { opacity:.5; }
-  .msg .who { font-size:12px; font-weight:700; color:var(--green); }
-  .msg .meta { font-size:11px; color:var(--muted); display:flex; gap:10px; justify-content:flex-end; margin-top:2px; }
-  .msg .meta button { background:none; color:var(--muted); font-size:11px; text-decoration:underline; }
-  .sys { align-self:center; font-size:12px; color:var(--muted); background:#e1f2fb; padding:4px 10px; border-radius:8px; }
-  form#send { display:flex; gap:8px; padding:8px; padding-bottom:calc(8px + env(safe-area-inset-bottom)); background:#f0f2f5; }
-  form#send input { flex:1; padding:12px; border:0; border-radius:22px; }
-  form#send button { background:var(--green); color:#fff; border-radius:50%; width:46px; height:46px; font-size:18px; }
-  #install { display:none; background:#fff; color:var(--green) !important; font-size:13px !important; font-weight:600; padding:6px 10px !important; border-radius:16px; }
-  .tabs { display:flex; background:#fff; border-bottom:1px solid #ddd; }
-  .tabs button { flex:1; padding:12px 6px; background:none; color:var(--muted); font-weight:600; border-bottom:3px solid transparent; }
-  .tabs button.on { color:var(--green); border-bottom-color:var(--green); }
-  #adminbody { flex:1; overflow-y:auto; padding:10px; }
-  #adminbody input[type=text], #adminbody input[type=number], #adminbody input[type=search] { width:100%; padding:10px; border:1px solid #ccd; border-radius:8px; margin-bottom:8px; }
-  .card { background:var(--card); border-radius:10px; padding:12px; margin-bottom:10px; box-shadow:0 1px 1px rgba(0,0,0,.08); }
-  .card h4 { font-size:15px; margin-bottom:2px; }
-  .card .sub { font-size:12px; color:var(--muted); }
-  .card .body { margin:6px 0; overflow-wrap:anywhere; }
-  .row { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
-  .btn { padding:8px 12px; border-radius:8px; background:#eef2f1; color:var(--text); font-size:13px; font-weight:600; }
-  .btn.danger { background:#fdecea; color:#b3261e; }
-  .btn.good { background:var(--green); color:#fff; }
-  .btn:disabled { opacity:.5; }
-  .tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:10px; background:#eef2f1; color:var(--muted); margin-left:6px; font-weight:600; }
-  .tag.red { background:#fdecea; color:#b3261e; }
-  .empty { text-align:center; color:var(--muted); padding:30px 10px; font-size:14px; }
-  .code { font-size:22px; font-weight:800; letter-spacing:2px; color:var(--green); }
+:root {
+  color-scheme: light;
+  --brand:#0b7658; --brand-strong:#075941; --brand-soft:#e3f5ee;
+  --bg:#f4f7f5; --surface:#ffffff; --surface-2:#f7faf8; --text:#14231d;
+  --muted:#6d7e76; --line:#e2eae5; --mine:#d9f7e8; --danger:#b42332;
+  --shadow:0 12px 36px rgba(22,55,39,.08); --radius:20px;
+}
+:root[data-theme="dark"] {
+  color-scheme:dark;
+  --brand:#48c69a; --brand-strong:#7be0b8; --brand-soft:#183c30;
+  --bg:#0d1713; --surface:#15221c; --surface-2:#1b2b23; --text:#eef7f1;
+  --muted:#a3b8ac; --line:#2a3d32; --mine:#214b38; --danger:#ff8b94;
+  --shadow:0 12px 36px rgba(0,0,0,.2);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--text);background:var(--bg)}
+body{letter-spacing:-.01em}
+button,input{font:inherit}button{cursor:pointer;border:0}button:focus-visible,input:focus-visible{outline:3px solid color-mix(in srgb,var(--brand) 45%,transparent);outline-offset:2px}
+.screen{display:none;min-height:100dvh;flex-direction:column}.screen.active{display:flex}
+header{position:relative;z-index:2;display:flex;align-items:center;gap:10px;padding:calc(14px + env(safe-area-inset-top)) max(16px,calc((100vw - 1080px)/2)) 14px;background:var(--surface);color:var(--text);border-bottom:1px solid var(--line)}
+header h1{font-size:20px;line-height:1.2;letter-spacing:-.04em;flex:1;min-width:0}header h1 small{display:block;font-size:12px;font-weight:500;color:var(--muted);letter-spacing:0;margin-top:4px;overflow-wrap:anywhere}
+header button{background:transparent;color:var(--text);font-size:18px;padding:8px;border-radius:12px}header button:hover{background:var(--surface-2)}header button.txt{font-size:12px;font-weight:700;border:1px solid var(--line);padding:8px 11px;white-space:nowrap}
+#auth{justify-content:center;align-items:center;padding:28px 18px;background:radial-gradient(ellipse at 12% 8%,rgba(85,205,157,.23),transparent 35%),radial-gradient(ellipse at 90% 95%,rgba(11,118,88,.18),transparent 38%),var(--bg);position:relative}
+.auth-card{position:relative;width:100%;max-width:440px;padding:clamp(24px,5vw,38px);border:1px solid var(--line);border-radius:28px;background:var(--surface);box-shadow:var(--shadow)}
+.auth-card:before{content:"M";display:grid;place-items:center;width:52px;height:52px;border-radius:17px;background:linear-gradient(145deg,var(--brand),var(--brand-strong));color:#fff;font-size:25px;font-weight:900;letter-spacing:-.08em;margin-bottom:20px;box-shadow:0 8px 20px rgba(11,118,88,.22)}
+.auth-card h2{font-size:32px;letter-spacing:-.06em;color:var(--text);margin-bottom:8px}.auth-card p{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:18px}.auth-card input:not([type=checkbox]){display:block;width:100%;padding:14px 15px;margin:0 0 12px;border:1px solid var(--line);border-radius:13px;background:var(--surface-2);color:var(--text)}
+.primary{background:var(--brand);color:#fff;padding:13px 16px;border-radius:13px;width:100%;font-weight:800;box-shadow:0 6px 16px rgba(11,118,88,.16);transition:transform .15s,filter .15s}.primary:hover{filter:brightness(1.04);transform:translateY(-1px)}.primary:disabled{opacity:.6;transform:none}
+.link{background:none;color:var(--brand);margin-top:12px;width:100%;padding:8px;font-weight:700}.err{color:var(--danger);font-size:13px;line-height:1.45;min-height:18px;margin-bottom:8px}.copy{text-align:center;margin:18px 0 0!important;font-size:12px!important}.copy a,.agree a{color:var(--brand)}.agree{display:none;font-size:13px;color:var(--muted);margin:4px 0 12px;line-height:1.5}.auth-card .agree input{width:auto;margin:0 8px 0 0;vertical-align:middle}
+#rooms{background:var(--bg)}#roomlist{width:100%;max-width:900px;margin:0 auto;padding:12px 16px 100px;overflow-y:auto;flex:1}
+.home-tabs{display:flex;gap:6px;padding:8px;margin:16px auto 0;width:calc(100% - 32px);max-width:868px;background:var(--surface);border:1px solid var(--line);border-radius:16px}.home-tabs button{flex:1;border-radius:11px;padding:11px 8px;background:transparent;color:var(--muted);font-weight:750;font-size:13px;transition:background .15s,color .15s}.home-tabs button.on{background:var(--brand-soft);color:var(--brand-strong)}
+.room{display:flex;flex-direction:column;gap:6px;position:relative;width:100%;text-align:left;padding:18px 18px 18px 64px;margin:8px 0;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:18px;box-shadow:0 2px 8px rgba(20,35,29,.025);transition:transform .15s,border-color .15s,box-shadow .15s}.room:before{content:"#";position:absolute;left:17px;top:18px;display:grid;place-items:center;width:34px;height:34px;border-radius:12px;background:var(--brand-soft);color:var(--brand);font-size:21px;font-weight:800}.room:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--brand) 35%,var(--line));box-shadow:var(--shadow)}.room b{display:block;font-size:16px;font-weight:800;letter-spacing:-.025em}.room span{color:var(--muted);font-size:13px;line-height:1.45}
+.fab{position:fixed;right:max(18px,calc((100vw - 900px)/2));bottom:calc(20px + env(safe-area-inset-bottom));z-index:3;background:var(--brand);color:#fff;border-radius:16px;padding:14px 19px;font-weight:800;box-shadow:0 12px 28px rgba(11,118,88,.28)}.rules{width:calc(100% - 32px);max-width:868px;margin:14px auto 0;padding:12px 14px;border:1px solid color-mix(in srgb,#e6ad43 28%,var(--line));border-radius:14px;background:color-mix(in srgb,#f6c85f 12%,var(--surface));color:var(--muted);font-size:12px;line-height:1.5}.banned{background:color-mix(in srgb,#c93443 12%,var(--surface));color:var(--danger);font-size:13px;padding:10px 16px;text-align:center;display:none}
+#moments-screen{overflow-y:auto;width:100%;max-width:900px;margin:0 auto;padding-bottom:28px}.moment-compose{background:var(--surface);margin:14px 16px;padding:20px;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}.moment-compose h2{font-size:21px;letter-spacing:-.04em;margin-bottom:6px}.moment-compose p{color:var(--muted);font-size:13px;line-height:1.5;margin-bottom:14px}.moment-compose input[type=file]{display:block;width:100%;margin:12px 0;padding:12px;border:1px dashed var(--line);border-radius:13px;background:var(--surface-2);color:var(--muted)}.moment-compose input[type=text]{width:100%;margin:0 0 12px;border:1px solid var(--line);border-radius:12px;padding:12px 13px;background:var(--surface-2);color:var(--text)}.moment-compose .primary{max-width:220px}.moment-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:0 16px 18px}.moment-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden;min-width:0;box-shadow:0 4px 14px rgba(20,35,29,.05)}.moment-card img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block;background:var(--surface-2)}.moment-caption{padding:12px;font-size:13px;line-height:1.45;overflow-wrap:anywhere}.moment-caption small{display:block;color:var(--muted);margin-top:7px;font-size:11px}.moment-actions{padding:0 12px 12px}.muted-note{color:var(--muted);font-size:12px;padding:0 16px 12px}
+#chat{background:var(--bg)}#msgs{flex:1;width:100%;max-width:900px;margin:0 auto;overflow-y:auto;padding:20px 16px 24px;display:flex;flex-direction:column;gap:9px}.msg{max-width:min(82%,620px);background:var(--surface);padding:11px 13px;border:1px solid var(--line);border-radius:16px 16px 16px 5px;align-self:flex-start;word-wrap:break-word;overflow-wrap:anywhere;box-shadow:0 2px 5px rgba(20,35,29,.03)}.msg.mine{background:var(--mine);border-color:transparent;align-self:flex-end;border-radius:16px 16px 5px 16px}.msg.hidden-msg{opacity:.55}.msg .who{font-size:12px;font-weight:800;color:var(--brand);margin-bottom:4px}.msg .meta{font-size:11px;color:var(--muted);display:flex;gap:12px;justify-content:flex-end;align-items:center;margin-top:7px}.msg .meta button{background:none;color:var(--muted);font-size:11px;text-decoration:underline}.sys{align-self:center;font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--line);padding:7px 12px;border-radius:99px;text-align:center;max-width:95%}
+form#send{position:sticky;bottom:0;display:flex;gap:9px;padding:12px max(16px,calc((100vw - 900px)/2));padding-bottom:calc(12px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--line)}form#send input{flex:1;min-width:0;padding:13px 16px;border:1px solid var(--line);border-radius:99px;background:var(--surface-2);color:var(--text)}form#send button{background:var(--brand);color:#fff;border-radius:50%;width:48px;height:48px;flex:0 0 48px;font-size:18px;font-weight:800}
+#install{display:none;background:var(--brand-soft);color:var(--brand-strong)!important;font-size:12px!important;font-weight:800!important;padding:8px 10px!important;border-radius:12px}.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--line);padding:0 12px}.tabs button{flex:1;padding:14px 6px;background:none;color:var(--muted);font-weight:750;border-bottom:3px solid transparent}.tabs button.on{color:var(--brand);border-bottom-color:var(--brand)}#adminbody{flex:1;overflow-y:auto;padding:16px;width:100%;max-width:900px;margin:0 auto}.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(20,35,29,.03)}.card h4{font-size:15px;margin-bottom:5px}.card .sub{font-size:12px;color:var(--muted);line-height:1.5}.card .body{margin:8px 0;overflow-wrap:anywhere;line-height:1.5}.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.btn{padding:9px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);color:var(--text);font-size:12px;font-weight:750}.btn.danger{background:color-mix(in srgb,#c93443 10%,var(--surface));color:var(--danger)}.btn.good{background:var(--brand);color:#fff;border-color:transparent}.btn:disabled{opacity:.5}.tag{display:inline-block;font-size:10px;padding:3px 8px;border-radius:99px;background:var(--surface-2);color:var(--muted);margin-left:6px;font-weight:800}.tag.red{background:color-mix(in srgb,#c93443 12%,var(--surface));color:var(--danger)}.empty{text-align:center;color:var(--muted);padding:36px 16px;font-size:14px;line-height:1.5;grid-column:1/-1}.code{font-size:22px;font-weight:900;letter-spacing:2px;color:var(--brand)}
+@media(min-width:760px){#rooms header,#chat header,#admin header{padding-left:max(24px,calc((100vw - 1080px)/2));padding-right:max(24px,calc((100vw - 1080px)/2))}.moment-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.moment-compose{margin-top:18px}}
+@media(max-width:420px){header{gap:5px;padding-left:12px;padding-right:12px}header h1{font-size:18px}header button.txt{font-size:11px;padding:7px 8px}.auth-card{border-radius:23px}.moment-compose{padding:16px}.moment-grid{gap:8px;padding-left:12px;padding-right:12px}.moment-caption{padding:9px}.msg{max-width:90%}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;scroll-behavior:auto!important}}
+
 </style>
 </head>
 <body>
@@ -81,8 +60,9 @@
 <!-- LOGIN / SIGN UP -->
 <section id="auth" class="screen active">
   <div class="auth-card">
+    <button class="theme-toggle" type="button" aria-label="Switch colour theme" title="Switch colour theme" style="position:absolute;right:18px;top:18px">☾</button>
     <h2>Mjadala</h2>
-    <p>Discuss what matters. Use a nickname, not your real name.</p>
+    <p>Real conversations. Fresh perspectives. Find your people and discuss what matters — with a nickname, not your real name.</p>
     <input id="u" placeholder="Nickname (3-20 letters/numbers)" autocomplete="username" autocapitalize="none">
     <input id="p" type="password" placeholder="Password (6+ characters)" autocomplete="current-password">
     <input id="invite" placeholder="Invite code" autocapitalize="characters" autocomplete="off" style="display:none">
@@ -98,13 +78,30 @@
 <section id="rooms" class="screen">
   <header>
     <h1>Mjadala<small id="me"></small></h1>
+    <button class="theme-toggle" type="button" aria-label="Switch colour theme" title="Switch colour theme">☾</button>
     <button id="install">Install app</button>
     <button class="txt" id="adminbtn" style="display:none">Admin</button>
     <button class="txt" id="logout">Log out</button>
   </header>
   <div class="banned" id="bannedbar">Your account is restricted. You can read but not post.</div>
   <div class="rules">Be respectful. Argue with facts, not insults. Report abuse with the Report link on a message.</div>
+  <div class="home-tabs" id="home-tabs">
+    <button class="on" data-home="rooms">✳ Discussions</button>
+    <button data-home="moments-screen">◉ Moments</button>
+  </div>
   <div id="roomlist"></div>
+  <section id="moments-screen" style="display:none">
+    <div class="moment-compose">
+      <h2>Share a Moment</h2>
+      <p>Photos disappear after 24 hours. You can have up to five active Moments. Duplicate active photos are blocked.</p>
+      <input id="moment-file" type="file" accept="image/jpeg,image/png,image/webp">
+      <input id="moment-caption" type="text" maxlength="180" placeholder="Add a caption (optional)">
+      <button class="primary" id="moment-upload">Post Moment</button>
+      <div id="moment-status" class="err" aria-live="polite" style="margin-top:8px"></div>
+    </div>
+    <div class="muted-note" id="moment-count">Loading your Moments…</div>
+    <div class="moment-grid" id="moment-grid"></div>
+  </section>
   <button class="fab" id="newroom">+ New room</button>
 </section>
 
@@ -113,6 +110,7 @@
   <header>
     <button id="back">←</button>
     <h1><span id="roomname"></span><small id="online"></small></h1>
+    <button class="theme-toggle" type="button" aria-label="Switch colour theme" title="Switch colour theme">☾</button>
     <button class="txt" id="delroom" style="display:none">Delete room</button>
   </header>
   <div id="msgs"></div>
@@ -127,6 +125,7 @@
   <header>
     <button id="adminback">←</button>
     <h1>Admin panel<small id="adminwho"></small></h1>
+    <button class="theme-toggle" type="button" aria-label="Switch colour theme" title="Switch colour theme">☾</button>
   </header>
   <div class="tabs">
     <button data-tab="reports" class="on">Reports</button>
@@ -156,6 +155,26 @@ const nameCache = {};       // author id -> nickname
 const isStaff = () => me && (me.role === "admin" || me.role === "moderator");
 const toEmail = nick => nick.trim().toLowerCase() + "@" + AUTH_DOMAIN;
 
+/* Theme preference: independent of system theme after the user chooses. */
+function applyTheme(theme) {
+  const chosen = theme === "dark" || theme === "light" ? theme : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  document.documentElement.dataset.theme = chosen;
+  document.querySelectorAll(".theme-toggle").forEach(button => {
+    button.textContent = chosen === "dark" ? "☀" : "☾";
+    button.setAttribute("aria-label", chosen === "dark" ? "Switch to light theme" : "Switch to dark theme");
+    button.title = chosen === "dark" ? "Switch to light theme" : "Switch to dark theme";
+  });
+}
+function toggleTheme() {
+  const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  try { localStorage.setItem("mjadala-theme", next); } catch (_) {}
+  applyTheme(next);
+}
+document.querySelectorAll(".theme-toggle").forEach(button => button.addEventListener("click", toggleTheme));
+let savedTheme = null;
+try { savedTheme = localStorage.getItem("mjadala-theme"); } catch (_) {}
+applyTheme(savedTheme);
+
 function show(name) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   $(name).classList.add("active");
@@ -175,9 +194,15 @@ function friendly(e) {
 let needInvite = false;
 async function refreshInviteRule() {
   // Asks the database whether sign-up currently needs an invite code.
-  // If the question fails (for example the update was not installed), sign-up stays open.
+  // Fail closed if invite settings cannot be checked; never silently bypass invite-only mode.
   const { data, error } = await sb.rpc("signup_needs_invite");
-  needInvite = !error && data === true;
+  if (error) {
+    needInvite = true;
+    $("invite").style.display = mode === "register" ? "block" : "none";
+    if (mode === "register") $("autherr").textContent = "Couldn't verify invite settings. Please try again before creating an account.";
+    return;
+  }
+  needInvite = data === true;
   $("invite").style.display = (mode === "register" && needInvite) ? "block" : "none";
 }
 
@@ -243,6 +268,19 @@ $("logout").onclick = async () => {
   show("auth");
 };
 
+/* ---------- Home navigation ---------- */
+let homeTab = "rooms";
+document.querySelectorAll("[data-home]").forEach(b => {
+  b.onclick = () => {
+    homeTab = b.dataset.home;
+    document.querySelectorAll("[data-home]").forEach(x => x.classList.toggle("on", x === b));
+    $("roomlist").style.display = homeTab === "rooms" ? "block" : "none";
+    $("moments-screen").style.display = homeTab === "moments-screen" ? "block" : "none";
+    $("newroom").style.display = homeTab === "rooms" && isStaff() ? "block" : "none";
+    if (homeTab === "moments-screen") loadMoments();
+  };
+});
+
 /* ---------- Rooms ---------- */
 async function openRooms() {
   leaveChannel();
@@ -251,6 +289,11 @@ async function openRooms() {
   $("bannedbar").style.display = me.is_banned ? "block" : "none";
   $("adminbtn").style.display = isStaff() ? "inline-block" : "none";
   show("rooms");
+  homeTab = "rooms";
+  document.querySelectorAll("[data-home]").forEach(x => x.classList.toggle("on", x.dataset.home === "rooms"));
+  $("roomlist").style.display = "block";
+  $("moments-screen").style.display = "none";
+  $("newroom").style.display = isStaff() ? "block" : "none";
   const { data, error } = await sb.from("rooms").select("id, name, description, created_by").order("id", { ascending: true });
   $("roomlist").innerHTML = "";
   if (error) { $("roomlist").textContent = friendly(error); return; }
@@ -272,6 +315,95 @@ $("newroom").onclick = async () => {
   const { error } = await sb.from("rooms").insert({ name, description, created_by: me.id });
   if (error) { alert(error.code === "23505" ? "A room with that name exists" : friendly(error)); return; }
   openRooms();
+};
+
+/* ---------- Moments ---------- */
+async function imageHash(file) {
+  const bytes = await file.arrayBuffer();
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, "0")).join("");
+}
+function momentError(e) {
+  const message = friendly(e);
+  if (/at most five|maximum.*five/i.test(message)) return "You already have five active Moments. Delete one or wait for one to expire.";
+  if (/already in your active|already.*Moments/i.test(message)) return "You've already posted this photo in an active Moment.";
+  if (/bucket|storage/i.test(message) && /not found|does not exist/i.test(message)) return "Moments storage is not set up yet. The database update needs to be applied first.";
+  return message;
+}
+async function loadMoments() {
+  const grid = $("moment-grid");
+  const count = $("moment-count");
+  grid.innerHTML = "";
+  count.textContent = "Loading your Moments…";
+  const { data, error } = await sb.from("moments")
+    .select("id,user_id,storage_path,caption,created_at,expires_at")
+    .gt("expires_at", new Date().toISOString()).order("created_at", { ascending: false });
+  if (error) {
+    count.textContent = "Moments need the database update before they can be used.";
+    return;
+  }
+  const own = (data || []).filter(m => m.user_id === me.id);
+  count.textContent = own.length + " of 5 active Moments used · expires 24 hours after posting";
+  if (!data || !data.length) {
+    const empty = el("div", "empty", "No active Moments yet. Share the first photo.");
+    grid.appendChild(empty);
+    return;
+  }
+  for (const m of data) {
+    const { data: signed, error: signError } = await sb.storage.from("mjadala-moments").createSignedUrl(m.storage_path, 3600);
+    if (signError || !signed?.signedUrl) continue;
+    const card = el("article", "moment-card");
+    const img = el("img"); img.src = signed.signedUrl; img.alt = m.caption || "Mjadala Moment"; img.loading = "lazy";
+    const caption = el("div", "moment-caption", m.caption || "");
+    const time = el("small", "", "Expires " + new Date(m.expires_at).toLocaleString()); caption.appendChild(time);
+    card.appendChild(img); card.appendChild(caption);
+    if (m.user_id === me.id) {
+      const actions = el("div", "moment-actions");
+      actions.appendChild(actionBtn("Delete Moment", "danger", async () => {
+        if (!confirm("Delete this Moment?")) return;
+        const { error: storageError } = await sb.storage.from("mjadala-moments").remove([m.storage_path]);
+        if (storageError) throw storageError;
+        const { error: rowError } = await sb.from("moments").delete().eq("id", m.id);
+        if (rowError) throw rowError;
+        loadMoments();
+      }));
+      card.appendChild(actions);
+    }
+    grid.appendChild(card);
+  }
+}
+$("moment-upload").onclick = async () => {
+  const button = $("moment-upload"), fileInput = $("moment-file"), status = $("moment-status");
+  status.textContent = "";
+  const file = fileInput.files && fileInput.files[0];
+  if (!file) { status.textContent = "Choose a photo first."; return; }
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) { status.textContent = "Use a JPG, PNG, or WebP photo."; return; }
+  if (file.size > 5 * 1024 * 1024) { status.textContent = "Photo must be 5 MB or smaller."; return; }
+  if (me.is_banned) { status.textContent = "Your account is restricted from posting."; return; }
+  button.disabled = true; button.textContent = "Uploading…";
+  let path = null;
+  try {
+    const hash = await imageHash(file);
+    const { data: reserved, error: reserveError } = await sb.rpc("reserve_moment_upload", { p_content_hash: hash });
+    if (reserveError) throw reserveError;
+    path = reserved;
+    const { error: uploadError } = await sb.storage.from("mjadala-moments").upload(path, file, { contentType: file.type, upsert: false });
+    if (uploadError) throw uploadError;
+    const { error: createError } = await sb.rpc("create_moment_record", {
+      p_storage_path: path, p_content_hash: hash, p_caption: $("moment-caption").value.trim()
+    });
+    if (createError) {
+      await sb.storage.from("mjadala-moments").remove([path]);
+      throw createError;
+    }
+    fileInput.value = ""; $("moment-caption").value = "";
+    status.textContent = "Moment posted. It will expire in 24 hours.";
+    await loadMoments();
+  } catch (e) {
+    status.textContent = momentError(e);
+  } finally {
+    button.disabled = false; button.textContent = "Post Moment";
+  }
 };
 
 /* ---------- Chat ---------- */
