@@ -133,6 +133,45 @@ form#send button {background:var(--brand);color:#111827}
   .room {border-radius:16px}
 }
 
+
+/* Step 2 — People directory and circular profile framing */
+:root { --brand:#4F46E5; --brand-strong:#4338CA; --brand-soft:#EEEAFE; }
+:root[data-theme="dark"] { --brand:#A5B4FC; --brand-strong:#818CF8; --brand-soft:#24234A; }
+.home-tabs button { min-width:0; }
+.profile-avatar,.public-avatar,.person-avatar,.profile-avatar img {
+  border-radius:50% !important; aspect-ratio:1 / 1; object-fit:cover;
+}
+.profile-avatar {
+  width:96px;height:96px;overflow:hidden;display:grid;place-items:center;
+  background:var(--brand-soft);color:var(--brand-strong);border:2px solid var(--line);
+  flex:0 0 96px;
+}
+.profile-avatar img { width:100%;height:100%;display:block;object-position:var(--avatar-x,50%) var(--avatar-y,50%); }
+.crop-preview {width:132px;height:132px;border-radius:50%;overflow:hidden;background:var(--brand-soft);border:3px solid var(--brand);margin:8px auto 16px;display:grid;place-items:center;color:var(--brand-strong);font-weight:900;font-size:40px}
+.crop-preview img {width:100%;height:100%;object-fit:cover;object-position:var(--avatar-x,50%) var(--avatar-y,50%);display:block}
+.crop-controls {display:grid;grid-template-columns:1fr;gap:8px;margin:8px 0 14px}
+.crop-controls label {font-size:12px;color:var(--muted);font-weight:700;display:flex;align-items:center;gap:10px}
+.crop-controls input[type=range] {width:100%;accent-color:var(--brand-strong)}
+#people-screen {overflow-y:auto;width:100%;max-width:900px;margin:0 auto;padding-bottom:28px}
+.people-panel,.public-profile-panel {width:calc(100% - 32px);max-width:868px;margin:14px auto;padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}
+.people-panel h2,.public-profile-panel h2 {font-size:22px;letter-spacing:-.04em;margin-bottom:6px}
+.people-panel p {font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:14px}
+.people-search {width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:13px;background:var(--surface-2);color:var(--text);margin:8px 0 14px}
+.people-list {display:grid;gap:10px}
+.person-card {display:flex;align-items:center;gap:13px;text-align:left;width:100%;padding:13px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--text);min-width:0}
+.person-card:hover {border-color:var(--brand);background:var(--surface-2)}
+.person-avatar {width:56px;height:56px;flex:0 0 56px;overflow:hidden;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand-strong);font-size:20px;font-weight:900;border:1px solid var(--line)}
+.person-avatar img {width:100%;height:100%;object-fit:cover;display:block}
+.person-copy {min-width:0;display:block}
+.person-copy b {display:block;overflow-wrap:anywhere}
+.person-copy span {display:block;font-size:12px;line-height:1.4;color:var(--muted);margin-top:3px;overflow-wrap:anywhere}
+.public-profile-top {display:flex;align-items:center;gap:16px;margin-bottom:16px}
+.public-avatar {width:104px;height:104px;flex:0 0 104px;overflow:hidden;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand-strong);font-size:34px;font-weight:900;border:2px solid var(--line)}
+.public-avatar img {width:100%;height:100%;object-fit:cover;display:block}
+.public-bio {white-space:pre-wrap;line-height:1.6;overflow-wrap:anywhere;color:var(--text);margin:14px 0}
+.people-back {margin-bottom:14px}
+@media(max-width:420px){.home-tabs button{font-size:11px;padding:10px 3px}.public-profile-top{align-items:flex-start}.public-avatar{width:84px;height:84px;flex-basis:84px}}
+
 </style>
 </head>
 <body>
@@ -193,9 +232,27 @@ form#send button {background:var(--brand);color:#111827}
       <div id="group-detail" class="group-chat" style="display:none"></div>
     </div>
   </section>
+  <section id="people-screen" style="display:none">
+    <div class="people-panel">
+      <h2>Find your people</h2>
+      <p>Discover creators, builders and communities on Mjadala. Search by nickname or bio.</p>
+      <input id="people-search" class="people-search" type="search" maxlength="80" placeholder="Search nicknames and bios…" autocomplete="off">
+      <div id="people-status" class="muted-note" aria-live="polite">Loading people…</div>
+      <div id="people-list" class="people-list"></div>
+    </div>
+  </section>
+  <section id="public-profile-screen" style="display:none;overflow-y:auto;width:100%;max-width:900px;margin:0 auto;padding-bottom:28px">
+    <div class="public-profile-panel" id="public-profile-content"></div>
+  </section>
   <section id="profile-screen" style="display:none;overflow-y:auto;width:100%;max-width:900px;margin:0 auto;padding-bottom:28px">
     <div class="profile-panel"><h2>Your profile</h2><p>Choose how other Mjadala members see you. Your nickname is your public identity.</p>
       <div id="profile-avatar" class="profile-avatar">M</div>
+      <div id="crop-preview" class="crop-preview">M</div>
+      <div class="crop-controls">
+        <label>Horizontal framing <input id="avatar-x" type="range" min="0" max="100" value="50"></label>
+        <label>Vertical framing <input id="avatar-y" type="range" min="0" max="100" value="50"></label>
+        <small style="color:var(--muted)">Move the sliders until your photo is framed the way you want. The circular preview shows the crop.</small>
+      </div>
       <label for="profile-photo" style="display:block;font-size:13px;color:var(--muted);margin-bottom:7px">Profile photo (optional)</label><input id="profile-photo" type="file" accept="image/jpeg,image/png,image/webp">
       <input id="profile-nickname" maxlength="20" placeholder="Nickname (3–20 letters, numbers or underscore)">
       <textarea id="profile-bio" maxlength="180" placeholder="A little about you (180 characters max)"></textarea>
@@ -375,11 +432,12 @@ document.querySelectorAll("[data-home]").forEach(b => {
     homeTab = b.dataset.home;
     document.querySelectorAll("[data-home]").forEach(x => x.classList.toggle("on", x === b));
     $("roomlist").style.display = homeTab === "rooms" ? "block" : "none";
-    ["moments-screen","groups-screen","profile-screen"].forEach(id => { const node=$(id); if(node) node.style.display = homeTab===id ? "block" : "none"; });
+    ["moments-screen","groups-screen","profile-screen","people-screen","public-profile-screen"].forEach(id => { const node=$(id); if(node) node.style.display = homeTab===id ? "block" : "none"; });
     $("newroom").style.display = homeTab === "rooms" && isStaff() ? "block" : "none";
     if (homeTab === "moments-screen") loadMoments();
     if (homeTab === "groups-screen") loadGroups();
     if (homeTab === "profile-screen") loadProfile();
+    if (homeTab === "people-screen") loadPeople();
   };
 });
 
@@ -394,7 +452,7 @@ async function openRooms() {
   homeTab = "rooms";
   document.querySelectorAll("[data-home]").forEach(x => x.classList.toggle("on", x.dataset.home === "rooms"));
   $("roomlist").style.display = "block";
-  ["moments-screen","groups-screen","profile-screen"].forEach(id=>{if($(id)) $(id).style.display="none";});
+  ["moments-screen","groups-screen","profile-screen","people-screen","public-profile-screen"].forEach(id=>{if($(id)) $(id).style.display="none";});
   $("newroom").style.display = isStaff() ? "block" : "none";
   const { data, error } = await sb.from("rooms").select("id, name, description, created_by").order("id", { ascending: true });
   $("roomlist").innerHTML = "";
@@ -634,32 +692,119 @@ $("send").onsubmit = async e => {
 };
 
 /* ---------- Profile editor ---------- */
-async function loadProfile(){
+let profilePhotoUrl = "";
+let avatarX = 50, avatarY = 50, pendingPhotoObjectUrl = "";
+function setAvatarPosition(node, x=avatarX, y=avatarY) {
+  if (!node) return;
+  node.style.setProperty("--avatar-x", `${x}%`);
+  node.style.setProperty("--avatar-y", `${y}%`);
+}
+function updateCropPreview(url) {
+  const preview=$("crop-preview");
+  preview.innerHTML="";
+  if(url) { const img=el("img"); img.src=url; img.alt="Circular photo crop preview"; preview.appendChild(img); }
+  else preview.textContent=($("profile-nickname").value||me?.nickname||"M").slice(0,1).toUpperCase();
+  setAvatarPosition(preview,avatarX,avatarY);
+}
+function applyProfileAvatar(node,url,nickname,x=50,y=50) {
+  node.innerHTML="";
+  if(url){const img=el("img");img.src=url;img.alt="Profile photo";img.style.objectFit="cover";node.appendChild(img);}
+  else node.textContent=(nickname||"M").slice(0,1).toUpperCase();
+  setAvatarPosition(node,x,y);
+}
+function loadProfile(){
   if(!me) return;
   $("profile-status").textContent=""; $("profile-nickname").value=me.nickname||"";
-  const {data,error}=await sb.from("profiles").select("nickname,bio,avatar_url").eq("id",me.id).maybeSingle();
-  if(error){$("profile-status").textContent="Profile fields may need the profile migration. "+friendly(error);return;}
-  $("profile-nickname").value=data?.nickname||me.nickname||""; $("profile-bio").value=data?.bio||"";
-  const avatar=$("profile-avatar"); avatar.textContent=(data?.nickname||me.nickname||"M").slice(0,1).toUpperCase();
-  if(data?.avatar_url){avatar.innerHTML="";const img=el("img","profile-avatar");img.src=data.avatar_url;img.alt="Profile photo";img.style.objectFit="cover";avatar.replaceWith(img);img.id="profile-avatar";}
+  const run=async()=>{
+    const {data,error}=await sb.from("profiles").select("nickname,bio,avatar_url,avatar_position_x,avatar_position_y").eq("id",me.id).maybeSingle();
+    if(error){$("profile-status").textContent="Profile fields may need the profile migration. "+friendly(error);return;}
+    $("profile-nickname").value=data?.nickname||me.nickname||""; $("profile-bio").value=data?.bio||"";
+    profilePhotoUrl=data?.avatar_url||"";
+    avatarX=Number.isFinite(Number(data?.avatar_position_x))?Number(data.avatar_position_x):50;
+    avatarY=Number.isFinite(Number(data?.avatar_position_y))?Number(data.avatar_position_y):50;
+    $("avatar-x").value=avatarX; $("avatar-y").value=avatarY;
+    applyProfileAvatar($("profile-avatar"),profilePhotoUrl,data?.nickname||me.nickname,avatarX,avatarY);
+    updateCropPreview(profilePhotoUrl);
+  };
+  run();
 }
+$("avatar-x").oninput=()=>{avatarX=Number($("avatar-x").value);setAvatarPosition($("crop-preview"),avatarX,avatarY);setAvatarPosition($("profile-avatar"),avatarX,avatarY);};
+$("avatar-y").oninput=()=>{avatarY=Number($("avatar-y").value);setAvatarPosition($("crop-preview"),avatarX,avatarY);setAvatarPosition($("profile-avatar"),avatarX,avatarY);};
+$("profile-nickname").oninput=()=>{if(!$("profile-photo").files[0]&&!profilePhotoUrl)updateCropPreview("");};
+$("profile-photo").onchange=()=>{
+  const file=$("profile-photo").files[0];
+  if(pendingPhotoObjectUrl) URL.revokeObjectURL(pendingPhotoObjectUrl);
+  pendingPhotoObjectUrl="";
+  if(!file){updateCropPreview(profilePhotoUrl);return;}
+  if(!/^image\/(jpeg|png|webp)$/.test(file.type)){$("profile-status").textContent="Use a JPG, PNG or WebP image.";return;}
+  pendingPhotoObjectUrl=URL.createObjectURL(file);updateCropPreview(pendingPhotoObjectUrl);
+};
 $("profile-save").onclick=async()=>{
   const nick=$("profile-nickname").value.trim(), bio=$("profile-bio").value.trim().slice(0,180); const status=$("profile-status"); status.textContent="";
   if(!/^[A-Za-z0-9_]{3,20}$/.test(nick)){status.textContent="Nickname must be 3–20 letters, numbers or underscores.";return;}
   try{
-    let avatar_url=null; const file=$("profile-photo").files[0];
+    let avatar_url=profilePhotoUrl; const file=$("profile-photo").files[0];
     if(file){if(!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error("Use a JPG, PNG or WebP image.");if(file.size>4*1024*1024) throw new Error("Profile photos must be 4 MB or smaller.");
       const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";const key=me.id+"/avatar."+ext;
-      const up=await sb.storage.from("profile-photos").upload(key,file,{upsert:true,contentType:file.type});if(up.error) throw new Error("Photo storage is not set up yet. Save text details first, then create the profile-photos bucket.");
+      const up=await sb.storage.from("profile-photos").upload(key,file,{upsert:true,contentType:file.type});if(up.error) throw new Error("Photo storage is not set up yet. "+friendly(up.error));
       const pub=sb.storage.from("profile-photos").getPublicUrl(key);avatar_url=pub.data.publicUrl;
     }
     if(nick.toLowerCase()!==me.nickname.toLowerCase()) {const taken=await sb.from("profiles").select("id").ilike("nickname",nick).neq("id",me.id).limit(1);if(taken.error) throw taken.error;if(taken.data?.length) throw new Error("That nickname is already taken.");}
-    const update={nickname:nick,bio}; if(avatar_url) update.avatar_url=avatar_url;
+    const update={nickname:nick,bio,avatar_position_x:Math.round(avatarX),avatar_position_y:Math.round(avatarY)};
+    if(file) update.avatar_url=avatar_url;
     const result=await sb.from("profiles").update(update).eq("id",me.id);if(result.error) throw result.error;
     me.nickname=nick;nameCache[me.id]=nick;$("me").textContent="Signed in as "+nick+(isStaff()?" ("+me.role+")":"");
+    profilePhotoUrl=avatar_url;$("profile-photo").value="";
+    if(pendingPhotoObjectUrl){URL.revokeObjectURL(pendingPhotoObjectUrl);pendingPhotoObjectUrl="";}
     status.textContent="Profile saved.";await loadProfile();
   }catch(e){status.textContent=friendly(e);}
 };
+
+/* ---------- Public People directory ---------- */
+let peopleSearchTimer=null, peopleRequest=0;
+function makeAvatar(url,nickname,cls="person-avatar",x=50,y=50) {
+  const box=el("div",cls);
+  if(url){const img=el("img");img.src=url;img.alt=nickname+" profile photo";img.loading="lazy";img.style.objectPosition=`${x}% ${y}%`;box.appendChild(img);}
+  else box.textContent=(nickname||"M").slice(0,1).toUpperCase();
+  return box;
+}
+async function loadPeople() {
+  if(!me)return;
+  const request=++peopleRequest, list=$("people-list"), status=$("people-status");
+  list.innerHTML="";status.textContent="Searching profiles…";
+  const term=$("people-search").value.trim().replace(/[,%()]/g," ").slice(0,80);
+  let query=sb.from("profiles").select("id,nickname,bio,avatar_url,avatar_position_x,avatar_position_y").neq("id",me.id).order("nickname",{ascending:true}).limit(100);
+  if(term) query=query.or(`nickname.ilike.%${term}%,bio.ilike.%${term}%`);
+  const {data,error}=await query;
+  if(request!==peopleRequest)return;
+  if(error){status.textContent="Could not load public profiles. Check the Step 2 database migration and existing profile read permissions. "+friendly(error);return;}
+  list.innerHTML="";
+  if(!data?.length){status.textContent=term?"No profiles matched that search.":"No other profiles are visible yet.";return;}
+  status.textContent=data.length===100?"Showing up to 100 profiles. Search to narrow the list.":`${data.length} ${data.length===1?"person":"people"} found`;
+  data.forEach(p=>{
+    const card=el("button","person-card");card.type="button";
+    card.appendChild(makeAvatar(p.avatar_url,p.nickname,"person-avatar",p.avatar_position_x??50,p.avatar_position_y??50));
+    const copy=el("span","person-copy");copy.appendChild(el("b","",p.nickname));copy.appendChild(el("span","",p.bio||"Mjadala member"));card.appendChild(copy);
+    card.onclick=()=>openPublicProfile(p.id);list.appendChild(card);
+  });
+}
+$("people-search").addEventListener("input",()=>{clearTimeout(peopleSearchTimer);peopleSearchTimer=setTimeout(loadPeople,250);});
+async function openPublicProfile(id) {
+  $("roomlist").style.display="none";
+  ["moments-screen","groups-screen","profile-screen","people-screen"].forEach(x=>$(x).style.display="none");
+  $("public-profile-screen").style.display="block";
+  document.querySelectorAll("[data-home]").forEach(x=>x.classList.toggle("on",x.dataset.home==="people-screen"));
+  homeTab="public-profile-screen";
+  const content=$("public-profile-content");content.innerHTML="";content.appendChild(el("div","muted-note","Loading profile…"));
+  const {data,error}=await sb.from("profiles").select("id,nickname,bio,avatar_url,avatar_position_x,avatar_position_y").eq("id",id).maybeSingle();
+  content.innerHTML="";
+  const back=el("button","btn people-back","← Back to People");back.onclick=()=>{homeTab="people-screen";document.querySelectorAll("[data-home]").forEach(x=>x.classList.toggle("on",x.dataset.home==="people-screen"));$("public-profile-screen").style.display="none";$("people-screen").style.display="block";loadPeople();};content.appendChild(back);
+  if(error||!data){content.appendChild(el("div","empty","This profile is unavailable or not public."));return;}
+  const top=el("div","public-profile-top");
+  top.appendChild(makeAvatar(data.avatar_url,data.nickname,"public-avatar",data.avatar_position_x??50,data.avatar_position_y??50));
+  const identity=el("div");identity.appendChild(el("h2","",data.nickname));identity.appendChild(el("div","sub","Mjadala member"));top.appendChild(identity);content.appendChild(top);
+  content.appendChild(el("div","public-bio",data.bio||"This member hasn't added a bio yet."));
+}
 
 /* ---------- Private Groups ---------- */
 let currentGroup=null, groupRefreshTimer=null;

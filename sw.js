@@ -2,7 +2,7 @@
 // Service worker: keeps the app shell so it opens fast on a weak connection.
 // Network first, so a new version reaches users as soon as they reopen the app.
 // Only this site's own files are cached; chat data is never cached.
-const CACHE = "mjadala-web-v3";
+const CACHE = "mjadala-web-v4";
 const SHELL = ["/", "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", e => {

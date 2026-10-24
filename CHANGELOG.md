@@ -14,3 +14,9 @@
 - Expired Moment image files need a trusted scheduled cleanup worker; expiry hides Moments immediately, but physical file cleanup is a separate deployment task.
 - Groups and @mentions are planned next and are not implemented by this package.
 - The photo hash is computed by the browser; the reservation flow blocks ordinary duplicate uploads, but a determined client can forge a supplied hash. Stronger server-side content verification should be added before broad public launch.
+
+
+## Step 2 — People and public profiles
+- Added searchable People directory and public profile view.
+- Added circular profile photo preview with persistent horizontal/vertical framing.
+- Added additive profile-framing migration SQL; existing RLS policies are unchanged.
