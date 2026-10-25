@@ -285,6 +285,7 @@ header { border-bottom:0; background:var(--bg); padding-top:calc(16px + env(safe
 .short-card .short-play{position:absolute;top:12px;left:12px;z-index:1;background:#0007;border-radius:20px;padding:5px 8px;font-size:12px}
 .short-card .short-info{position:relative;z-index:1;padding:12px;font-size:12px;line-height:1.4}
 .short-info b{display:block;font-size:13px;margin-bottom:4px}
+.short-actions{position:relative;z-index:2;display:flex;flex-wrap:wrap;gap:5px;padding:0 9px 10px}.short-action{border:1px solid #ffffff55;border-radius:999px;background:#101827cc;color:#fff;padding:6px 8px;font-size:11px;font-weight:700}.short-action:active{transform:scale(.97)}.short-action.short-delete{background:#7f1d1dcc}
 .short-tag{display:inline-block;background:#ffffff24;border:1px solid #ffffff40;border-radius:999px;padding:3px 7px;margin-bottom:7px;font-size:10px}
 .shorts-empty{grid-column:1/-1;padding:24px 16px;border:1px dashed var(--line);border-radius:16px;color:var(--muted);text-align:center;line-height:1.6}
 .short-upload-panel{display:none;margin:12px 0 16px;padding:16px;border:1px solid var(--line);border-radius:18px;background:var(--surface)}
@@ -634,7 +635,7 @@ document.querySelectorAll("[data-home]").forEach(b => {
   };
 });
 
-/* ---------- Shorts: Supabase upload, feed and category filters ---------- */
+/* ---------- Shorts: private storage, playback and creator controls ---------- */
 const shortSamples = [];
 let publishedShorts = [];
 let activeShortCategory = "All";
@@ -645,16 +646,53 @@ async function loadPublishedShorts(){
   const grid=$("shorts-grid"); if(!grid || !me)return;
   grid.innerHTML='<div class="shorts-empty">Loading Shorts…</div>';
   try{
-    let query=sb.from("shorts").select("id,user_id,category_id,title,video_path,duration_seconds,created_at,short_categories(name,slug)").eq("status","published").order("created_at",{ascending:false}).limit(60);
-    const {data,error}=await query; if(error)throw error;
+    // Match MIGRATION_SHORTS.sql: storage_path/category/is_hidden, not video_path/category_id/status.
+    const {data,error}=await sb.from("shorts").select("id,user_id,storage_path,title,category,duration_seconds,created_at,is_hidden,mime_type").eq("is_hidden",false).order("created_at",{ascending:false}).limit(60);
+    if(error)throw error;
     const rows=data||[];
     publishedShorts=await Promise.all(rows.map(async item=>{
-      const {data:link,error:linkError}=await sb.storage.from(SHORT_BUCKET).createSignedUrl(item.video_path,3600);
-      if(linkError) return {...item,url:"",category:item.short_categories?.name||"Other"};
-      return {...item,url:link.signedUrl,category:item.short_categories?.name||"Other"};
+      const {data:link,error:linkError}=await sb.storage.from(SHORT_BUCKET).createSignedUrl(item.storage_path,3600);
+      return {...item,url:linkError?"":link?.signedUrl||"",category:item.category||"Other",playbackError:linkError?.message||""};
     }));
     renderShorts();
   }catch(e){grid.innerHTML='';const empty=el("div","shorts-empty");empty.textContent="Couldn't load Shorts: "+(e.message||"Check your database policies and connection.");grid.appendChild(empty);}
+}
+function addShortActionButton(actions,label,handler,cls=""){
+  const b=el("button","short-action "+cls,label);b.type="button";b.addEventListener("click",handler);actions.appendChild(b);return b;
+}
+async function deleteMyShort(item,card){
+  if(item.user_id!==me?.id){alert("You can only delete your own Short.");return;}
+  if(!confirm("Delete this Short permanently? This cannot be undone."))return;
+  const status=el("div","short-status");status.textContent="Deleting…";card.appendChild(status);
+  try{
+    const {error:storageError}=await sb.storage.from(SHORT_BUCKET).remove([item.storage_path]);
+    if(storageError)throw storageError;
+    const {data,error}=await sb.from("shorts").delete().eq("id",item.id).eq("user_id",me.id).select("id");
+    if(error)throw error;
+    if(!data?.length)throw new Error("The database did not confirm deletion. Check your delete policy.");
+    publishedShorts=publishedShorts.filter(x=>x.id!==item.id);renderShorts();
+  }catch(e){status.textContent="Could not delete: "+(e.message||"Check permissions.");}
+}
+async function toggleShortLike(item,button){
+  if(!me){alert("Sign in to like Shorts.");return;}
+  try{
+    const {data:existing,error:findError}=await sb.from("shorts_likes").select("short_id").eq("short_id",item.id).eq("user_id",me.id).maybeSingle();
+    if(findError)throw findError;
+    if(existing){const {error}=await sb.from("shorts_likes").delete().eq("short_id",item.id).eq("user_id",me.id);if(error)throw error;button.textContent="♡ Like";}
+    else {const {error}=await sb.from("shorts_likes").insert({short_id:item.id,user_id:me.id});if(error)throw error;button.textContent="♥ Liked";}
+  }catch(e){alert("Like feature needs the Shorts engagement SQL migration: "+(e.message||""));}
+}
+async function commentOnShort(item){
+  if(!me){alert("Sign in to comment.");return;}
+  const body=prompt("Write a comment (up to 500 characters):");if(body===null)return;
+  const text=body.trim();if(!text)return;if(text.length>500){alert("Comments are limited to 500 characters.");return;}
+  try{const {error}=await sb.from("shorts_comments").insert({short_id:item.id,user_id:me.id,body:text});if(error)throw error;alert("Comment posted.");}
+  catch(e){alert("Comment feature needs the Shorts engagement SQL migration: "+(e.message||""));}
+}
+async function shareShort(item){
+  const url=location.href.split("#")[0]+"#short-"+item.id;
+  try{if(navigator.share)await navigator.share({title:item.title||"Mjadala Short",text:"Watch this Short on Mjadala",url});else if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(url);alert("Short link copied.");}else prompt("Copy this Short link:",url);}
+  catch(e){if(e.name!=="AbortError")prompt("Copy this Short link:",url);}
 }
 function renderShorts(){
   const grid=$("shorts-grid");if(!grid)return;grid.innerHTML="";
@@ -662,11 +700,23 @@ function renderShorts(){
   const items=all.filter(item=>activeShortCategory==="All"||item.category===activeShortCategory);
   if(!items.length){const empty=el("div","shorts-empty");empty.textContent=activeShortCategory==="All"?"No Shorts yet. Be the first to share an idea.":"No Shorts in "+activeShortCategory+" yet. Be the first to share one.";grid.appendChild(empty);return;}
   items.forEach(item=>{
-    const card=el("div","short-card");
-    const video=el("video");video.src=item.url||"";video.muted=true;video.playsInline=true;video.preload="metadata";video.controls=true;video.setAttribute("aria-label",item.title||"Short video");card.appendChild(video);
+    const card=el("div","short-card");card.id="short-card-"+item.id;
+    const video=el("video");video.playsInline=true;video.preload="metadata";video.controls=true;video.muted=false;video.setAttribute("aria-label",item.title||"Short video");
+    if(item.url){video.src=item.url;video.addEventListener("error",()=>{const msg=el("span","short-play","Video unavailable — refresh Shorts");card.appendChild(msg);});}
+    else {video.controls=false;const msg=el("span","short-play",item.playbackError?"Playback link failed":"Video link unavailable");card.appendChild(msg);}
+    card.appendChild(video);
     const info=el("div","short-info"),tag=el("span","short-tag");tag.textContent=item.category;info.appendChild(tag);
     const title=el("b");title.textContent=item.title||"Untitled Short";info.appendChild(title);
-    const note=el("span");note.textContent=item.id?"Published Short":"Local preview · not published";info.appendChild(note);card.appendChild(info);grid.appendChild(card);
+    const note=el("span");note.textContent="Up to 15 seconds";info.appendChild(note);card.appendChild(info);
+    if(item.id){
+      const actions=el("div","short-actions");
+      addShortActionButton(actions,"♡ Like",b=>toggleShortLike(item,b));
+      addShortActionButton(actions,"💬 Comment",()=>commentOnShort(item));
+      addShortActionButton(actions,"↗ Share",()=>shareShort(item));
+      if(item.user_id===me?.id)addShortActionButton(actions,"🗑 Delete",()=>deleteMyShort(item,card),"short-delete");
+      card.appendChild(actions);
+    }
+    grid.appendChild(card);
   });
 }
 document.querySelectorAll("[data-short-category]").forEach(button=>button.addEventListener("click",()=>{activeShortCategory=button.dataset.shortCategory;document.querySelectorAll("[data-short-category]").forEach(b=>b.classList.toggle("active",b===button));renderShorts();}));
@@ -685,26 +735,16 @@ $("short-video-file").addEventListener("change",()=>{
 $("short-video-check").onclick=()=>{const file=$("short-video-file").files?.[0],preview=$("short-video-preview"),status=$("short-upload-status");if(!file||!shortPreviewUrl){status.textContent="Select or record a video first.";return;}if(!preview.duration||!Number.isFinite(preview.duration)){status.textContent="Wait for the video preview to load.";return;}if(preview.duration>15.05){status.textContent="Not ready: Shorts must be 15 seconds or shorter.";return;}status.textContent="Video passed the length check. Tap Publish Short to upload it.";};
 $("short-video-publish").onclick=async()=>{
   const file=$("short-video-file").files?.[0],preview=$("short-video-preview"),status=$("short-upload-status"),button=$("short-video-publish");
-  if(!me){status.textContent="Please sign in before publishing.";return;}
-  if(!file||!shortPreviewUrl){status.textContent="Record or choose a video first.";return;}
-  if(!preview.duration||!Number.isFinite(preview.duration)){status.textContent="Wait for the video preview to load.";return;}
-  if(preview.duration>15.05){status.textContent="Shorts must be 15 seconds or shorter.";return;}
-  if(file.size>50*1024*1024){status.textContent="Video exceeds the 50 MB limit.";return;}
-  button.disabled=true;status.textContent="Uploading video…";
+  if(!me){status.textContent="Please sign in before publishing.";return;}if(!file||!shortPreviewUrl){status.textContent="Record or choose a video first.";return;}if(!preview.duration||!Number.isFinite(preview.duration)){status.textContent="Wait for the video preview to load.";return;}if(preview.duration>15.05){status.textContent="Shorts must be 15 seconds or shorter.";return;}if(file.size>50*1024*1024){status.textContent="Video exceeds the 50 MB limit.";return;}
+  button.disabled=true;status.textContent="Uploading video…";let path="";
   try{
     const categoryName=$("short-video-category").value;
-    const {data:cat,error:catErr}=await sb.from("short_categories").select("id,name").eq("slug",shortCategorySlug(categoryName)).single();
-    if(catErr)throw catErr;
-    const ext=(file.name.split(".").pop()||"mp4").toLowerCase().replace(/[^a-z0-9]/g,"");
-    const path=me.id+"/"+crypto.randomUUID()+"."+ext;
-    const {error:upErr}=await sb.storage.from(SHORT_BUCKET).upload(path,file,{contentType:file.type||"video/mp4",upsert:false,cacheControl:"3600"});
-    if(upErr)throw upErr;
-    const {error:rowErr}=await sb.from("shorts").insert({user_id:me.id,category_id:cat.id,title:$("short-video-title").value.trim(),video_path:path,duration_seconds:Number(preview.duration.toFixed(2)),status:"published"});
+    if(!["Innovation","Education","Engineering","Business"].includes(categoryName))throw new Error("Choose a valid category.");
+    const ext=(file.name.split(".").pop()||"mp4").toLowerCase().replace(/[^a-z0-9]/g,"");path=me.id+"/"+crypto.randomUUID()+"."+ext;
+    const {error:upErr}=await sb.storage.from(SHORT_BUCKET).upload(path,file,{contentType:file.type||"video/mp4",upsert:false,cacheControl:"3600"});if(upErr)throw upErr;
+    const {error:rowErr}=await sb.from("shorts").insert({user_id:me.id,storage_path:path,title:$("short-video-title").value.trim(),category:categoryName,duration_seconds:Number(preview.duration.toFixed(2)),mime_type:file.type||"video/mp4"});
     if(rowErr){await sb.storage.from(SHORT_BUCKET).remove([path]);throw rowErr;}
-    status.textContent="Published! Your Short is now available in the feed.";
-    $("short-video-file").value="";$("short-video-title").value="";preview.pause();preview.removeAttribute("src");preview.hidden=true;
-    if(shortPreviewUrl)URL.revokeObjectURL(shortPreviewUrl);shortPreviewUrl="";
-    await loadPublishedShorts();
+    status.textContent="Published! Your Short is now available in the feed.";$("short-video-file").value="";$("short-video-title").value="";preview.pause();preview.removeAttribute("src");preview.hidden=true;if(shortPreviewUrl)URL.revokeObjectURL(shortPreviewUrl);shortPreviewUrl="";await loadPublishedShorts();
   }catch(e){status.textContent="Could not publish: "+(e.message||"Check Supabase permissions and storage settings.");}
   finally{button.disabled=false;}
 };
