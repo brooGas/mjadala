@@ -646,13 +646,14 @@ async function loadPublishedShorts(){
   const grid=$("shorts-grid"); if(!grid || !me)return;
   grid.innerHTML='<div class="shorts-empty">Loading Shorts…</div>';
   try{
-    // Match MIGRATION_SHORTS.sql: storage_path/category/is_hidden, not video_path/category_id/status.
-    const {data,error}=await sb.from("shorts").select("id,user_id,storage_path,title,category,duration_seconds,created_at,is_hidden,mime_type").eq("is_hidden",false).order("created_at",{ascending:false}).limit(60);
+    // Match the existing Supabase schema: video_path/category_id/status.
+    const {data,error}=await sb.from("shorts").select("id,user_id,video_path,title,category_id,duration_seconds,status,created_at").order("created_at",{ascending:false}).limit(60);
     if(error)throw error;
     const rows=data||[];
     publishedShorts=await Promise.all(rows.map(async item=>{
-      const {data:link,error:linkError}=await sb.storage.from(SHORT_BUCKET).createSignedUrl(item.storage_path,3600);
-      return {...item,url:linkError?"":link?.signedUrl||"",category:item.category||"Other",playbackError:linkError?.message||""};
+      const {data:link,error:linkError}=await sb.storage.from(SHORT_BUCKET).createSignedUrl(item.video_path,3600);
+      const categoryNames={1:"Innovation",2:"Education",3:"Engineering",4:"Business"};
+      return {...item,url:linkError?"":link?.signedUrl||"",category:categoryNames[Number(item.category_id)]||("Category "+item.category_id),playbackError:linkError?.message||""};
     }));
     renderShorts();
   }catch(e){grid.innerHTML='';const empty=el("div","shorts-empty");empty.textContent="Couldn't load Shorts: "+(e.message||"Check your database policies and connection.");grid.appendChild(empty);}
@@ -665,7 +666,7 @@ async function deleteMyShort(item,card){
   if(!confirm("Delete this Short permanently? This cannot be undone."))return;
   const status=el("div","short-status");status.textContent="Deleting…";card.appendChild(status);
   try{
-    const {error:storageError}=await sb.storage.from(SHORT_BUCKET).remove([item.storage_path]);
+    const {error:storageError}=await sb.storage.from(SHORT_BUCKET).remove([item.video_path]);
     if(storageError)throw storageError;
     const {data,error}=await sb.from("shorts").delete().eq("id",item.id).eq("user_id",me.id).select("id");
     if(error)throw error;
@@ -742,7 +743,10 @@ $("short-video-publish").onclick=async()=>{
     if(!["Innovation","Education","Engineering","Business"].includes(categoryName))throw new Error("Choose a valid category.");
     const ext=(file.name.split(".").pop()||"mp4").toLowerCase().replace(/[^a-z0-9]/g,"");path=me.id+"/"+crypto.randomUUID()+"."+ext;
     const {error:upErr}=await sb.storage.from(SHORT_BUCKET).upload(path,file,{contentType:file.type||"video/mp4",upsert:false,cacheControl:"3600"});if(upErr)throw upErr;
-    const {error:rowErr}=await sb.from("shorts").insert({user_id:me.id,storage_path:path,title:$("short-video-title").value.trim(),category:categoryName,duration_seconds:Number(preview.duration.toFixed(2)),mime_type:file.type||"video/mp4"});
+    const {data:categoryRows,error:categoryError}=await sb.from("categories").select("id,name").ilike("name",categoryName).limit(1);
+    if(categoryError)throw new Error("Could not look up Shorts categories. Existing video playback is fixed, but publishing needs the category table name: "+categoryError.message);
+    const categoryRow=categoryRows?.[0];if(!categoryRow)throw new Error("No matching category found for "+categoryName+" in public.categories.");
+    const {error:rowErr}=await sb.from("shorts").insert({user_id:me.id,video_path:path,title:$("short-video-title").value.trim(),category_id:categoryRow.id,duration_seconds:Number(preview.duration.toFixed(2)),status:"published"});
     if(rowErr){await sb.storage.from(SHORT_BUCKET).remove([path]);throw rowErr;}
     status.textContent="Published! Your Short is now available in the feed.";$("short-video-file").value="";$("short-video-title").value="";preview.pause();preview.removeAttribute("src");preview.hidden=true;if(shortPreviewUrl)URL.revokeObjectURL(shortPreviewUrl);shortPreviewUrl="";await loadPublishedShorts();
   }catch(e){status.textContent="Could not publish: "+(e.message||"Check Supabase permissions and storage settings.");}
