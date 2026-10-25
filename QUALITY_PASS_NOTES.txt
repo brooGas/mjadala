@@ -1,0 +1,19 @@
+MJADALA QUALITY PASS
+
+This update keeps the MV monogram lettering and adds a laptop/wireless motif to the installed-app icon. The in-app visual direction uses warm taupe, cream, and muted bronze.
+
+Included changes:
+- Full-screen vertical Shorts feed styles with a circular creator avatar and compact action buttons.
+- Upload form that checks video duration automatically; clips over 15 seconds show a polite warning and trim controls.
+- Browser-based trimming where MediaRecorder/captureStream are supported; otherwise the user is guided to trim a copy in the phone's Gallery/Photos app.
+- Upload progress/status messaging and a refreshed service-worker cache version.
+- Shorts category lookup corrected to use the category row ID when publishing.
+- Profile menu items now respond with a profile editor, utility panel, or feedback composer rather than dead controls/pop-up placeholders.
+- Updated 192px and 512px installed-app icons; manifest continues to reference those paths.
+
+Important limitations to verify in the deployed environment:
+- The browser must remain open until an upload completes; this is asynchronous upload, not an OS-level background upload after closing the app.
+- Video trimming support depends on the browser. If unavailable, trim a copy in Gallery/Photos and upload that copy.
+- My Posts and Saved do not have a dedicated database-backed listing in this project version; the profile menu now explains this rather than pretending those features are connected.
+- Publishing and cross-account playback still depend on Supabase table/storage permissions and the existing `mjadala-shorts` bucket configuration.
+- JavaScript syntax and ZIP integrity were checked. The app was not live-tested against the user's deployed Supabase project or in a physical browser/device during this pass.
