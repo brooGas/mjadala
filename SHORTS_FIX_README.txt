@@ -1,10 +1,21 @@
-MJADALA SHORTS SCHEMA FIX
+MJADALA SHORTS — VISUAL + SCHEMA REPAIR
 
-This build matches the existing public.shorts schema reported by the user: id UUID, user_id UUID, category_id bigint, title text, video_path text, duration_seconds numeric, status text, created_at timestamptz.
+This package updates the Shorts section in index.html while preserving the rest of the Mjadala project.
 
-- Loads video_path and requests a signed URL from the private mjadala-shorts bucket for playback.
-- Deletes the video object using video_path, then deletes only the current user's own database row.
-- Includes Like, Comment, and Share controls backed by shorts_likes / shorts_comments and Web Share / copy fallback.
-- Upload looks up category names in public.categories and writes video_path, category_id, and status=published. If your category table has a different name or column, publishing will show a clear error; existing playback is independent.
+Database schema compatibility:
+- Reads categories from public.short_categories (id, name, slug).
+- Publishes shorts using shorts.category_id and the selected short_categories.id.
+- Uses shorts.video_path for playback and deletion.
+- Uses shorts_likes and shorts_comments for reactions and comments.
 
-Replace repository index.html with this file and deploy. The engagement SQL migration should already have been run. Existing storage objects must be in the mjadala-shorts bucket and video_path must store each object path, not a full URL.
+Shorts experience:
+- Separate, responsive vertical-video feed with compact action buttons on the right.
+- Like button turns pink when liked and animates a floating heart; existing likes by the signed-in user are shown on load.
+- Comments open in a compact, attractive panel instead of a browser prompt.
+- Share uses the device share sheet when available, with copy/prompt fallbacks.
+- Creator delete uses a clear red danger style and remains available only on the creator's own Shorts.
+- Category filters and upload options are populated from short_categories.
+
+No new SQL migration is required for the category-name fix if the existing Shorts tables and engagement policies are already installed. Playback still depends on the private `mjadala-shorts` storage bucket and each row's video_path pointing to an object inside that bucket.
+
+Deploy by replacing the project files in your repository with the contents of this ZIP, then commit and redeploy. The JavaScript syntax and ZIP structure were checked locally; live Supabase playback and permissions cannot be verified from this package build alone.

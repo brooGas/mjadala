@@ -278,18 +278,18 @@ header { border-bottom:0; background:var(--bg); padding-top:calc(16px + env(safe
 .short-categories{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}
 .short-categories button{white-space:nowrap;border:1px solid var(--line);border-radius:999px;padding:9px 13px;background:var(--surface);color:var(--text);font-size:12px;font-weight:750}
 .short-categories button.active{background:var(--brand);border-color:var(--brand);color:white}
-/* Shorts are a separate, single-column video feed; controls never spill into Home. */
-.shorts-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;max-width:560px;margin:0 auto}
-.short-card{position:relative;isolation:isolate;width:100%;min-width:0;min-height: min(72vh,620px);height:min(72vh,620px);aspect-ratio:9/16;overflow:hidden;border:1px solid #ffffff24;border-radius:20px;background:#101827;color:white;text-align:left;padding:0;display:flex;flex-direction:column;justify-content:flex-end}
-.short-card video,.short-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#080b12;z-index:0}
-.short-card:after{content:"";position:absolute;inset:48% 0 0;background:linear-gradient(transparent,rgba(0,0,0,.82));z-index:1;pointer-events:none}
-.short-card .short-play{position:absolute;top:12px;left:12px;z-index:3;background:#000b;border-radius:20px;padding:7px 10px;font-size:12px;max-width:calc(100% - 24px)}
-.short-card .short-info{position:relative;z-index:2;padding:14px 76px 18px 14px;font-size:13px;line-height:1.45;pointer-events:none}
-.short-info b{display:block;font-size:15px;margin:4px 0}
-.short-actions{position:absolute;right:9px;bottom:78px;z-index:5;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0;max-width:64px}
-.short-action{display:flex;align-items:center;justify-content:center;min-height:42px;max-width:64px;border:1px solid #ffffff75;border-radius:14px;background:#101827eF;color:#fff;padding:8px 6px;font-size:11px;line-height:1.2;font-weight:800;white-space:normal;text-align:center;overflow-wrap:anywhere;cursor:pointer;touch-action:manipulation}
-.short-action:active{transform:scale(.97)}.short-action:disabled{opacity:.55}.short-action.short-delete{background:#7f1d1dcc}
-.short-tag{display:inline-block;background:#ffffff24;border:1px solid #ffffff40;border-radius:999px;padding:3px 7px;margin-bottom:7px;font-size:10px}
+/* Immersive Shorts surface with a compact, tidy action rail. */
+#shorts-screen{max-width:100%;min-height:calc(100dvh - 126px);padding:12px 14px 92px;background:radial-gradient(ellipse at 50% 0%,color-mix(in srgb,#7c3aed 10%,var(--bg)),var(--bg) 58%)}
+#shorts-screen .shorts-head{max-width:720px;margin:2px auto 14px}#shorts-screen .shorts-head h2{font-size:25px;letter-spacing:-.04em}#shorts-screen .shorts-upload-open{background:linear-gradient(135deg,#7c3aed,#2563eb);box-shadow:0 7px 22px #6d28d933}
+.short-categories{display:flex;gap:7px;max-width:720px;margin:0 auto 8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}.short-categories button{white-space:nowrap;border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:color-mix(in srgb,var(--surface) 88%,transparent);color:var(--text);font-size:12px;font-weight:750;transition:background .18s,transform .18s}.short-categories button.active{background:linear-gradient(120deg,#7c3aed,#2563eb);border-color:transparent;color:#fff;box-shadow:0 5px 16px #6d28d933}
+.shorts-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;max-width:420px;margin:0 auto}
+.short-card{position:relative;isolation:isolate;width:100%;min-width:0;height:min(70dvh,700px);min-height:400px;aspect-ratio:9/16;overflow:hidden;border:1px solid #ffffff22;border-radius:24px;background:#080b14;color:white;text-align:left;padding:0;display:flex;flex-direction:column;justify-content:flex-end;box-shadow:0 18px 48px #02061735}
+.short-card video,.short-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#080b12;z-index:0}.short-card:after{content:"";position:absolute;inset:42% 0 0;background:linear-gradient(transparent,rgba(0,0,0,.88));z-index:1;pointer-events:none}.short-card .short-play{position:absolute;top:12px;left:12px;z-index:3;background:#000b;border-radius:20px;padding:8px 11px;font-size:12px;max-width:calc(100% - 24px)}.short-card .short-info{position:relative;z-index:2;padding:14px 74px 20px 16px;font-size:12px;line-height:1.45;pointer-events:none;text-shadow:0 1px 3px #000}.short-info b{display:block;font-size:15px;margin:5px 0;letter-spacing:-.01em}
+.short-actions{position:absolute;right:10px;bottom:86px;z-index:6;display:flex;flex-direction:column;align-items:center;gap:11px;padding:0;max-width:54px}.short-action{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:48px;min-height:48px;max-width:48px;border:1px solid #ffffff42;border-radius:18px;background:rgba(12,17,32,.78);backdrop-filter:blur(12px);color:#fff;padding:6px 3px;font-size:10px;line-height:1.15;font-weight:800;white-space:normal;text-align:center;overflow-wrap:anywhere;cursor:pointer;touch-action:manipulation;transition:transform .18s,background .18s,border-color .18s;box-shadow:0 4px 14px #0003}.short-action .action-emoji{font-size:20px;line-height:1.05}.short-action:active{transform:scale(.9)}.short-action:disabled{opacity:.55}.short-action.is-liked{color:#ff4f8b;background:rgba(190,24,93,.28);border-color:#fb7185}.short-action.short-delete{color:#fff;background:linear-gradient(145deg,#dc2626,#991b1b);border-color:#fca5a5;box-shadow:0 4px 16px #dc262644}
+.short-like-fly{position:absolute;right:15px;bottom:150px;z-index:8;font-size:32px;pointer-events:none;animation:shortHeartFly .85s ease-out forwards;filter:drop-shadow(0 3px 7px #0008)}@keyframes shortHeartFly{0%{opacity:0;transform:translateY(10px) scale(.55) rotate(-10deg)}20%{opacity:1;transform:translateY(0) scale(1.2) rotate(8deg)}100%{opacity:0;transform:translateY(-90px) scale(1.05) rotate(-8deg)}}
+.short-tag{display:inline-block;background:#ffffff24;border:1px solid #ffffff40;border-radius:999px;padding:4px 8px;margin-bottom:7px;font-size:10px}.short-upload-panel{display:none;max-width:620px;margin:12px auto 16px;padding:16px;border:1px solid var(--line);border-radius:18px;background:var(--surface);box-shadow:0 14px 36px #0001}.short-upload-panel.open{display:block}
+.short-comment-backdrop{position:fixed;inset:0;z-index:1000;display:grid;place-items:end center;background:#0206179c;padding:14px;backdrop-filter:blur(5px)}.short-comment-panel{width:min(100%,440px);max-height:min(68dvh,560px);overflow:auto;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:22px;padding:16px;box-shadow:0 24px 70px #0005;animation:shortCommentIn .18s ease-out}@keyframes shortCommentIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}.short-comment-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.short-comment-head h3{margin:0;font-size:17px}.short-comment-close{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--surface-2);color:var(--text);font-size:20px}.short-comment-list{display:grid;gap:9px;max-height:28dvh;overflow:auto;margin:10px 0}.short-comment-item{padding:10px 12px;border-radius:13px;background:var(--surface-2);font-size:13px;line-height:1.45;overflow-wrap:anywhere}.short-comment-item small{display:block;color:var(--muted);margin-bottom:3px}.short-comment-form{display:flex;gap:8px;align-items:flex-end}.short-comment-form textarea{flex:1;min-width:0;min-height:44px;max-height:100px;resize:vertical;padding:11px;border:1px solid var(--line);border-radius:13px;background:var(--bg);color:var(--text);font:inherit;font-size:13px}.short-comment-send{border:0;border-radius:13px;padding:12px 14px;background:linear-gradient(120deg,#7c3aed,#2563eb);color:#fff;font-weight:800}
+@media(max-width:520px){#shorts-screen{padding:8px 9px 86px}.shorts-grid{grid-template-columns:minmax(0,1fr);max-width:390px}.short-card{height:min(66dvh,660px);min-height:390px;border-radius:22px}.short-actions{right:8px;bottom:76px;gap:9px}.short-action{width:45px;max-width:45px;min-height:45px;border-radius:16px;font-size:9px}.short-action .action-emoji{font-size:19px}.short-card .short-info{padding-right:65px}.short-comment-backdrop{padding:8px}.short-comment-panel{border-radius:20px}}
 .shorts-empty{grid-column:1/-1;padding:24px 16px;border:1px dashed var(--line);border-radius:16px;color:var(--muted);text-align:center;line-height:1.6}
 .short-upload-panel{display:none;margin:12px 0 16px;padding:16px;border:1px solid var(--line);border-radius:18px;background:var(--surface)}
 .short-upload-panel.open{display:block}
@@ -298,7 +298,7 @@ header { border-bottom:0; background:var(--bg); padding-top:calc(16px + env(safe
 .short-upload-panel input,.short-upload-panel select{width:100%;margin:7px 0;padding:12px;border:1px solid var(--line);border-radius:11px;background:var(--bg);color:var(--text)}
 .short-preview{width:100%;max-height:300px;object-fit:contain;background:#080b12;border-radius:12px;margin-top:8px}
 .short-status{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
-@media(max-width:520px){.shorts-screen{padding-left:10px;padding-right:10px}.shorts-grid{grid-template-columns:minmax(0,1fr)}.short-card{height: min(68vh,620px);min-height:420px;border-radius:16px}.short-actions{right:7px;bottom:74px;gap:8px}.short-action{min-height:40px;font-size:10px}.short-card .short-info{padding-right:74px}}
+
 
 </style>
 </head>
@@ -643,6 +643,8 @@ const shortSamples = [];
 let publishedShorts = [];
 let activeShortCategory = "All";
 let shortPreviewUrl = "";
+let shortCategories = [];
+const shortCategoryIcons = {Innovation:"💡",Education:"📘",Engineering:"⚙️",Business:"📈"};
 const SHORT_BUCKET = "mjadala-shorts";
 const shortCategorySlug = name => String(name || "Other").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 async function resolveShortVideoUrl(rawPath){
@@ -662,21 +664,26 @@ async function loadPublishedShorts(){
   const grid=$("shorts-grid"); if(!grid || !me)return;
   grid.innerHTML='<div class="shorts-empty">Loading Shorts…</div>';
   try{
-    // Match the user's actual table: UUID id, video_path, category_id and status.
+    const {data:cats,error:catsError}=await sb.from("short_categories").select("id,name,slug").order("name");
+    if(catsError)throw catsError;shortCategories=cats||[];
     const {data,error}=await sb.from("shorts").select("id,user_id,video_path,title,category_id,duration_seconds,status,created_at").order("created_at",{ascending:false}).limit(60);
     if(error)throw error;
     const rows=(data||[]).filter(x=>!x.status||String(x.status).toLowerCase()==="published");
-    publishedShorts=await Promise.all(rows.map(async item=>{
-      let url="",playbackError="";
-      try{url=await resolveShortVideoUrl(item.video_path)}catch(e){playbackError=e?.message||"Storage link could not be created.";}
-      const categoryNames={1:"Innovation",2:"Education",3:"Engineering",4:"Business"};
-      return {...item,url,category:categoryNames[Number(item.category_id)]||("Category "+item.category_id),playbackError};
-    }));
+    // Fetch the signed-in user's existing reactions so the Like buttons render accurately.
+    let likedIds = new Set();
+    if (me?.id) {
+      const {data: likes, error: likesError} = await sb.from("shorts_likes").select("short_id").eq("user_id", me.id);
+      if (!likesError) likedIds = new Set((likes || []).map(row => String(row.short_id)));
+    }
+    publishedShorts=await Promise.all(rows.map(async item=>{let url="",playbackError="";try{url=await resolveShortVideoUrl(item.video_path)}catch(e){playbackError=e?.message||"Storage link could not be created.";}const category=shortCategories.find(c=>String(c.id)===String(item.category_id));return {...item,url,likedByMe:likedIds.has(String(item.id)),category:category?.name||"Other",categorySlug:category?.slug||"",playbackError};}));
+    const filter=$("short-category-filters");
+    if(filter&&shortCategories.length){const names=[...new Set(shortCategories.map(c=>c.name))];filter.innerHTML='<button class="'+(activeShortCategory==="All"?'active':'')+'" data-short-category="All">✨ For you</button>'+names.map(name=>'<button data-short-category="'+name.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'" class="'+(activeShortCategory===name?'active':'')+'">'+(shortCategoryIcons[name]||'◈')+' '+name.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</button>').join('');filter.querySelectorAll('[data-short-category]').forEach(button=>button.addEventListener('click',()=>{activeShortCategory=button.dataset.shortCategory;filter.querySelectorAll('[data-short-category]').forEach(b=>b.classList.toggle('active',b===button));renderShorts();}));}
+    const select=$("short-video-category");if(select&&shortCategories.length)select.innerHTML=shortCategories.map(c=>'<option value="'+String(c.id)+'">'+String(c.name).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</option>').join('');
     renderShorts();
   }catch(e){grid.innerHTML='';const empty=el("div","shorts-empty");empty.textContent="Couldn't load Shorts: "+(e.message||"Check your database policies and connection.");grid.appendChild(empty);}
 }
-function addShortActionButton(actions,label,handler,cls=""){
-  const b=el("button","short-action "+cls,label);b.type="button";b.addEventListener("click",()=>handler(b));actions.appendChild(b);return b;
+function addShortActionButton(actions,emoji,label,handler,cls=""){
+  const b=el("button","short-action "+cls);b.type="button";b.innerHTML='<span class="action-emoji">'+emoji+'</span><span>'+label+'</span>';b.setAttribute('aria-label',label);b.addEventListener("click",()=>handler(b));actions.appendChild(b);return b;
 }
 async function deleteMyShort(item,card){
   if(item.user_id!==me?.id){alert("You can only delete your own Short.");return;}
@@ -692,22 +699,19 @@ async function deleteMyShort(item,card){
   }catch(e){status.textContent="Could not delete: "+(e.message||"Check permissions.");}
 }
 async function toggleShortLike(item,button){
-  if(!me){alert("Sign in to like Shorts.");return;}
-  if(button.disabled)return;button.disabled=true;
-  try{
-    const {data:existing,error:findError}=await sb.from("shorts_likes").select("short_id").eq("short_id",item.id).eq("user_id",me.id).maybeSingle();
-    if(findError)throw findError;
-    if(existing){const {error}=await sb.from("shorts_likes").delete().eq("short_id",item.id).eq("user_id",me.id);if(error)throw error;button.textContent="♡ Like";button.setAttribute("aria-pressed","false");}
-    else {const {error}=await sb.from("shorts_likes").insert({short_id:item.id,user_id:me.id});if(error)throw error;button.textContent="♥ Liked";button.setAttribute("aria-pressed","true");}
-  }catch(e){alert("Could not update Like: "+(e.message||"Check Shorts likes permissions."));}
-  finally{button.disabled=false;}
+  if(!me){alert("Sign in to like Shorts.");return;}if(button.disabled)return;button.disabled=true;
+  try{const {data:existing,error:findError}=await sb.from("shorts_likes").select("short_id").eq("short_id",item.id).eq("user_id",me.id).maybeSingle();if(findError)throw findError;
+    if(existing){const {error}=await sb.from("shorts_likes").delete().eq("short_id",item.id).eq("user_id",me.id);if(error)throw error;item.likedByMe=false;button.classList.remove("is-liked");button.setAttribute("aria-pressed","false");button.innerHTML='<span class="action-emoji">♡</span><span>Like</span>';}
+    else{const {error}=await sb.from("shorts_likes").insert({short_id:item.id,user_id:me.id});if(error)throw error;item.likedByMe=true;button.classList.add("is-liked");button.setAttribute("aria-pressed","true");button.innerHTML='<span class="action-emoji">♥</span><span>Liked</span>';const card=button.closest('.short-card');if(card){const fly=el('span','short-like-fly','💖');card.appendChild(fly);setTimeout(()=>fly.remove(),900);}}
+  }catch(e){alert("Could not update Like: "+(e.message||"Check Shorts likes permissions."));}finally{button.disabled=false;}
 }
 async function commentOnShort(item){
-  if(!me){alert("Sign in to comment.");return;}
-  const body=prompt("Write a comment (up to 500 characters):");if(body===null)return;
-  const text=body.trim();if(!text)return;if(text.length>500){alert("Comments are limited to 500 characters.");return;}
-  try{const {error}=await sb.from("shorts_comments").insert({short_id:item.id,user_id:me.id,body:text});if(error)throw error;alert("Comment posted.");}
-  catch(e){alert("Comment feature needs the Shorts engagement SQL migration: "+(e.message||""));}
+  if(!me){alert("Sign in to comment.");return;}document.querySelector('.short-comment-backdrop')?.remove();
+  const backdrop=el('div','short-comment-backdrop'),panel=el('section','short-comment-panel');panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-label','Comments');
+  const head=el('div','short-comment-head'),heading=el('h3','','Comments'),close=el('button','short-comment-close','×');close.type='button';close.setAttribute('aria-label','Close comments');close.onclick=()=>backdrop.remove();head.append(heading,close);
+  const list=el('div','short-comment-list'),form=el('form','short-comment-form'),input=el('textarea');input.maxLength=500;input.placeholder='Add a thoughtful comment…';input.setAttribute('aria-label','Write a comment');const send=el('button','short-comment-send','Send');send.type='submit';form.append(input,send);panel.append(head,list,form);backdrop.appendChild(panel);document.body.appendChild(backdrop);backdrop.addEventListener('click',e=>{if(e.target===backdrop)backdrop.remove();});
+  const loadComments=async()=>{list.innerHTML='';const {data,error}=await sb.from('shorts_comments').select('id,user_id,body,created_at').eq('short_id',item.id).order('created_at',{ascending:true}).limit(60);if(error){list.appendChild(el('div','short-status','Could not load comments: '+error.message));return;}if(!data?.length){list.appendChild(el('div','short-status','No comments yet. Start the conversation.'));return;}data.forEach(c=>{const row=el('div','short-comment-item'),who=el('small','',c.user_id===me.id?'You':'Mjadala member');row.append(who,document.createTextNode(c.body));list.appendChild(row);});list.scrollTop=list.scrollHeight;};
+  form.onsubmit=async e=>{e.preventDefault();const body=input.value.trim();if(!body)return;send.disabled=true;send.textContent='Sending…';try{const {error}=await sb.from('shorts_comments').insert({short_id:item.id,user_id:me.id,body});if(error)throw error;input.value='';await loadComments();}catch(err){alert('Could not post comment: '+(err.message||'Check comment permissions.'));}finally{send.disabled=false;send.textContent='Send';}};await loadComments();input.focus();
 }
 async function shareShort(item){
   const url=location.href.split("#")[0]+"#short-"+item.id;
@@ -731,10 +735,11 @@ function renderShorts(){
     const note=el("span");note.textContent="Up to 15 seconds";info.appendChild(note);card.appendChild(info);
     if(item.id){
       const actions=el("div","short-actions");
-      addShortActionButton(actions,"♡ Like",b=>toggleShortLike(item,b));
-      addShortActionButton(actions,"💬 Comment",()=>commentOnShort(item));
-      addShortActionButton(actions,"↗ Share",()=>shareShort(item));
-      if(item.user_id===me?.id)addShortActionButton(actions,"🗑 Delete",()=>deleteMyShort(item,card),"short-delete");
+      const likeButton=addShortActionButton(actions,item.likedByMe?"♥":"♡",item.likedByMe?"Liked":"Like",b=>toggleShortLike(item,b),item.likedByMe?"is-liked":"");
+      likeButton.setAttribute("aria-pressed",item.likedByMe?"true":"false");
+      addShortActionButton(actions,"💬","Comment",()=>commentOnShort(item));
+      addShortActionButton(actions,"↗","Share",()=>shareShort(item));
+      if(item.user_id===me?.id)addShortActionButton(actions,"🗑","Delete",()=>deleteMyShort(item,card),"short-delete");
       card.appendChild(actions);
     }
     grid.appendChild(card);
@@ -759,13 +764,13 @@ $("short-video-publish").onclick=async()=>{
   if(!me){status.textContent="Please sign in before publishing.";return;}if(!file||!shortPreviewUrl){status.textContent="Record or choose a video first.";return;}if(!preview.duration||!Number.isFinite(preview.duration)){status.textContent="Wait for the video preview to load.";return;}if(preview.duration>15.05){status.textContent="Shorts must be 15 seconds or shorter.";return;}if(file.size>50*1024*1024){status.textContent="Video exceeds the 50 MB limit.";return;}
   button.disabled=true;status.textContent="Uploading video…";let path="";
   try{
-    const categoryName=$("short-video-category").value;
-    if(!["Innovation","Education","Engineering","Business"].includes(categoryName))throw new Error("Choose a valid category.");
+    const categoryId=$("short-video-category").value;
+    if(!categoryId)throw new Error("Choose a category first.");
     const ext=(file.name.split(".").pop()||"mp4").toLowerCase().replace(/[^a-z0-9]/g,"");path=me.id+"/"+crypto.randomUUID()+"."+ext;
     const {error:upErr}=await sb.storage.from(SHORT_BUCKET).upload(path,file,{contentType:file.type||"video/mp4",upsert:false,cacheControl:"3600"});if(upErr)throw upErr;
-    const {data:categoryRows,error:categoryError}=await sb.from("categories").select("id,name").ilike("name",categoryName).limit(1);
-    if(categoryError)throw new Error("Could not look up Shorts categories. Existing video playback is fixed, but publishing needs the category table name: "+categoryError.message);
-    const categoryRow=categoryRows?.[0];if(!categoryRow)throw new Error("No matching category found for "+categoryName+" in public.categories.");
+    const {data:categoryRow,error:categoryError}=await sb.from("short_categories").select("id,name").eq("id",categoryId).maybeSingle();
+    if(categoryError)throw new Error("Could not look up Shorts categories: "+categoryError.message);
+    if(!categoryRow)throw new Error("That category no longer exists. Refresh Shorts and choose again.");
     const {error:rowErr}=await sb.from("shorts").insert({user_id:me.id,video_path:path,title:$("short-video-title").value.trim(),category_id:categoryRow.id,duration_seconds:Number(preview.duration.toFixed(2)),status:"published"});
     if(rowErr){await sb.storage.from(SHORT_BUCKET).remove([path]);throw rowErr;}
     status.textContent="Published! Your Short is now available in the feed.";$("short-video-file").value="";$("short-video-title").value="";preview.pause();preview.removeAttribute("src");preview.hidden=true;if(shortPreviewUrl)URL.revokeObjectURL(shortPreviewUrl);shortPreviewUrl="";await loadPublishedShorts();
