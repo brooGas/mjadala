@@ -20,3 +20,9 @@
 - Added searchable People directory and public profile view.
 - Added circular profile photo preview with persistent horizontal/vertical framing.
 - Added additive profile-framing migration SQL; existing RLS policies are unchanged.
+
+
+## Group admin tools
+- Added creator-only group deletion and group-admin assignment controls.
+- Group admins can invite members and remove regular members; only creators can appoint admins or delete groups.
+- Added additive Supabase migration: `MIGRATION_GROUP_ADMIN_TOOLS.sql`.

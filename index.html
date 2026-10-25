@@ -62,7 +62,7 @@ form#send{position:sticky;bottom:0;display:flex;gap:9px;padding:12px max(16px,ca
 .profile-panel input,.profile-panel textarea,.groups-panel input,.groups-panel textarea{width:100%;padding:12px 13px;margin:0 0 10px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);color:var(--text)}
 .profile-panel textarea,.groups-panel textarea{min-height:76px;resize:vertical}.profile-avatar{width:76px;height:76px;border-radius:24px;object-fit:cover;background:var(--brand-soft);display:grid;place-items:center;font-size:28px;font-weight:900;color:var(--brand-strong);margin-bottom:14px;border:1px solid var(--line)}
 .groups-list{display:grid;gap:10px;margin-top:14px}.group-card{display:block;text-align:left;width:100%;padding:15px;border-radius:15px;background:var(--surface-2);border:1px solid var(--line);color:var(--text)}.group-card b{display:block;margin-bottom:5px}.group-card small{color:var(--muted)}.group-chat{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}.group-chat-list{max-height:280px;overflow:auto;display:flex;flex-direction:column;gap:8px;margin:10px 0}.group-chat-msg{padding:10px 12px;background:var(--surface-2);border-radius:12px;overflow-wrap:anywhere}.group-chat-msg small{display:block;color:var(--muted);font-size:11px;margin-bottom:4px}.inline-row{display:flex;gap:8px}.inline-row>*{min-width:0}.inline-row button{flex:0 0 auto;width:auto}
-@media(min-width:640px){.moment-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.group-role-note{display:block;color:var(--muted);font-size:12px;margin:2px 0 12px}.group-delete{margin:0 0 12px}.group-roster-title{font-size:14px;margin:14px 0 8px}.group-roster{display:grid;gap:7px;margin-bottom:14px}.group-member-row{display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap;padding:9px 10px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}.group-member-name{display:flex;flex-direction:column;gap:3px;min-width:90px;flex:1}.group-member-name b{font-size:13px}.group-member-name small{font-size:11px;color:var(--muted);text-transform:capitalize}.group-member-row .btn{padding:7px 9px}.group-chat{padding-bottom:18px}@media(min-width:640px){.moment-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
 /* Mjadala Design Step 1 — visual refresh; preserves existing app markup and JS */
 :root {
@@ -900,7 +900,7 @@ async function loadGroups(){
   const {data,error}=await sb.from("groups").select("id,name,description,created_by,created_at").order("created_at",{ascending:false});
   if(error){status.textContent="Groups need the private-Groups SQL migration applied in Supabase. "+friendly(error);return;}
   status.textContent=data.length?"":"You haven't joined any Groups yet. Create one or ask a creator to invite your nickname.";
-  data.forEach(g=>{const b=el("button","group-card");b.appendChild(el("b","",g.name));b.appendChild(el("small","",g.description||"Private Group"));b.onclick=()=>openGroup(g);list.appendChild(b);});
+  data.forEach(g=>{const b=el("button","group-card");b.appendChild(el("b","",g.name));b.appendChild(el("small","",(g.description||"Private Group")+(g.created_by===me.id?" · Creator": "")));b.onclick=()=>openGroup(g);list.appendChild(b);});
 }
 $("group-create").onclick=async()=>{
   const name=$("group-name").value.trim(),description=$("group-description").value.trim();
@@ -910,12 +910,41 @@ $("group-create").onclick=async()=>{
 async function openGroup(g){
   currentGroup=g;const box=$("group-detail");box.style.display="block";box.innerHTML="";
   const title=el("h3","",g.name);box.appendChild(title);box.appendChild(el("p","",g.description||"Private conversation"));
-  if(g.created_by===me.id){const row=el("div","inline-row");const inp=el("input");inp.placeholder="Invite by exact nickname";inp.maxLength=20;const btn=el("button","primary","Invite");btn.style.width="auto";btn.onclick=async()=>{try{await rpc("add_group_member",{p_group_id:g.id,p_nickname:inp.value.trim()});inp.value="";$("group-status").textContent="Member invited.";await openGroup(g);}catch(e){$("group-status").textContent=friendly(e);}};row.append(inp,btn);box.appendChild(row);}
+  const creator=g.created_by===me.id;
+  const {data:membership}=await sb.from("group_members").select("group_role").eq("group_id",g.id).eq("user_id",me.id).maybeSingle();
+  const myGroupRole=creator?"creator":(membership?.group_role||"member");
+  box.appendChild(el("small","group-role-note", "Your role: "+myGroupRole.charAt(0).toUpperCase()+myGroupRole.slice(1)));
+  if(creator){
+    const danger=el("button","btn danger group-delete","Delete group");
+    danger.onclick=async()=>{if(!confirm('Delete “'+g.name+'” and all its messages? This cannot be undone.'))return;danger.disabled=true;try{await rpc("delete_private_group",{p_group_id:g.id});currentGroup=null;box.style.display="none";$("group-status").textContent="Group deleted.";await loadGroups();}catch(e){danger.disabled=false;$("group-status").textContent=friendly(e);}};
+    box.appendChild(danger);
+  }
+  if(creator||myGroupRole==="admin"){
+    const row=el("div","inline-row");const inp=el("input");inp.placeholder="Invite by exact nickname";inp.maxLength=20;const btn=el("button","primary","Invite member");btn.style.width="auto";btn.onclick=async()=>{try{await rpc("add_group_member",{p_group_id:g.id,p_nickname:inp.value.trim()});inp.value="";$("group-status").textContent="Member added.";await openGroup(g);}catch(e){$("group-status").textContent=friendly(e);}};row.append(inp,btn);box.appendChild(row);
+  }
+  const rosterTitle=el("h4","group-roster-title","Members and roles");box.appendChild(rosterTitle);
+  const roster=el("div","group-roster");box.appendChild(roster);
+  const {data:members,error:memberError}=await sb.from("group_members").select("user_id,group_role,profiles(nickname)").eq("group_id",g.id).order("joined_at",{ascending:true});
+  if(memberError){roster.appendChild(el("small","",friendly(memberError)));}else{
+    members.forEach(m=>{
+      const line=el("div","group-member-row");const role=m.user_id===g.created_by?"creator":(m.group_role||"member");
+      const who=el("div","group-member-name");who.appendChild(el("b","",m.profiles?.nickname||"Member"));who.appendChild(el("small","",role));line.appendChild(who);
+      if(creator&&m.user_id!==g.created_by){
+        const promote=el("button","btn",role==="admin"?"Remove admin":"Make admin");
+        promote.onclick=async()=>{promote.disabled=true;try{await rpc("set_group_admin",{p_group_id:g.id,p_nickname:m.profiles?.nickname||"",p_make_admin:role!=="admin"});await openGroup(g);}catch(e){promote.disabled=false;$("group-status").textContent=friendly(e);}};line.appendChild(promote);
+      }
+      if((creator||myGroupRole==="admin")&&m.user_id!==me.id&&m.user_id!==g.created_by&&(creator||role==="member")){
+        const remove=el("button","btn danger","Remove");remove.onclick=async()=>{if(!confirm("Remove @"+(m.profiles?.nickname||"this member")+" from the group?"))return;remove.disabled=true;try{await rpc("remove_group_member",{p_group_id:g.id,p_nickname:m.profiles?.nickname||""});await openGroup(g);}catch(e){remove.disabled=false;$("group-status").textContent=friendly(e);}};line.appendChild(remove);
+      }
+      roster.appendChild(line);
+    });
+  }
   const msgs=el("div","group-chat-list");msgs.id="group-msg-list";box.appendChild(msgs);
   const form=el("form","inline-row");const input=el("input");input.placeholder="Message this Group";input.maxLength=500;input.required=true;const send=el("button","primary","Send");send.style.width="auto";form.append(input,send);box.appendChild(form);
   form.onsubmit=async e=>{e.preventDefault();const body=input.value.trim();if(!body)return;send.disabled=true;const {error}=await sb.from("group_messages").insert({group_id:g.id,author_id:me.id,body});send.disabled=false;if(error){$("group-status").textContent=friendly(error);return;}input.value="";await refreshGroupMessages(g,msgs);};
   await refreshGroupMessages(g,msgs);
 }
+
 async function refreshGroupMessages(g,target){
   const {data,error}=await sb.from("group_messages").select("id,body,created_at,author_id,profiles(nickname)").eq("group_id",g.id).order("id",{ascending:true}).limit(100);
   target.innerHTML="";if(error){target.textContent=friendly(error);return;}
