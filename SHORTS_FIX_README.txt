@@ -1,16 +1,10 @@
-MJADALA SHORTS FIX
+MJADALA SHORTS SCHEMA FIX
 
-This update changes Shorts to match the database schema in MIGRATION_SHORTS.sql:
-- shorts.storage_path, shorts.category, shorts.is_hidden, shorts.mime_type
-- temporary signed URLs from the private mjadala-shorts bucket for playback
-- upload metadata matching that schema
-- Delete button shown only on the current user's own Shorts
-- Like, Comment and Share controls
+This build matches the existing public.shorts schema reported by the user: id UUID, user_id UUID, category_id bigint, title text, video_path text, duration_seconds numeric, status text, created_at timestamptz.
 
-IMPORTANT:
-1. Replace the repository's index.html with this ZIP's mjadala-main/index.html and deploy it.
-2. Run MIGRATION_SHORTS_ENGAGEMENT.sql once in Supabase SQL Editor to enable Like and Comment storage.
-3. Keep the mjadala-shorts bucket private. Signed playback URLs require an authenticated session and a storage SELECT policy for the bucket (the base MIGRATION_SHORTS.sql creates this policy).
-4. Test with a newly uploaded MP4 first. Existing Shorts created using the incompatible video_path/category_id/status schema may need migration; do not delete existing database tables.
+- Loads video_path and requests a signed URL from the private mjadala-shorts bucket for playback.
+- Deletes the video object using video_path, then deletes only the current user's own database row.
+- Includes Like, Comment, and Share controls backed by shorts_likes / shorts_comments and Web Share / copy fallback.
+- Upload looks up category names in public.categories and writes video_path, category_id, and status=published. If your category table has a different name or column, publishing will show a clear error; existing playback is independent.
 
-Like/Comment buttons are wired to Supabase tables. Share uses the phone share sheet when available, or copies/prompts for a link. This initial share link points to the app with a Short identifier; deep-link navigation to a specific Short may be added separately.
+Replace repository index.html with this file and deploy. The engagement SQL migration should already have been run. Existing storage objects must be in the mjadala-shorts bucket and video_path must store each object path, not a full URL.
