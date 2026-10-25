@@ -15,16 +15,16 @@
 <style>
 :root {
   color-scheme: light;
-  --brand:#D98B32; --brand-strong:#AD6420; --brand-soft:#F9E8D0;
-  --bg:#F7F3EC; --surface:#FFFFFF; --surface-2:#F0EBE2; --text:#292821;
-  --muted:#77736A; --line:#E4DDD1; --mine:#F6E5CC; --danger:#B42332;
+  --brand:#4F46E5; --brand-strong:#3730A3; --brand-soft:#EEEAFE;
+  --accent:#F59E0B; --bg:#FAFAF8; --surface:#FFFFFF; --surface-2:#F4F3F8; --text:#0F172A;
+  --muted:#64748B; --line:#E8E7EF; --mine:#EEEAFE; --danger:#B42332;
   --shadow:0 12px 36px rgba(41,40,33,.08); --radius:20px;
 }
 :root[data-theme="dark"] {
   color-scheme:dark;
-  --brand:#E9A34F; --brand-strong:#F5BD76; --brand-soft:#49351F;
-  --bg:#171713; --surface:#22221D; --surface-2:#2B2A23; --text:#F5F0E7;
-  --muted:#B8B1A5; --line:#3C3A31; --mine:#49351F; --danger:#FF8B94;
+  --brand:#818CF8; --brand-strong:#A5B4FC; --brand-soft:#24234A; --accent:#F59E0B;
+  --bg:#0F172A; --surface:#111827; --surface-2:#1E293B; --text:#F8FAFC;
+  --muted:#AAB6CC; --line:#293449; --mine:#24234A; --danger:#FF8B94;
   --shadow:0 12px 36px rgba(0,0,0,.25);
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -172,6 +172,70 @@ form#send button {background:var(--brand);color:#111827}
 .people-back {margin-bottom:14px}
 @media(max-width:420px){.home-tabs button{font-size:11px;padding:10px 3px}.public-profile-top{align-items:flex-start}.public-avatar{width:84px;height:84px;flex-basis:84px}}
 
+
+/* Mjadala reference redesign — preserves the existing Supabase-backed features. */
+:root { --accent:#F59E0B; --radius:24px; --shadow:0 8px 28px rgba(15,23,42,.07); }
+:root[data-theme="dark"] { --bg:#080F20; --surface:#0F172A; --surface-2:#172238; --text:#F8FAFC; --muted:#B4BED2; --line:#27334A; --mine:#25264D; --shadow:0 8px 30px rgba(0,0,0,.25); }
+.brand-mark { background:linear-gradient(140deg,#4F46E5 0%,#8B5CF6 50%,#F59E0B 100%); color:#fff; border:0; border-radius:12px; box-shadow:none; }
+.brand-mark span { color:#fff; }
+header { border-bottom:0; background:var(--bg); padding-top:calc(16px + env(safe-area-inset-top)); }
+#rooms > header .brand-lockup h1 { font-size:25px; font-weight:850; letter-spacing:-.055em; }
+#rooms > header .brand-lockup h1 small { font-size:0; letter-spacing:.25em; text-transform:uppercase; font-weight:800; }
+#rooms > header #me::after { content:"TALK · SHARE · BUILD"; font-size:9px; letter-spacing:.25em; display:block; margin-top:5px; color:var(--muted); }
+.brand-mark { position:relative; overflow:visible; }
+.brand-mark span { position:absolute; left:50%; bottom:-3px; transform:translateX(-50%); width:18px; height:12px; border-radius:3px 3px 4px 4px; background:#F59E0B; color:#30245D; font-size:5px; letter-spacing:1px; line-height:12px; text-align:center; margin:0; }
+.brand-mark span:after { content:""; position:absolute; left:3px; bottom:-3px; border-width:3px 3px 0 0; border-style:solid; border-color:#F59E0B transparent transparent transparent; }
+#rooms > header #install, #rooms > header #logout { display:none; }
+#rooms > header .theme-toggle { border:1px solid var(--line); border-radius:50%; width:38px; height:38px; }
+.rules { margin:0 auto; width:calc(100% - 32px); max-width:868px; padding:8px 12px; background:transparent; border:0; font-size:11px; text-align:center; }
+.home-welcome { margin:10px 16px 20px; padding:20px; border-radius:26px; border:1px solid var(--line); background:linear-gradient(120deg,color-mix(in srgb,var(--accent) 11%,var(--surface)),var(--surface)); box-shadow:var(--shadow); }
+:root[data-theme="dark"] .home-welcome { background:linear-gradient(120deg,#1B203B,#11182B); border-color:#292F55; }
+.welcome-copy { display:flex; gap:13px; align-items:flex-start; }
+.welcome-pencil { flex:0 0 48px; height:48px; border-radius:50%; display:grid; place-items:center; background:var(--accent); color:#111827; font-size:25px; font-weight:900; }
+.welcome-copy h2 { font-size:16px; font-weight:850; letter-spacing:-.03em; margin:2px 0 5px; }
+.welcome-copy p { color:var(--muted); font-size:12px; line-height:1.55; max-width:280px; }
+.welcome-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:17px; }
+.welcome-actions button { min-width:0; border-radius:999px; padding:12px 9px; font-size:12px; font-weight:850; }
+.welcome-primary { background:var(--brand); color:white; }
+.welcome-secondary { background:transparent; border:1.5px solid var(--brand); color:var(--brand-strong); }
+:root[data-theme="dark"] .welcome-primary { background:var(--accent); color:#111827; }
+:root[data-theme="dark"] .welcome-secondary { color:#F8FAFC; border-color:var(--accent); }
+.moments-strip { padding:0 16px 18px; border-bottom:1px solid var(--line); }
+.section-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 18px 13px; }
+.section-heading h2 { font-size:16px; font-weight:850; letter-spacing:-.035em; }
+.section-heading h2 span { color:var(--brand); margin-right:6px; }
+.section-heading button { color:var(--muted); background:transparent; font-size:12px; font-weight:700; }
+.moment-bubbles { display:flex; gap:15px; overflow-x:auto; padding:2px 0 4px; scrollbar-width:none; }
+.moment-bubbles::-webkit-scrollbar { display:none; }
+.moment-bubble { flex:0 0 69px; display:flex; flex-direction:column; align-items:center; gap:7px; background:transparent; color:var(--text); min-width:0; }
+.bubble-ring { width:66px; height:66px; display:grid; place-items:center; border-radius:50%; border:2px solid var(--accent); background:var(--surface); color:var(--brand); font-size:28px; box-shadow:inset 0 0 0 3px var(--bg); }
+.bubble-indigo { border-color:#4F46E5; background:linear-gradient(145deg,#4F46E5,#7C3AED); color:white; }
+.bubble-orange { border-color:var(--accent); background:var(--accent); color:#111827; }
+.bubble-slate { border-color:#64748B; background:#64748B; color:white; }
+.moment-bubble small { font-size:11px; white-space:nowrap; }
+.conversations-heading { margin-top:19px; margin-bottom:8px; }
+.heading-note { color:var(--muted); font-size:11px; }
+#roomlist { padding:0 16px calc(100px + env(safe-area-inset-bottom)); }
+.room { padding:16px 14px 16px 70px; margin:7px 0; border:0; border-bottom:1px solid var(--line); border-radius:0; background:transparent; box-shadow:none; min-height:78px; }
+.room:before { left:4px; top:17px; width:50px; height:50px; border-radius:50%; background:var(--brand); color:#fff; font-size:22px; content:'✦'; }
+.room:nth-child(3n+2):before { background:var(--accent); color:#111827; content:'✧'; }
+.room:nth-child(3n):before { background:#64748B; color:#fff; content:'⌘'; }
+.room b { font-size:14px; }
+.room span { font-size:12px; }
+.room:hover { transform:none; background:color-mix(in srgb,var(--brand) 5%,transparent); box-shadow:none; }
+.home-tabs { position:fixed; z-index:20; bottom:0; left:0; right:0; width:100%; max-width:none; margin:0; padding:8px 10px calc(8px + env(safe-area-inset-bottom)); border:0; border-top:1px solid var(--line); border-radius:0; background:color-mix(in srgb,var(--surface) 94%,transparent); backdrop-filter:blur(18px); gap:4px; box-shadow:0 -6px 24px rgba(15,23,42,.04); }
+.home-tabs button { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; min-height:45px; padding:3px; border-radius:12px; color:var(--muted); font-size:21px; }
+.home-tabs button span { line-height:1; font-size:21px; }
+.home-tabs button small { font-size:10px; font-weight:750; }
+.home-tabs button.on { background:transparent; color:var(--brand); }
+.home-tabs button.on small { text-decoration:underline; text-decoration-color:var(--accent); text-decoration-thickness:2px; text-underline-offset:5px; }
+.fab { bottom:calc(82px + env(safe-area-inset-bottom)); right:18px; background:var(--accent); color:#111827; border-radius:50%; width:52px; height:52px; padding:0; font-size:25px; box-shadow:0 8px 22px rgba(245,158,11,.28); }
+.profile-panel,.groups-panel,.people-panel,.public-profile-panel,.moment-compose { border-radius:24px; }
+.profile-avatar,.public-avatar,.person-avatar,.crop-preview,.bubble-ring { border-radius:50% !important; }
+.profile-avatar img,.public-avatar img,.person-avatar img,.crop-preview img { width:100%; height:100%; object-fit:cover; object-position:var(--avatar-x,50%) var(--avatar-y,50%); border-radius:50%; }
+@media(min-width:700px) { .home-welcome,.moments-strip,.conversations-heading { max-width:868px; margin-left:auto; margin-right:auto; } .home-welcome { margin-top:10px; } .moments-strip { padding-left:0; padding-right:0; } #roomlist { max-width:900px; } }
+@media(max-width:420px) { .home-welcome { padding:17px; } .moment-bubbles { gap:11px; } .bubble-ring { width:60px; height:60px; } .moment-bubble { flex-basis:63px; } .heading-note { display:none; } }
+
 </style>
 </head>
 <body>
@@ -196,7 +260,7 @@ form#send button {background:var(--brand);color:#111827}
 <!-- ROOM LIST -->
 <section id="rooms" class="screen">
   <header>
-    <div class="brand-lockup"><span class="brand-mark" aria-label="M and V monogram">M<span>V</span></span><h1>Mjadala<small id="me"></small></h1></div>
+    <div class="brand-lockup"><span class="brand-mark" aria-label="Mjadala logo">M<span>•••</span></span><h1>Mjadala<small id="me"></small></h1></div>
     <button class="theme-toggle" type="button" aria-label="Switch colour theme" title="Switch colour theme">☾</button>
     <button id="install">Install app</button>
     <button class="txt" id="adminbtn" style="display:none">Admin</button>
@@ -204,13 +268,28 @@ form#send button {background:var(--brand);color:#111827}
   </header>
   <div class="banned" id="bannedbar">Your account is restricted. You can read but not post.</div>
   <div class="rules">Be respectful. Argue with facts, not insults. Report abuse with the Report link on a message.</div>
-  <div class="home-tabs" id="home-tabs">
-    <button class="on" data-home="rooms">✳ Discussions</button>
-    <button data-home="moments-screen">◉ Moments</button>
-    <button data-home="groups-screen">♧ Groups</button>
-    <button data-home="profile-screen">◉ Profile</button>
-  </div>
+  <section class="home-welcome" aria-label="Create and discover">
+    <div class="welcome-copy"><span class="welcome-pencil">✎</span><div><h2>What's on your mind?</h2><p>Share a moment, start a discussion or create a group.</p></div></div>
+    <div class="welcome-actions"><button id="home-add-moment" class="welcome-primary">▣ &nbsp; Add Moment</button><button id="home-new-group" class="welcome-secondary">♟ &nbsp; New Group</button></div>
+  </section>
+  <section class="moments-strip" aria-label="Moments">
+    <div class="section-heading"><h2><span>◎</span> Moments</h2><button id="home-view-moments">View all →</button></div>
+    <div class="moment-bubbles">
+      <button class="moment-bubble add-bubble" id="home-your-moment"><span class="bubble-ring">＋</span><small>Your Moment</small></button>
+      <button class="moment-bubble" id="home-discover-people"><span class="bubble-ring bubble-indigo">✦</span><small>Discover</small></button>
+      <button class="moment-bubble" id="home-engineering"><span class="bubble-ring bubble-orange">⚙</span><small>Ideas</small></button>
+      <button class="moment-bubble" id="home-groups-bubble"><span class="bubble-ring bubble-slate">♧</span><small>Groups</small></button>
+    </div>
+  </section>
+  <div class="section-heading conversations-heading"><h2><span>▤</span> Conversations</h2><span class="heading-note">Find your community</span></div>
   <div id="roomlist"></div>
+  <div class="home-tabs" id="home-tabs" aria-label="Main navigation">
+    <button class="on" data-home="rooms"><span>⌂</span><small>Home</small></button>
+    <button data-home="groups-screen"><span>♟</span><small>Groups</small></button>
+    <button data-home="people-screen"><span>▤</span><small>People</small></button>
+    <button data-home="moments-screen" hidden aria-hidden="true" tabindex="-1"></button>
+    <button data-home="profile-screen"><span>●</span><small>Profile</small></button>
+  </div>
   <section id="moments-screen" style="display:none">
     <div class="moment-compose">
       <h2>Share a Moment</h2>
@@ -426,6 +505,14 @@ $("logout").onclick = async () => {
 };
 
 /* ---------- Home navigation ---------- */
+const openHomeTab = (tab) => {
+  const button = document.querySelector('[data-home="' + tab + '"]');
+  if (button) button.click();
+};
+["home-view-moments","home-your-moment"].forEach(id => { const b=$(id); if(b) b.onclick=()=>openHomeTab("moments-screen"); });
+const addMomentShortcut=$("home-add-moment"); if(addMomentShortcut) addMomentShortcut.onclick=()=>openHomeTab("moments-screen");
+["home-new-group","home-groups-bubble"].forEach(id=>{const b=$(id);if(b)b.onclick=()=>openHomeTab("groups-screen");});
+["home-discover-people","home-engineering"].forEach(id=>{const b=$(id);if(b)b.onclick=()=>openHomeTab("people-screen");});
 let homeTab = "rooms";
 document.querySelectorAll("[data-home]").forEach(b => {
   b.onclick = () => {
