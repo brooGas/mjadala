@@ -1,0 +1,2 @@
+DATABASE NOTE
+This visual redesign does not require schema changes. Do not run a new migration just to change the design. Keep the existing tables including public.shorts, public.short_categories, public.shorts_likes and public.shorts_comments. If you later encounter a database error, inspect the exact error before applying SQL.

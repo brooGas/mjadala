@@ -15,17 +15,17 @@
 <style>
 :root {
   color-scheme: light;
-  --brand:#4F46E5; --brand-strong:#3730A3; --brand-soft:#EEEAFE;
-  --accent:#F59E0B; --bg:#FAFAF8; --surface:#FFFFFF; --surface-2:#F4F3F8; --text:#0F172A;
-  --muted:#64748B; --line:#E8E7EF; --mine:#EEEAFE; --danger:#B42332;
-  --shadow:0 12px 36px rgba(41,40,33,.08); --radius:20px;
+  --brand:#6F6056; --brand-strong:#493B33; --brand-soft:#E7DDD3;
+  --accent:#C6A77B; --bg:#88776B; --surface:#F1EBE5; --surface-2:#E6DCD2; --text:#302821;
+  --muted:#74665C; --line:#D3C4B7; --mine:#E7DDD3; --danger:#C7354A;
+  --shadow:0 14px 38px rgba(48,40,33,.13); --radius:20px;
 }
-:root[data-theme="dark"] {
+ :root[data-theme="dark"] {
   color-scheme:dark;
-  --brand:#818CF8; --brand-strong:#A5B4FC; --brand-soft:#24234A; --accent:#F59E0B;
-  --bg:#0F172A; --surface:#111827; --surface-2:#1E293B; --text:#F8FAFC;
-  --muted:#AAB6CC; --line:#293449; --mine:#24234A; --danger:#FF8B94;
-  --shadow:0 12px 36px rgba(0,0,0,.25);
+  --brand:#D8BDA5; --brand-strong:#F1DCC8; --brand-soft:#493B33; --accent:#D8BDA5;
+  --bg:#211B18; --surface:#302722; --surface-2:#40352E; --text:#FFF9F2;
+  --muted:#C5B4A6; --line:#57483D; --mine:#493B33; --danger:#FF8A9A;
+  --shadow:0 14px 38px rgba(0,0,0,.28);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 .brand-lockup{display:flex;align-items:center;gap:10px;flex:1;min-width:0}.brand-lockup h1{flex:1}.brand-mark{width:38px;height:38px;flex:0 0 38px;border-radius:13px;background:#292821;color:#E9A34F;display:grid;place-items:center;font-weight:950;font-size:19px;letter-spacing:-.13em;border:1px solid rgba(245,158,11,.6);box-shadow:0 5px 15px rgba(41,40,33,.14)}.brand-mark span{font-size:12px;margin-left:-3px;align-self:center;color:#fff}.msg .mention{display:inline;border:0;background:transparent;color:var(--brand-strong);font-weight:850;padding:0;text-decoration:underline;text-underline-offset:2px}.msg .mention:hover{filter:brightness(.85)}
@@ -355,6 +355,85 @@ header { border-bottom:0; background:var(--bg); padding-top:calc(16px + env(safe
 :root:not([data-theme="dark"]) .welcome-primary {background:var(--brand);color:#FFF9F2}
 :root:not([data-theme="dark"]) .welcome-secondary {color:var(--brand-strong);border-color:var(--brand)}
 :root:not([data-theme="dark"]) .home-welcome {background:linear-gradient(120deg,#F7F1EB,#E9DDD2);border-color:var(--line)}
+
+/* Mjadala MV identity + approved rich taupe bright theme */
+:root:not([data-theme="dark"]) {
+  color-scheme: light;
+  --brand:#8A796D; --brand-strong:#493B33; --brand-soft:#CFC0B4;
+  --accent:#D8BDA5; --bg:#88776B; --surface:#6F6056; --surface-2:#79695F;
+  --text:#FFF9F2; --muted:#E6DAD0; --line:#A9988B; --mine:#5D4D43;
+  --danger:#FFB2AE; --shadow:0 12px 34px rgba(35,25,20,.22); --radius:22px;
+}
+:root:not([data-theme="dark"]) body,
+:root:not([data-theme="dark"]) .screen {background:var(--bg);color:var(--text)}
+:root:not([data-theme="dark"]) header,
+:root:not([data-theme="dark"]) .tabs,
+:root:not([data-theme="dark"]) .home-tabs,
+:root:not([data-theme="dark"]) form#send,
+:root:not([data-theme="dark"]) .card,
+:root:not([data-theme="dark"]) .room,
+:root:not([data-theme="dark"]) .msg,
+:root:not([data-theme="dark"]) .short-card,
+:root:not([data-theme="dark"]) .profile-card {background:var(--surface);color:var(--text);border-color:var(--line)}
+:root:not([data-theme="dark"]) input,
+:root:not([data-theme="dark"]) textarea,
+:root:not([data-theme="dark"]) select,
+:root:not([data-theme="dark"]) form#send input {background:var(--surface-2);color:var(--text);border-color:var(--line)}
+:root:not([data-theme="dark"]) input::placeholder,
+:root:not([data-theme="dark"]) textarea::placeholder {color:#D6C7BB}
+:root:not([data-theme="dark"]) .brand-mark {background:linear-gradient(145deg,#493B33,#8A796D);color:#FFF9F2;border:1px solid #D8BDA5;box-shadow:0 5px 16px rgba(35,25,20,.24);border-radius:12px}
+.brand-mark {width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;overflow:hidden}
+.brand-mark svg {width:34px;height:34px;display:block}
+.brand-lockup h1 {color:var(--text);font-weight:850}
+:root:not([data-theme="dark"]) .brand-lockup h1 {color:#FFF9F2}
+:root:not([data-theme="dark"]) .primary,
+:root:not([data-theme="dark"]) .fab,
+:root:not([data-theme="dark"]) form#send button,
+:root:not([data-theme="dark"]) .btn.good,
+:root:not([data-theme="dark"]) .welcome-primary {background:#493B33;color:#FFF9F2;border:1px solid #B49A83;box-shadow:0 7px 18px rgba(35,25,20,.22)}
+:root:not([data-theme="dark"]) .home-tabs button.on,
+:root:not([data-theme="dark"]) .tabs button.on {background:#493B33;color:#FFF9F2;border-bottom-color:#D8BDA5}
+:root:not([data-theme="dark"]) .room:before,
+:root:not([data-theme="dark"]) #install {background:#493B33;color:#FFF9F2}
+:root:not([data-theme="dark"]) .link,
+:root:not([data-theme="dark"]) .msg .who,
+:root:not([data-theme="dark"]) .code,
+:root:not([data-theme="dark"]) .section-heading h2 span {color:#F1D9C4}
+:root:not([data-theme="dark"]) .home-welcome {background:linear-gradient(125deg,#6F6056,#493B33);border-color:#A9988B;color:#FFF9F2}
+:root:not([data-theme="dark"]) .theme-toggle {color:#FFF9F2;border-color:#A9988B}
+
+/* Mjadala premium taupe visual system — full-app refinement */
+:root{--brand:#6F6056;--brand-strong:#493B33;--brand-soft:#E7DDD3;--accent:#C6A77B;--bg:#88776B;--surface:#F1EBE5;--surface-2:#E6DCD2;--text:#302821;--muted:#74665C;--line:#D3C4B7;--mine:#E7DDD3;--danger:#C7354A;--shadow:0 14px 38px rgba(48,40,33,.13);--radius:20px;color-scheme:light}
+:root[data-theme="dark"]{--brand:#D8BDA5;--brand-strong:#F1DCC8;--brand-soft:#493B33;--accent:#D8BDA5;--bg:#211B18;--surface:#302722;--surface-2:#40352E;--text:#FFF9F2;--muted:#C5B4A6;--line:#57483D;--mine:#493B33;--danger:#FF8A9A;--shadow:0 14px 38px rgba(0,0,0,.28);color-scheme:dark}
+html,body{background:var(--bg);color:var(--text)}
+header{background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 3px 14px rgba(48,40,33,.04)}
+.brand-mark{display:grid;place-items:center;background:linear-gradient(145deg,#493B33,#88776B)!important;color:#FFF9F2!important;border:1px solid #D8BDA5!important;border-radius:14px!important;box-shadow:0 7px 18px rgba(48,40,33,.20)!important;overflow:hidden;width:42px;height:42px;flex:0 0 42px}
+.brand-mark svg{width:100%;height:100%;padding:2px}.brand-mark span{color:#FFF9F2!important}
+.brand-lockup h1{font-family:Georgia,'Times New Roman',serif!important;font-weight:700!important;letter-spacing:-.045em!important;color:var(--brand-strong)}
+.brand-lockup h1 small{font-family:Inter,ui-sans-serif,system-ui,sans-serif!important;color:var(--muted)!important;letter-spacing:.14em!important}
+.auth-card{background:var(--surface);border:1px solid var(--line);box-shadow:0 22px 60px rgba(48,40,33,.16);border-radius:30px}
+.auth-card:before{content:'MV';background:linear-gradient(145deg,#493B33,#88776B)!important;color:#FFF9F2!important;border:1px solid #D8BDA5!important;font-family:Georgia,'Times New Roman',serif;font-size:20px;letter-spacing:-.1em;box-shadow:0 9px 22px rgba(48,40,33,.2)}
+.primary,.fab,.shorts-upload-open{background:linear-gradient(135deg,#6F6056,#493B33)!important;color:#FFF9F2!important;box-shadow:0 8px 20px rgba(73,59,51,.23)!important;border:1px solid rgba(216,189,165,.55)}
+.link{color:var(--brand-strong)!important}
+.home-tabs{background:var(--surface);border-color:var(--line);border-radius:18px;box-shadow:0 5px 20px rgba(48,40,33,.06)}
+.home-tabs button.on,.short-categories button.active{background:var(--brand)!important;border-color:var(--brand)!important;color:#FFF9F2!important;box-shadow:0 5px 14px rgba(73,59,51,.17)}
+.room,.moment-compose,.moment-card,.msg,.settings-card,.profile-card,.short-card,.category-card,.modal-card,.sheet,.post-card{background:var(--surface)!important;border-color:var(--line)!important;box-shadow:0 6px 20px rgba(48,40,33,.055)}
+.room:before{background:var(--brand-soft)!important;color:var(--brand-strong)!important}
+input,textarea,select,form#send input,.moment-compose input[type=text],.moment-compose input[type=file]{background:var(--surface-2)!important;color:var(--text)!important;border-color:var(--line)!important}
+.msg.mine{background:var(--mine)!important;border-color:var(--line)!important}
+.msg .who,.msg .mention{color:var(--brand-strong)!important}
+header button:hover,.home-tabs button:hover,.short-categories button:hover{background:var(--brand-soft)!important;color:var(--brand-strong)!important}
+.danger-button,.delete-button,.short-delete,.danger{background:#C7354A!important;color:#fff!important;border:0!important;border-radius:12px!important;box-shadow:0 5px 14px rgba(199,53,74,.18)}
+#shorts-screen{background:radial-gradient(ellipse at 50% 0%,rgba(216,189,165,.23),transparent 55%),var(--bg)!important}
+#shorts-screen .short-card{border-radius:22px!important;overflow:hidden;box-shadow:0 12px 30px rgba(48,40,33,.16)!important}
+#shorts-screen .short-actions button{background:rgba(48,40,33,.76);color:#FFF9F2;border:1px solid rgba(255,249,242,.22);backdrop-filter:blur(10px)}
+#shorts-screen .short-actions button.liked,.like-button.liked{color:#F05275!important}
+.bottom-nav,.app-nav,.nav-bar,.tabbar{background:var(--surface)!important;border-color:var(--line)!important;box-shadow:0 -5px 24px rgba(48,40,33,.08)!important}
+button{transition:background-color .16s ease,color .16s ease,transform .16s ease,box-shadow .16s ease}
+button:active{transform:scale(.98)}
+:focus-visible{outline-color:#A98B70!important}
+@media(min-width:760px){.screen.active{padding-bottom:24px}.home-tabs{margin-top:18px}.room{border-radius:20px;padding-top:20px;padding-bottom:20px}}
+
 </style>
 </head>
 <body>
@@ -379,7 +458,7 @@ header { border-bottom:0; background:var(--bg); padding-top:calc(16px + env(safe
 <!-- ROOM LIST -->
 <section id="rooms" class="screen">
   <header>
-    <div class="brand-lockup"><span class="brand-mark" aria-label="Mjadala logo">M<span>•••</span></span><h1>Mjadala<small id="me"></small></h1></div>
+    <div class="brand-lockup"><span class="brand-mark" aria-label="Mjadala MV logo"><svg viewBox="0 0 48 48" role="img" aria-label="Interlocking M V monogram"><text x="5" y="34" font-family="Georgia,Times New Roman,serif" font-size="35" font-weight="600" fill="currentColor">M</text><text x="22" y="40" font-family="Georgia,Times New Roman,serif" font-size="30" font-weight="600" fill="#D8BDA5">V</text></svg></span><h1>Mjadala<small id="me"></small></h1></div>
     <button class="theme-toggle" type="button" aria-label="Switch colour theme" title="Switch colour theme">☾</button>
     <button id="home-profile-avatar" class="home-profile-avatar" type="button" aria-label="Open your profile" title="Your profile">M</button>
     <button id="install">Install app</button>
