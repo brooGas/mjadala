@@ -363,13 +363,14 @@ header { border-bottom:0; background:var(--bg); padding-top:calc(16px + env(safe
     </div>
     <div class="short-upload-panel" id="short-upload-panel">
       <h3>Create a Short</h3><p>Select a vertical video up to 15 seconds, choose its category, and add a title. This preview lets you check it before publishing.</p>
-      <input id="short-video-file" type="file" accept="video/mp4,video/quicktime,video/webm">
+      <label for="short-video-file">Record with camera or choose a video</label><input id="short-video-file" type="file" accept="video/*" capture="environment">
       <video id="short-video-preview" class="short-preview" controls playsinline hidden></video>
       <input id="short-video-title" type="text" maxlength="90" placeholder="Give your Short a title (optional)">
       <select id="short-video-category" aria-label="Choose category"><option>Innovation</option><option>Education</option><option>Engineering</option><option>Business</option></select>
       <button type="button" class="primary" id="short-video-check">Check video</button>
+      <button type="button" class="primary" id="short-video-publish">Publish Short</button>
       <button type="button" class="link" id="shorts-cancel-upload">Cancel</button>
-      <div class="short-status" id="short-upload-status" aria-live="polite">Publishing is not connected yet; your video will not be uploaded to other users.</div>
+      <div class="short-status" id="short-upload-status" aria-live="polite">Choose a video, check the 15-second limit, then publish it for other users.</div>
     </div>
     <div class="shorts-grid" id="shorts-grid">
       <div class="shorts-empty">Your Shorts space is ready. Choose a category or create a video preview. Published videos will appear here once video storage and the Shorts database are connected.</div>
@@ -625,7 +626,7 @@ document.querySelectorAll("[data-home]").forEach(b => {
     $("roomlist").style.display = homeTab === "rooms" ? "block" : "none";
     ["shorts-screen","moments-screen","groups-screen","profile-screen","people-screen","public-profile-screen"].forEach(id => { const node=$(id); if(node) node.style.display = homeTab===id ? "block" : "none"; });
     $("newroom").style.display = homeTab === "rooms" && isStaff() ? "block" : "none";
-    if (homeTab === "shorts-screen") renderShorts();
+    if (homeTab === "shorts-screen") { renderShorts(); loadPublishedShorts(); }
     if (homeTab === "moments-screen") loadMoments();
     if (homeTab === "groups-screen") loadGroups();
     if (homeTab === "profile-screen") loadProfile();
@@ -633,60 +634,79 @@ document.querySelectorAll("[data-home]").forEach(b => {
   };
 });
 
-/* ---------- Shorts (front-end foundation; publishing backend pending) ---------- */
+/* ---------- Shorts: Supabase upload, feed and category filters ---------- */
 const shortSamples = [];
+let publishedShorts = [];
 let activeShortCategory = "All";
 let shortPreviewUrl = "";
+const SHORT_BUCKET = "mjadala-shorts";
+const shortCategorySlug = name => String(name || "Other").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+async function loadPublishedShorts(){
+  const grid=$("shorts-grid"); if(!grid || !me)return;
+  grid.innerHTML='<div class="shorts-empty">Loading Shorts…</div>';
+  try{
+    let query=sb.from("shorts").select("id,user_id,category_id,title,video_path,duration_seconds,created_at,short_categories(name,slug)").eq("status","published").order("created_at",{ascending:false}).limit(60);
+    const {data,error}=await query; if(error)throw error;
+    const rows=data||[];
+    publishedShorts=await Promise.all(rows.map(async item=>{
+      const {data:link,error:linkError}=await sb.storage.from(SHORT_BUCKET).createSignedUrl(item.video_path,3600);
+      if(linkError) return {...item,url:"",category:item.short_categories?.name||"Other"};
+      return {...item,url:link.signedUrl,category:item.short_categories?.name||"Other"};
+    }));
+    renderShorts();
+  }catch(e){grid.innerHTML='';const empty=el("div","shorts-empty");empty.textContent="Couldn't load Shorts: "+(e.message||"Check your database policies and connection.");grid.appendChild(empty);}
+}
 function renderShorts(){
-  const grid=$("shorts-grid"); if(!grid)return;
-  grid.innerHTML="";
-  const items=shortSamples.filter(item=>activeShortCategory==="All"||item.category===activeShortCategory);
-  if(!items.length){
-    const empty=el("div","shorts-empty");
-    empty.textContent=activeShortCategory==="All"
-      ?"Your Shorts space is ready. Choose a category or create a video preview. Published videos will appear here once video storage and the Shorts database are connected."
-      :"No Shorts in "+activeShortCategory+" yet. Be the first to share an idea in this category.";
-    grid.appendChild(empty);return;
-  }
+  const grid=$("shorts-grid");if(!grid)return;grid.innerHTML="";
+  const all=[...publishedShorts,...shortSamples];
+  const items=all.filter(item=>activeShortCategory==="All"||item.category===activeShortCategory);
+  if(!items.length){const empty=el("div","shorts-empty");empty.textContent=activeShortCategory==="All"?"No Shorts yet. Be the first to share an idea.":"No Shorts in "+activeShortCategory+" yet. Be the first to share one.";grid.appendChild(empty);return;}
   items.forEach(item=>{
-    const card=el("button","short-card");card.type="button";
-    const video=el("video");video.src=item.url;video.muted=true;video.playsInline=true;video.preload="metadata";video.setAttribute("aria-label",item.title||"Video preview");card.appendChild(video);
-    const play=el("span","short-play");play.textContent="▶ Preview";card.appendChild(play);
-    const info=el("span","short-info"),tag=el("span","short-tag");tag.textContent=item.category;info.appendChild(tag);
+    const card=el("div","short-card");
+    const video=el("video");video.src=item.url||"";video.muted=true;video.playsInline=true;video.preload="metadata";video.controls=true;video.setAttribute("aria-label",item.title||"Short video");card.appendChild(video);
+    const info=el("div","short-info"),tag=el("span","short-tag");tag.textContent=item.category;info.appendChild(tag);
     const title=el("b");title.textContent=item.title||"Untitled Short";info.appendChild(title);
-    const note=el("span");note.textContent="Local preview · not published";info.appendChild(note);card.appendChild(info);
-    card.onclick=()=>{if(video.paused)video.play().catch(()=>{});else video.pause();};grid.appendChild(card);
+    const note=el("span");note.textContent=item.id?"Published Short":"Local preview · not published";info.appendChild(note);card.appendChild(info);grid.appendChild(card);
   });
 }
-document.querySelectorAll("[data-short-category]").forEach(button=>button.addEventListener("click",()=>{
-  activeShortCategory=button.dataset.shortCategory;
-  document.querySelectorAll("[data-short-category]").forEach(b=>b.classList.toggle("active",b===button));
-  renderShorts();
-}));
-$("shorts-open-upload").onclick=()=>{$("short-upload-panel").classList.add("open");$("short-upload-status").textContent="Select a video to preview it. Publishing to Mjadala requires the Shorts storage/database setup.";};
+document.querySelectorAll("[data-short-category]").forEach(button=>button.addEventListener("click",()=>{activeShortCategory=button.dataset.shortCategory;document.querySelectorAll("[data-short-category]").forEach(b=>b.classList.toggle("active",b===button));renderShorts();}));
+$("shorts-open-upload").onclick=()=>{$("short-upload-panel").classList.add("open");$("short-upload-status").textContent="Record a video with your camera or choose one from your gallery. Maximum 15 seconds.";};
 $("shorts-cancel-upload").onclick=()=>{$("short-upload-panel").classList.remove("open");};
 $("short-video-file").addEventListener("change",()=>{
   const file=$("short-video-file").files?.[0],status=$("short-upload-status"),preview=$("short-video-preview");
-  if(shortPreviewUrl)URL.revokeObjectURL(shortPreviewUrl);shortPreviewUrl="";
-  preview.pause();preview.removeAttribute("src");preview.hidden=true;
-  if(!file){status.textContent="Choose an MP4, MOV, or WebM video.";return;}
+  if(shortPreviewUrl)URL.revokeObjectURL(shortPreviewUrl);shortPreviewUrl="";preview.pause();preview.removeAttribute("src");preview.hidden=true;
+  if(!file){status.textContent="Choose or record a video.";return;}
   if(!file.type.startsWith("video/")){status.textContent="Please choose a video file.";return;}
+  if(file.size>50*1024*1024){status.textContent="Video exceeds the 50 MB upload limit.";return;}
   shortPreviewUrl=URL.createObjectURL(file);preview.src=shortPreviewUrl;preview.hidden=false;
-  preview.onloadedmetadata=()=>{status.textContent=preview.duration>15.05?"This video is "+preview.duration.toFixed(1)+" seconds. Shorts must be 15 seconds or shorter.":"Video preview ready ("+preview.duration.toFixed(1)+" seconds). Choose Check video to validate it.";};
-  preview.onerror=()=>{status.textContent="This video could not be previewed in your browser. Try MP4.";};
+  preview.onloadedmetadata=()=>{status.textContent=preview.duration>15.05?"This video is "+preview.duration.toFixed(1)+" seconds. Shorts must be 15 seconds or shorter.":"Video ready ("+preview.duration.toFixed(1)+" seconds). Tap Publish Short to share it.";};
+  preview.onerror=()=>{status.textContent="This video could not be previewed. Try an MP4 video.";};
 });
-$("short-video-check").onclick=()=>{
-  const file=$("short-video-file").files?.[0],preview=$("short-video-preview"),status=$("short-upload-status");
-  if(!file||!shortPreviewUrl){status.textContent="Select a video first.";return;}
-  if(!preview.duration||!Number.isFinite(preview.duration)){status.textContent="Wait for the video preview to load, then check again.";return;}
-  if(preview.duration>15.05){status.textContent="Not ready: Shorts must be 15 seconds or shorter.";return;}
-  if(shortSamples.some(x=>x.url===shortPreviewUrl))return;
-  shortSamples.unshift({url:shortPreviewUrl,title:$("short-video-title").value.trim(),category:$("short-video-category").value});
-  activeShortCategory="All";
-  document.querySelectorAll("[data-short-category]").forEach(b=>b.classList.toggle("active",b.dataset.shortCategory==="All"));
-  renderShorts();
-  status.textContent="Video passed the length check and is shown as a local preview on this device only. It has NOT been uploaded or published.";
-  $("shorts-grid").scrollIntoView({behavior:"smooth",block:"start"});
+$("short-video-check").onclick=()=>{const file=$("short-video-file").files?.[0],preview=$("short-video-preview"),status=$("short-upload-status");if(!file||!shortPreviewUrl){status.textContent="Select or record a video first.";return;}if(!preview.duration||!Number.isFinite(preview.duration)){status.textContent="Wait for the video preview to load.";return;}if(preview.duration>15.05){status.textContent="Not ready: Shorts must be 15 seconds or shorter.";return;}status.textContent="Video passed the length check. Tap Publish Short to upload it.";};
+$("short-video-publish").onclick=async()=>{
+  const file=$("short-video-file").files?.[0],preview=$("short-video-preview"),status=$("short-upload-status"),button=$("short-video-publish");
+  if(!me){status.textContent="Please sign in before publishing.";return;}
+  if(!file||!shortPreviewUrl){status.textContent="Record or choose a video first.";return;}
+  if(!preview.duration||!Number.isFinite(preview.duration)){status.textContent="Wait for the video preview to load.";return;}
+  if(preview.duration>15.05){status.textContent="Shorts must be 15 seconds or shorter.";return;}
+  if(file.size>50*1024*1024){status.textContent="Video exceeds the 50 MB limit.";return;}
+  button.disabled=true;status.textContent="Uploading video…";
+  try{
+    const categoryName=$("short-video-category").value;
+    const {data:cat,error:catErr}=await sb.from("short_categories").select("id,name").eq("slug",shortCategorySlug(categoryName)).single();
+    if(catErr)throw catErr;
+    const ext=(file.name.split(".").pop()||"mp4").toLowerCase().replace(/[^a-z0-9]/g,"");
+    const path=me.id+"/"+crypto.randomUUID()+"."+ext;
+    const {error:upErr}=await sb.storage.from(SHORT_BUCKET).upload(path,file,{contentType:file.type||"video/mp4",upsert:false,cacheControl:"3600"});
+    if(upErr)throw upErr;
+    const {error:rowErr}=await sb.from("shorts").insert({user_id:me.id,category_id:cat.id,title:$("short-video-title").value.trim(),video_path:path,duration_seconds:Number(preview.duration.toFixed(2)),status:"published"});
+    if(rowErr){await sb.storage.from(SHORT_BUCKET).remove([path]);throw rowErr;}
+    status.textContent="Published! Your Short is now available in the feed.";
+    $("short-video-file").value="";$("short-video-title").value="";preview.pause();preview.removeAttribute("src");preview.hidden=true;
+    if(shortPreviewUrl)URL.revokeObjectURL(shortPreviewUrl);shortPreviewUrl="";
+    await loadPublishedShorts();
+  }catch(e){status.textContent="Could not publish: "+(e.message||"Check Supabase permissions and storage settings.");}
+  finally{button.disabled=false;}
 };
 
 /* ---------- Rooms ---------- */
