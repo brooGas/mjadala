@@ -796,6 +796,14 @@ body.shorts-immersive #shorts-screen .short-upload-panel.open{position:absolute!
       </div>
       <div id="account-settings-status" class="settings-status" aria-live="polite"></div>
     </div>
+    <div class="profile-settings-card" id="privacy-account-settings">
+      <div class="settings-heading"><span class="settings-icon">🛡️</span><div><h2>Privacy & security</h2><p>Control profile visibility and protect your account.</p></div></div>
+      <label class="settings-row notification-setting"><span class="settings-row-icon">🌐</span><span class="settings-row-copy"><b>Public profile</b><small>Let signed-in members discover your profile.</small></span><input type="checkbox" id="privacy-public-profile" checked></label>
+      <label class="settings-row notification-setting"><span class="settings-row-icon">✉️</span><span class="settings-row-copy"><b>Allow direct messages</b><small>Allow members to start a direct conversation.</small></span><input type="checkbox" id="privacy-allow-dms" checked></label>
+      <div style="display:grid;gap:8px;margin-top:12px"><label for="new-account-password" style="font-size:13px;color:var(--muted)">Change password</label><input id="new-account-password" type="password" autocomplete="new-password" minlength="6" placeholder="New password (at least 6 characters)" style="width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);color:var(--text)"><button class="primary" id="change-account-password" type="button">Update password</button></div>
+      <div id="privacy-settings-status" class="settings-status" aria-live="polite"></div>
+      <button class="primary" id="save-privacy-settings" type="button" style="width:100%;margin-top:12px">Save privacy settings</button>
+    </div>
     <div class="profile-settings-card" id="notification-settings">
       <div class="settings-heading"><span class="settings-icon">🔔</span><div><h2>Notification settings</h2><p>Choose what you want to be notified about.</p></div></div>
       <label class="settings-row notification-setting"><span class="settings-row-icon">📝</span><span class="settings-row-copy"><b>New posts</b><small>Notifications about new posts.</small></span><input type="checkbox" id="notify-new-posts" checked></label>
@@ -803,6 +811,8 @@ body.shorts-immersive #shorts-screen .short-upload-panel.open{position:absolute!
       <label class="settings-row notification-setting"><span class="settings-row-icon">💬</span><span class="settings-row-copy"><b>Group messages</b><small>Messages shared in your groups.</small></span><input type="checkbox" id="notify-group-messages" checked></label>
       <label class="settings-row notification-setting"><span class="settings-row-icon">📣</span><span class="settings-row-copy"><b>Mentions and replies</b><small>When someone mentions or replies to you.</small></span><input type="checkbox" id="notify-mentions-replies" checked></label>
       <label class="settings-row notification-setting"><span class="settings-row-icon">✉️</span><span class="settings-row-copy"><b>Direct messages</b><small>Messages sent directly to you.</small></span><input type="checkbox" id="notify-direct-messages" checked></label>
+      <label class="settings-row notification-setting"><span class="settings-row-icon">🏷️</span><span class="settings-row-copy"><b>Tags</b><small>When someone tags or mentions you.</small></span><input type="checkbox" id="notify-tags" checked></label>
+      <label class="settings-row notification-setting"><span class="settings-row-icon">✨</span><span class="settings-row-copy"><b>Mjadala updates</b><small>Important app and feature updates.</small></span><input type="checkbox" id="notify-app-updates" checked></label>
       <div id="notification-settings-status" class="settings-status" aria-live="polite">Your preferences are saved to your account.</div>
       <button class="primary" id="save-notification-settings" type="button" style="width:100%;margin-top:12px">Save notification settings</button>
     </div>
@@ -1028,6 +1038,11 @@ async function resolveShortVideoUrl(rawPath){
     const {data,error}=await sb.storage.from(SHORT_BUCKET).createSignedUrl(path,3600);
     if(!error&&data?.signedUrl)return data.signedUrl;
     lastError=error;
+    // Public buckets can still play a video if signed URLs are unavailable.
+    try {
+      const publicResult=sb.storage.from(SHORT_BUCKET).getPublicUrl(path);
+      if(publicResult?.data?.publicUrl)return publicResult.data.publicUrl;
+    } catch (_) {}
   }
   throw lastError||new Error("Could not create a video playback link.");
 }
@@ -1047,8 +1062,8 @@ async function loadPublishedShorts(){
       if (!likesError) likedIds = new Set((likes || []).map(row => String(row.short_id)));
     }
     const creatorIds=[...new Set(rows.map(r=>r.user_id).filter(Boolean))];let creatorMap={};if(creatorIds.length){const {data:profiles}=await sb.from("profiles").select("id,nickname,avatar_url").in("id",creatorIds);(profiles||[]).forEach(p=>creatorMap[p.id]=p);}
-    let followingIds=new Set();if(me?.id){const {data:following}=await sb.from("shorts_creator_follows").select("creator_id").eq("follower_id",me.id);if(following)followingIds=new Set(following.map(x=>String(x.creator_id)));}
-    publishedShorts=await Promise.all(rows.map(async item=>{let url="",playbackError="";try{url=await resolveShortVideoUrl(item.video_path)}catch(e){playbackError=e?.message||"Storage link could not be created.";}const category=shortCategories.find(c=>String(c.id)===String(item.category_id));const creator=creatorMap[item.user_id]||{};return {...item,url,creatorNickname:creator.nickname||"Mjadala member",creatorAvatar:creator.avatar_url||"",followingByMe:followingIds.has(String(item.user_id)),likedByMe:likedIds.has(String(item.id)),category:category?.name||"Other",categorySlug:category?.slug||"",playbackError};}));
+    let followingIds=new Set(),savedIds=new Set();if(me?.id){const {data:following}=await sb.from("shorts_creator_follows").select("creator_id").eq("follower_id",me.id);if(following)followingIds=new Set(following.map(x=>String(x.creator_id)));const savedResult=await sb.from("saved_shorts").select("short_id").eq("user_id",me.id);if(!savedResult.error&&savedResult.data)savedIds=new Set(savedResult.data.map(x=>String(x.short_id)));}
+    publishedShorts=await Promise.all(rows.map(async item=>{let url="",playbackError="";try{url=await resolveShortVideoUrl(item.video_path)}catch(e){playbackError=e?.message||"Storage link could not be created.";}const category=shortCategories.find(c=>String(c.id)===String(item.category_id));const creator=creatorMap[item.user_id]||{};return {...item,url,creatorNickname:creator.nickname||"Mjadala member",creatorAvatar:creator.avatar_url||"",followingByMe:followingIds.has(String(item.user_id)),likedByMe:likedIds.has(String(item.id)),savedByMe:savedIds.has(String(item.id)),category:category?.name||"Other",categorySlug:category?.slug||"",playbackError};}));
     const filter=$("short-category-filters");
     if(filter&&shortCategories.length){const names=[...new Set(shortCategories.map(c=>c.name))];filter.innerHTML='<button class="'+(activeShortCategory==="All"?'active':'')+'" data-short-category="All">✨ For you</button>'+names.map(name=>'<button data-short-category="'+name.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'" class="'+(activeShortCategory===name?'active':'')+'">'+(shortCategoryIcons[name]||'◈')+' '+name.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</button>').join('');filter.querySelectorAll('[data-short-category]').forEach(button=>button.addEventListener('click',()=>{activeShortCategory=button.dataset.shortCategory;filter.querySelectorAll('[data-short-category]').forEach(b=>b.classList.toggle('active',b===button));renderShorts();}));}
     const select=$("short-video-category");if(select&&shortCategories.length)select.innerHTML=shortCategories.map(c=>'<option value="'+String(c.id)+'">'+String(c.name).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</option>').join('');
@@ -1095,7 +1110,7 @@ async function toggleShortFollow(item,button){if(!me){alert("Sign in to follow c
 function showShortMenu(item,card){card.querySelector(".short-menu-pop")?.remove();const pop=el("div","short-menu-pop");const actions=[...(item.user_id===me?.id?[ ["Delete Short",()=>deleteMyShort(item,card)] ]:[]),["Copy video link",()=>{const video=card.querySelector("video");const url=item.url||video?.currentSrc;if(url&&navigator.clipboard)navigator.clipboard.writeText(url).then(()=>alert("Link copied."),()=>alert("Could not copy the link."));else shareShort(item);}], ["Not interested",()=>{card.remove();}]];actions.forEach(([label,fn])=>{const b=el("button","",label);b.type="button";b.onclick=()=>{pop.remove();fn();};pop.appendChild(b);});card.appendChild(pop);}
 function renderShorts(){
   const grid=$("shorts-grid");if(!grid)return;grid.innerHTML="";
-  const all=[...publishedShorts,...shortSamples];
+  const all=[...publishedShorts].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
   const items=all.filter(item=>(activeShortCategory==="All"||item.category===activeShortCategory)&&(activeShortFeed!=="following"||item.followingByMe));
   if(!items.length){const empty=el("div","shorts-empty");empty.textContent=activeShortFeed==="following"?"No Shorts from followed creators yet. Follow someone to build this feed.":(activeShortCategory==="All"?"No Shorts yet. Be the first to share an idea.":"No Shorts in "+activeShortCategory+" yet. Be the first to share one.");grid.appendChild(empty);return;}
   items.forEach(item=>{
@@ -1120,6 +1135,7 @@ function renderShorts(){
       likeButton.setAttribute("aria-pressed",item.likedByMe?"true":"false");
       addShortActionButton(actions,"💬","Comment",()=>commentOnShort(item));
       addShortActionButton(actions,"↗","Share",()=>shareShort(item));
+      addShortActionButton(actions,item.savedByMe?"🔖":"♧",item.savedByMe?"Saved":"Save",b=>toggleSaveShort(item,b),item.savedByMe?"is-saved":"");
       if(item.user_id===me?.id)addShortActionButton(actions,"🗑","Delete",()=>deleteMyShort(item,card),"short-delete");
       card.appendChild(actions);
     }
@@ -1198,10 +1214,20 @@ $("short-video-publish").onclick=async()=>{
     bar.style.width="75%";
     const {error:rowErr}=await sb.from("shorts").insert({user_id:me.id,video_path:path,title:$("short-video-title").value.trim(),category_id:categoryRow.id,duration_seconds:Number(shortUploadDuration.toFixed(2)),status:"published"});
     if(rowErr){await sb.storage.from(SHORT_BUCKET).remove([path]);throw rowErr;}
-    bar.style.width="100%";status.textContent="Published successfully. Your Short is now available to other signed-in members.";
-    $("short-video-file").value="";$("short-video-title").value="";$("short-video-category").value="Innovation";const preview=$("short-video-preview");preview.pause();preview.removeAttribute("src");preview.hidden=true;if(shortPreviewUrl)URL.revokeObjectURL(shortPreviewUrl);shortPreviewUrl="";resetShortUploadState();$("short-trim-tools").hidden=true;
-    setTimeout(()=>{progress.hidden=true;bar.style.width="0";$("short-upload-panel").classList.remove("open");},900);
+    bar.style.width="100%";status.textContent="Published successfully. Opening your new Reel…";
+    const publishedTitle=$("short-video-title").value.trim();
+    $("short-video-file").value="";$("short-video-title").value="";const preview=$("short-video-preview");preview.pause();preview.removeAttribute("src");preview.hidden=true;if(shortPreviewUrl)URL.revokeObjectURL(shortPreviewUrl);shortPreviewUrl="";resetShortUploadState();$("short-trim-tools").hidden=true;
+    // Keep the new post in the All feed and reload the database-backed list before leaving upload.
+    activeShortCategory="All";activeShortFeed="all";
+    $("shorts-feed-all")?.classList.add("active");$("shorts-feed-following")?.classList.remove("active");
+    $("shorts-feed-all")?.setAttribute("aria-selected","true");$("shorts-feed-following")?.setAttribute("aria-selected","false");
     await loadPublishedShorts();
+    const newest=publishedShorts.find(x=>x.user_id===me.id && x.video_path===path);
+    if(newest){
+      setTimeout(()=>{const card=document.getElementById("short-card-"+newest.id);if(card){card.scrollIntoView({behavior:"smooth",block:"start"});const video=card.querySelector("video");if(video){video.muted=true;video.play().catch(()=>{});}}},180);
+    }
+    status.textContent="Published. Your Reel is at the top of All Shorts.";
+    setTimeout(()=>{progress.hidden=true;bar.style.width="0";$("short-upload-panel").classList.remove("open");},1100);
   }catch(e){status.textContent="Could not publish: "+(e.message||"Check Supabase permissions and storage settings.");progress.hidden=true;bar.style.width="0";}
   finally{button.disabled=false;}
 };
@@ -1484,10 +1510,54 @@ function refreshHomeAvatar(url=profilePhotoUrl,nickname=me?.nickname||"M",x=avat
 const homeProfileAvatar=$("home-profile-avatar");
 if(homeProfileAvatar) homeProfileAvatar.onclick=()=>openHomeTab("profile-screen");
 function showProfileMenu(){const menu=$("profile-menu"),editor=$("profile-editor-area");if(menu)menu.hidden=false;if(editor)editor.hidden=true;}
-function showProfileEditor(){const menu=$("profile-menu"),editor=$("profile-editor-area");if(menu)menu.hidden=true;if(editor)editor.hidden=false;loadProfile();}
+function showProfileEditor(){const menu=$("profile-menu"),editor=$("profile-editor-area");if(menu)menu.hidden=true;if(editor)editor.hidden=false;loadProfile();loadPrivacyPreferences();}
 $("profile-editor-back")?.addEventListener("click",showProfileMenu);
 $("menu-logout")?.addEventListener("click",()=>$("logout").click());
-document.querySelectorAll("[data-profile-action]").forEach(button=>button.addEventListener("click",()=>{const action=button.dataset.profileAction;switch(action){case "my-profile":showProfileEditor();break;case "notifications":case "settings":showProfileEditor();setTimeout(()=>$('notification-settings')?.scrollIntoView({behavior:"smooth",block:"start"}),80);break;case "my-posts":showProfileUtility("My Posts","Your posts and Shorts are shown on your profile and in the feeds where they were published. A dedicated all-posts list needs the post tables in this project to be connected.");break;case "saved":showProfileUtility("Saved","Saved posts are not connected to this version yet. This screen is ready to explain the feature rather than leaving the label unresponsive.");break;case "help":showProfileUtility("Help & Support","For account or upload problems, describe what happened in Feedback so the Mjadala administrator can investigate.");break;case "feedback":showFeedbackPanel();break;case "about":showProfileUtility("About Mjadala","Mjadala — Real People · Real Talks · Bigger Ideas.");break;}}));
+document.querySelectorAll("[data-profile-action]").forEach(button=>button.addEventListener("click",()=>{const action=button.dataset.profileAction;switch(action){case "my-profile":showProfileEditor();break;case "notifications":case "settings":showProfileEditor();setTimeout(()=>$('notification-settings')?.scrollIntoView({behavior:"smooth",block:"start"}),80);break;case "my-posts":openProfileShorts(false);break;case "saved":openProfileShorts(true);break;case "help":showProfileUtility("Help & Support","For account or upload problems, describe what happened in Feedback so the Mjadala administrator can investigate.");break;case "feedback":showFeedbackPanel();break;case "about":showProfileUtility("About Mjadala","Mjadala — Real People · Real Talks · Bigger Ideas.");break;}}));
+async function toggleSaveShort(item,button){
+  if(!me){alert("Sign in to save a Reel.");return;}
+  button.disabled=true;
+  try{
+    if(item.savedByMe){
+      const {error}=await sb.from("saved_shorts").delete().eq("user_id",me.id).eq("short_id",item.id);
+      if(error)throw error;item.savedByMe=false;button.classList.remove("is-saved");button.innerHTML='<span class="action-emoji">♧</span><span>Save</span>';
+    }else{
+      const {error}=await sb.from("saved_shorts").upsert({user_id:me.id,short_id:item.id},{onConflict:"user_id,short_id"});
+      if(error)throw error;item.savedByMe=true;button.classList.add("is-saved");button.innerHTML='<span class="action-emoji">🔖</span><span>Saved</span>';
+    }
+  }catch(e){alert("Could not save this Reel. Apply MIGRATION_PROFILE_FEATURES.sql in Supabase, then retry. "+(e.message||""));}
+  finally{button.disabled=false;}
+}
+async function openProfileShorts(savedOnly){
+  const title=savedOnly?"Saved Reels":"My Posts & Reels";
+  const backdrop=document.getElementById("profile-utility-modal")||el("div","short-comment-backdrop");
+  backdrop.id="profile-utility-modal";backdrop.innerHTML="";
+  const panel=el("section","short-comment-panel"),head=el("div","short-comment-head"),h=el("h3","",title),close=el("button","short-comment-close","×");
+  close.type="button";close.setAttribute("aria-label","Close");close.onclick=()=>backdrop.remove();head.append(h,close);
+  const body=el("div","profile-short-list");body.style.cssText="padding:12px 16px 20px;display:grid;gap:10px";
+  panel.append(head,body);backdrop.append(panel);if(!backdrop.isConnected)document.body.append(backdrop);
+  body.textContent="Loading your Reels…";
+  try{
+    let query=sb.from("shorts").select("id,user_id,video_path,title,category_id,duration_seconds,status,created_at").order("created_at",{ascending:false}).limit(100);
+    if(savedOnly){
+      const {data:saves,error:savesError}=await sb.from("saved_shorts").select("short_id,created_at").eq("user_id",me.id).order("created_at",{ascending:false});
+      if(savesError)throw savesError;
+      const ids=(saves||[]).map(x=>x.short_id);
+      if(!ids.length){body.textContent="No saved Reels yet. Use the Save icon on a Reel to keep it here.";return;}
+      query=query.in("id",ids);
+    }else query=query.eq("user_id",me.id);
+    const {data,error}=await query;if(error)throw error;
+    const rows=(data||[]).filter(x=>!x.status||String(x.status).toLowerCase()==="published");
+    body.innerHTML="";
+    if(!rows.length){body.textContent=savedOnly?"No saved Reels yet.":"You haven’t published a Reel yet.";return;}
+    for(const row of rows){
+      const item=publishedShorts.find(x=>String(x.id)===String(row.id));
+      const card=el("button","profile-short-row");card.type="button";card.textContent="▶  "+(row.title||"Untitled Reel")+"  ·  "+new Date(row.created_at).toLocaleDateString();
+      card.onclick=async()=>{backdrop.remove();document.querySelector('[data-home="shorts-screen"]')?.click();setTimeout(async()=>{if(!publishedShorts.some(x=>String(x.id)===String(row.id)))await loadPublishedShorts();const target=document.getElementById("short-card-"+row.id);target?.scrollIntoView({behavior:"smooth",block:"start"});},300);};
+      body.append(card);
+    }
+  }catch(e){body.textContent="Could not load "+title.toLowerCase()+": "+(e.message||"Check database permissions.")+". For saved Reels, apply MIGRATION_PROFILE_FEATURES.sql.";}
+}
 function showProfileUtility(title,message){document.getElementById("profile-utility-modal")?.remove();const backdrop=el("div","short-comment-backdrop"),panel=el("section","short-comment-panel"),head=el("div","short-comment-head"),h=el("h3","",title),close=el("button","short-comment-close","×");close.type="button";close.setAttribute("aria-label","Close");close.onclick=()=>backdrop.remove();head.append(h,close);const body=el("p","",message);body.style.cssText="padding:12px 16px 20px;line-height:1.6";panel.append(head,body);backdrop.append(panel);backdrop.id="profile-utility-modal";backdrop.addEventListener("click",e=>{if(e.target===backdrop)backdrop.remove();});document.body.append(backdrop);}
 function showFeedbackPanel(){document.getElementById("profile-feedback-modal")?.remove();const backdrop=el("div","short-comment-backdrop"),panel=el("section","short-comment-panel"),head=el("div","short-comment-head"),h=el("h3","","Feedback"),close=el("button","short-comment-close","×");close.type="button";close.setAttribute("aria-label","Close feedback");close.onclick=()=>backdrop.remove();head.append(h,close);const form=el("form","short-comment-form"),input=el("textarea");input.maxLength=1200;input.required=true;input.placeholder="What should we improve? Include the screen and what happened…";const send=el("button","short-comment-send","Prepare feedback");send.type="submit";form.append(input,send);form.onsubmit=e=>{e.preventDefault();const text=input.value.trim();if(!text)return;const subject="Mjadala feedback";const body="Account: "+(me?.id||"not signed in")+"\n\n"+text;const mail="mailto:?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);window.location.href=mail;backdrop.remove();};panel.append(head,form);backdrop.append(panel);backdrop.id="profile-feedback-modal";backdrop.addEventListener("click",e=>{if(e.target===backdrop)backdrop.remove();});document.body.append(backdrop);}
 
@@ -1559,7 +1629,9 @@ const notificationPreferenceFields = {
   "notify-group-posts": "group_posts",
   "notify-group-messages": "group_messages",
   "notify-mentions-replies": "mentions_replies",
-  "notify-direct-messages": "direct_messages"
+  "notify-direct-messages": "direct_messages",
+  "notify-tags": "tags",
+  "notify-app-updates": "app_updates"
 };
 async function loadNotificationPreferences() {
   if (!me) return;
@@ -1567,7 +1639,7 @@ async function loadNotificationPreferences() {
   status.textContent = "Loading your preferences…";
   try {
     const { data, error } = await sb.from("notification_preferences")
-      .select("new_posts,group_posts,group_messages,mentions_replies,direct_messages")
+      .select("new_posts,group_posts,group_messages,mentions_replies,direct_messages,tags,app_updates")
       .eq("user_id", me.id).maybeSingle();
     if (error) throw error;
     if (data) {
@@ -1579,7 +1651,7 @@ async function loadNotificationPreferences() {
     }
     status.textContent = "Choose your preferences, then save your changes.";
   } catch (e) {
-    status.textContent = "Couldn't load preferences. Check your connection and Supabase table permissions. " + friendly(e);
+    status.textContent = "Couldn't load preferences. Apply MIGRATION_PROFILE_FEATURES.sql if the new preference columns are missing. " + friendly(e);
   }
 }
 const saveNotificationButton = $("save-notification-settings");
@@ -1595,12 +1667,36 @@ if (saveNotificationButton) saveNotificationButton.onclick = async () => {
     if (error) throw error;
     status.textContent = "Notification preferences saved.";
   } catch (e) {
-    status.textContent = "Couldn't save preferences. " + friendly(e);
+    status.textContent = "Couldn't save preferences. Apply MIGRATION_PROFILE_FEATURES.sql if the new preference columns are missing. " + friendly(e);
   } finally {
     saveNotificationButton.disabled = false;
   }
 };
 
+async function loadPrivacyPreferences(){
+  if(!me)return;const status=$("privacy-settings-status");if(status)status.textContent="Loading privacy settings…";
+  try{
+    const {data,error}=await sb.from("profile_privacy_settings").select("public_profile,allow_direct_messages").eq("user_id",me.id).maybeSingle();
+    if(error)throw error;
+    $("privacy-public-profile").checked=data?.public_profile!==false;
+    $("privacy-allow-dms").checked=data?.allow_direct_messages!==false;
+    if(status)status.textContent="Your privacy settings are loaded.";
+  }catch(e){if(status)status.textContent="Privacy settings need the profile features migration. "+(e.message||"");}
+}
+$("save-privacy-settings")?.addEventListener("click",async()=>{
+  if(!me)return;const button=$("save-privacy-settings"),status=$("privacy-settings-status");button.disabled=true;status.textContent="Saving privacy settings…";
+  try{const {error}=await sb.from("profile_privacy_settings").upsert({user_id:me.id,public_profile:$("privacy-public-profile").checked,allow_direct_messages:$("privacy-allow-dms").checked,updated_at:new Date().toISOString()},{onConflict:"user_id"});if(error)throw error;status.textContent="Privacy settings saved. Enforcement in public discovery/DM delivery must also respect these values.";}
+  catch(e){status.textContent="Could not save privacy settings. Apply MIGRATION_PROFILE_FEATURES.sql. "+(e.message||"");}
+  finally{button.disabled=false;}
+});
+$("change-account-password")?.addEventListener("click",async()=>{
+  const status=$("privacy-settings-status"),button=$("change-account-password"),password=$("new-account-password").value;
+  if(password.length<6){status.textContent="Use a password with at least 6 characters.";return;}
+  button.disabled=true;status.textContent="Updating password…";
+  try{const {error}=await sb.auth.updateUser({password});if(error)throw error;$("new-account-password").value="";status.textContent="Password updated successfully.";}
+  catch(e){status.textContent="Could not update password: "+(e.message||"Please sign in again and retry.");}
+  finally{button.disabled=false;}
+});
 // Account actions: sign-out is immediate; account deletion requires explicit confirmation
 // and a deployed Supabase Edge Function named delete-account.
 const profileSignoutButton = $("profile-signout");
