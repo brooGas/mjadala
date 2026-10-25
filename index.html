@@ -236,6 +236,9 @@ header { border-bottom:0; background:var(--bg); padding-top:calc(16px + env(safe
 .profile-avatar img,.public-avatar img,.person-avatar img,.crop-preview img { width:100%; height:100%; object-fit:cover; object-position:var(--avatar-x,50%) var(--avatar-y,50%); border-radius:50%; }
 @media(min-width:700px) { .home-welcome,.moments-strip,.conversations-heading { max-width:868px; margin-left:auto; margin-right:auto; } .home-welcome { margin-top:10px; } .moments-strip { padding-left:0; padding-right:0; } #roomlist { max-width:900px; } }
 @media(max-width:420px) { .home-welcome { padding:17px; } .moment-bubbles { gap:11px; } .bubble-ring { width:60px; height:60px; } .moment-bubble { flex-basis:63px; } .heading-note { display:none; } }
+.home-profile-avatar{width:32px;height:32px;min-width:32px;padding:0;overflow:hidden;border-radius:50%;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand-strong);border:1px solid var(--line);font-size:12px;font-weight:850;cursor:pointer;}
+.home-profile-avatar img{width:100%;height:100%;display:block;object-fit:cover;object-position:var(--avatar-x,50%) var(--avatar-y,50%);border-radius:50%;}
+#rooms header{gap:8px} #rooms header .brand-lockup{margin-right:auto} #rooms header #home-profile-avatar{flex:0 0 32px}
 
 </style>
 </head>
@@ -263,6 +266,7 @@ header { border-bottom:0; background:var(--bg); padding-top:calc(16px + env(safe
   <header>
     <div class="brand-lockup"><span class="brand-mark" aria-label="Mjadala logo">M<span>•••</span></span><h1>Mjadala<small id="me"></small></h1></div>
     <button class="theme-toggle" type="button" aria-label="Switch colour theme" title="Switch colour theme">☾</button>
+    <button id="home-profile-avatar" class="home-profile-avatar" type="button" aria-label="Open your profile" title="Your profile">M</button>
     <button id="install">Install app</button>
     <button class="txt" id="adminbtn" style="display:none">Admin</button>
     <button class="txt" id="logout">Log out</button>
@@ -795,11 +799,17 @@ function updateCropPreview(url) {
   setAvatarPosition(preview,avatarX,avatarY);
 }
 function applyProfileAvatar(node,url,nickname,x=50,y=50) {
+  if(!node) return;
   node.innerHTML="";
   if(url){const img=el("img");img.src=url;img.alt="Profile photo";img.style.objectFit="cover";node.appendChild(img);}
   else node.textContent=(nickname||"M").slice(0,1).toUpperCase();
   setAvatarPosition(node,x,y);
 }
+function refreshHomeAvatar(url=profilePhotoUrl,nickname=me?.nickname||"M",x=avatarX,y=avatarY){
+  applyProfileAvatar($("home-profile-avatar"),url,nickname,x,y);
+}
+const homeProfileAvatar=$("home-profile-avatar");
+if(homeProfileAvatar) homeProfileAvatar.onclick=()=>openHomeTab("profile-screen");
 function loadProfile(){
   if(!me) return;
   $("profile-status").textContent=""; $("profile-nickname").value=me.nickname||"";
@@ -812,6 +822,7 @@ function loadProfile(){
     avatarY=Number.isFinite(Number(data?.avatar_position_y))?Number(data.avatar_position_y):50;
     $("avatar-x").value=avatarX; $("avatar-y").value=avatarY;
     applyProfileAvatar($("profile-avatar"),profilePhotoUrl,data?.nickname||me.nickname,avatarX,avatarY);
+    refreshHomeAvatar(profilePhotoUrl,data?.nickname||me.nickname,avatarX,avatarY);
     updateCropPreview(profilePhotoUrl);
   };
   run();
