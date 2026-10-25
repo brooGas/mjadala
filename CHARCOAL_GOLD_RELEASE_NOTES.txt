@@ -1,0 +1,11 @@
+MJADALA CHARCOAL + GOLD UPDATE
+
+- Recoloured the existing MV/laptop/wireless app icon to charcoal and gold without redrawing the MV artwork.
+- Updated Android/PWA theme and launch background colours.
+- Bumped service-worker cache name so installed copies can fetch the new icon and assets.
+- Made profile menu actions use delegated click handling and reset to the menu when reopening the Profile tab.
+- Made video play failures visible and retryable instead of silently swallowing errors.
+
+Deployment note: upload the full project, then close the installed app and reopen it online. If the old icon persists, remove the old home-screen shortcut and install the updated PWA again.
+
+Important: video playback still depends on the real Supabase bucket name, stored object paths, storage policies, and browser-supported encoding. Test with a published MP4 after deployment. This package has not been tested against the live Supabase project.

@@ -1009,7 +1009,7 @@ document.querySelectorAll("[data-home]").forEach(b => {
     if (homeTab === "shorts-screen") { renderShorts(); loadPublishedShorts(); }
     if (homeTab === "moments-screen") loadMoments();
     if (homeTab === "groups-screen") loadGroups();
-    if (homeTab === "profile-screen") loadProfile();
+    if (homeTab === "profile-screen") { showProfileMenu(); loadProfile(); }
     if (homeTab === "people-screen") loadPeople();
   };
 });
@@ -1115,8 +1115,9 @@ function renderShorts(){
   if(!items.length){const empty=el("div","shorts-empty");empty.textContent=activeShortFeed==="following"?"No Shorts from followed creators yet. Follow someone to build this feed.":(activeShortCategory==="All"?"No Shorts yet. Be the first to share an idea.":"No Shorts in "+activeShortCategory+" yet. Be the first to share one.");grid.appendChild(empty);return;}
   items.forEach(item=>{
     const card=el("div","short-card");card.id="short-card-"+item.id;
-    const video=el("video");video.playsInline=true;video.preload="metadata";video.controls=false;video.muted=true;video.loop=true;video.setAttribute("aria-label",item.title||"Short video");video.addEventListener("click",()=>{if(video.paused){video.play().catch(()=>{});}else{video.pause();}});
-    video.addEventListener("error",()=>{let msg=card.querySelector(".short-play");if(!msg){msg=el("span","short-play");card.appendChild(msg);}msg.textContent="Video could not load. Check storage bucket and video_path.";});
+    const video=el("video");video.playsInline=true;video.preload="metadata";video.controls=false;video.muted=true;video.loop=true;video.setAttribute("aria-label",item.title||"Short video");video.addEventListener("click",()=>{if(video.paused){video.muted=true;video.play().then(()=>{const err=card.querySelector(".short-play");if(err)err.remove();}).catch(e=>{let msg=card.querySelector(".short-play");if(!msg){msg=el("span","short-play");card.appendChild(msg);}msg.textContent="Tap to retry playback · "+(e?.name==="NotAllowedError"?"browser blocked autoplay":"video or storage access failed");});}else{video.pause();}});
+    video.addEventListener("error",()=>{let msg=card.querySelector(".short-play");if(!msg){msg=el("span","short-play");card.appendChild(msg);}const code=video.error?.code;msg.textContent=code===4?"Unsupported video format or invalid video URL. Check MP4/H.264 and storage path.":"Video could not load. Check the mjadala-shorts bucket, object path and read policy.";});
+    video.addEventListener("loadeddata",()=>{const msg=card.querySelector(".short-play");if(msg)msg.remove();});
     if(item.url){video.src=item.url;video.load();}
     else {video.controls=false;const msg=el("span","short-play",item.playbackError?"Playback unavailable: "+item.playbackError:"Video link unavailable");card.appendChild(msg);}
     card.appendChild(video);
@@ -1141,7 +1142,7 @@ function renderShorts(){
     }
     grid.appendChild(card);
   });
-  if("IntersectionObserver" in window){if(window.shortVideoObserver)window.shortVideoObserver.disconnect();window.shortVideoObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{const video=entry.target;if(entry.isIntersecting&&entry.intersectionRatio>=0.72){document.querySelectorAll("#shorts-grid video").forEach(other=>{if(other!==video){other.pause();other.muted=true;}});video.play().catch(()=>{});}else{video.pause();}});},{threshold:[0,.25,.5,.72,1]});grid.querySelectorAll("video").forEach(video=>window.shortVideoObserver.observe(video));}
+  if("IntersectionObserver" in window){if(window.shortVideoObserver)window.shortVideoObserver.disconnect();window.shortVideoObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{const video=entry.target;if(entry.isIntersecting&&entry.intersectionRatio>=0.72){document.querySelectorAll("#shorts-grid video").forEach(other=>{if(other!==video){other.pause();other.muted=true;}});video.play().catch(()=>{const owner=video.closest(".short-card");if(!owner)return;let msg=owner.querySelector(".short-play");if(!msg){msg=el("span","short-play");owner.appendChild(msg);}msg.textContent="Tap the video to retry playback.";});}else{video.pause();}});},{threshold:[0,.25,.5,.72,1]});grid.querySelectorAll("video").forEach(video=>window.shortVideoObserver.observe(video));}
 }
 document.querySelectorAll("[data-short-category]").forEach(button=>button.addEventListener("click",()=>{activeShortCategory=button.dataset.shortCategory;document.querySelectorAll("[data-short-category]").forEach(b=>b.classList.toggle("active",b===button));renderShorts();}));
 $("shorts-feed-all")?.addEventListener("click",()=>{activeShortFeed="all";$("shorts-feed-all").classList.add("active");$("shorts-feed-following").classList.remove("active");$("shorts-feed-all").setAttribute("aria-selected","true");$("shorts-feed-following").setAttribute("aria-selected","false");renderShorts();});
@@ -1513,7 +1514,25 @@ function showProfileMenu(){const menu=$("profile-menu"),editor=$("profile-editor
 function showProfileEditor(){const menu=$("profile-menu"),editor=$("profile-editor-area");if(menu)menu.hidden=true;if(editor)editor.hidden=false;loadProfile();loadPrivacyPreferences();}
 $("profile-editor-back")?.addEventListener("click",showProfileMenu);
 $("menu-logout")?.addEventListener("click",()=>$("logout").click());
-document.querySelectorAll("[data-profile-action]").forEach(button=>button.addEventListener("click",()=>{const action=button.dataset.profileAction;switch(action){case "my-profile":showProfileEditor();break;case "notifications":case "settings":showProfileEditor();setTimeout(()=>$('notification-settings')?.scrollIntoView({behavior:"smooth",block:"start"}),80);break;case "my-posts":openProfileShorts(false);break;case "saved":openProfileShorts(true);break;case "help":showProfileUtility("Help & Support","For account or upload problems, describe what happened in Feedback so the Mjadala administrator can investigate.");break;case "feedback":showFeedbackPanel();break;case "about":showProfileUtility("About Mjadala","Mjadala — Real People · Real Talks · Bigger Ideas.");break;}}));
+// Delegate profile menu actions so they remain responsive if the profile UI is re-rendered.
+if(!window.mjadalaProfileActionsBound){
+  window.mjadalaProfileActionsBound=true;
+  document.addEventListener("click",event=>{
+    const button=event.target.closest("[data-profile-action]");if(!button)return;
+    event.preventDefault();event.stopPropagation();
+    const action=button.dataset.profileAction;
+    switch(action){
+      case "my-profile": showProfileEditor(); break;
+      case "notifications": case "settings":
+        showProfileEditor();setTimeout(()=>$("notification-settings")?.scrollIntoView({behavior:"smooth",block:"start"}),120);break;
+      case "my-posts": openProfileShorts(false);break;
+      case "saved": openProfileShorts(true);break;
+      case "help": showProfileUtility("Help & Support","For account or upload problems, describe what happened in Feedback so the Mjadala administrator can investigate.");break;
+      case "feedback": showFeedbackPanel();break;
+      case "about": showProfileUtility("About Mjadala","Mjadala — Real People · Real Talks · Bigger Ideas.");break;
+    }
+  });
+}
 async function toggleSaveShort(item,button){
   if(!me){alert("Sign in to save a Reel.");return;}
   button.disabled=true;
