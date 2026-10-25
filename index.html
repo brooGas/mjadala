@@ -240,6 +240,31 @@ header { border-bottom:0; background:var(--bg); padding-top:calc(16px + env(safe
 .home-profile-avatar img{width:100%;height:100%;display:block;object-fit:cover;object-position:var(--avatar-x,50%) var(--avatar-y,50%);border-radius:50%;}
 #rooms header{gap:8px} #rooms header .brand-lockup{margin-right:auto} #rooms header #home-profile-avatar{flex:0 0 32px}
 
+
+/* Refined profile and account settings */
+#profile-screen .profile-panel { padding:clamp(18px,4vw,30px); }
+#profile-screen .profile-panel h2 { font-size:25px; letter-spacing:-.045em; }
+#profile-screen .profile-panel > p { max-width:560px; font-size:14px; margin-bottom:20px; }
+#profile-screen .profile-avatar { width:92px;height:92px;border-radius:50%;font-size:32px;margin:0 auto 12px;box-shadow:0 0 0 5px var(--brand-soft); }
+#profile-screen .crop-preview { margin:12px auto 18px; }
+#profile-screen .profile-panel input[type=file] { display:block;padding:12px;background:var(--surface-2);border:1px dashed var(--line);border-radius:14px; }
+#profile-screen #profile-save { margin-top:4px; }
+.profile-settings-card { width:calc(100% - 32px);max-width:868px;margin:0 auto 24px;padding:20px;background:var(--surface);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow); }
+.settings-heading { display:flex;align-items:center;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:6px; }
+.settings-icon { width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;border-radius:14px;background:var(--brand-soft);color:var(--brand-strong);font-size:21px; }
+.settings-heading h2 { font-size:19px;letter-spacing:-.035em;margin-bottom:3px; }
+.settings-heading p,.settings-row-copy small,.settings-danger small { color:var(--muted);font-size:12px;line-height:1.45;display:block; }
+.settings-row { display:flex;align-items:center;gap:12px;width:100%;padding:15px 2px;background:transparent;color:var(--text);text-align:left;border-bottom:1px solid var(--line); }
+.settings-row:hover { background:var(--surface-2); }
+.settings-row-icon { display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;border-radius:12px;background:var(--surface-2);font-size:20px;color:var(--brand-strong); }
+.settings-row-copy { flex:1;min-width:0; }.settings-row-copy b,.settings-danger b { display:block;font-size:14px;margin-bottom:3px; }
+.settings-chevron { color:var(--muted);font-size:24px; }
+.settings-danger { display:flex;align-items:center;justify-content:space-between;gap:14px;padding-top:17px; }
+.settings-danger > div { min-width:0; }.settings-danger b { color:var(--danger); }
+.danger-button { flex:0 0 auto;background:color-mix(in srgb,var(--danger) 10%,var(--surface));color:var(--danger);border:1px solid color-mix(in srgb,var(--danger) 35%,var(--line));padding:10px 13px;border-radius:12px;font-size:12px;font-weight:800; }
+.danger-button:hover { background:color-mix(in srgb,var(--danger) 17%,var(--surface)); }
+.settings-status { margin-top:12px;font-size:12px;line-height:1.5;color:var(--muted); }
+@media(max-width:460px){.profile-settings-card{padding:16px}.settings-danger{align-items:flex-start;flex-direction:column}.danger-button{width:100%}}
 </style>
 </head>
 <body>
@@ -341,6 +366,15 @@ header { border-bottom:0; background:var(--bg); padding-top:calc(16px + env(safe
       <input id="profile-nickname" maxlength="20" placeholder="Nickname (3–20 letters, numbers or underscore)">
       <textarea id="profile-bio" maxlength="180" placeholder="A little about you (180 characters max)"></textarea>
       <button class="primary" id="profile-save">Save profile</button><div id="profile-status" class="err" aria-live="polite" style="margin-top:8px"></div>
+    </div>
+    <div class="profile-settings-card">
+      <div class="settings-heading"><span class="settings-icon">⚙</span><div><h2>Account settings</h2><p>Manage your Mjadala account and how you use it.</p></div></div>
+      <button class="settings-row" id="profile-signout" type="button"><span class="settings-row-icon">↪</span><span class="settings-row-copy"><b>Sign out</b><small>Sign out of this account on this device.</small></span><span class="settings-chevron">›</span></button>
+      <div class="settings-danger">
+        <div><b>Delete account</b><small>This is permanent. Your account and associated data may be removed.</small></div>
+        <button class="danger-button" id="profile-delete-account" type="button">Delete account</button>
+      </div>
+      <div id="account-settings-status" class="settings-status" aria-live="polite"></div>
     </div>
   </section>
   <button class="fab" id="newroom">+ New room</button>
@@ -863,6 +897,39 @@ $("profile-save").onclick=async()=>{
     if(pendingPhotoObjectUrl){URL.revokeObjectURL(pendingPhotoObjectUrl);pendingPhotoObjectUrl="";}
     status.textContent="Profile saved.";await loadProfile();
   }catch(e){status.textContent=friendly(e);}
+};
+
+// Account actions: sign-out is immediate; account deletion requires explicit confirmation
+// and a deployed Supabase Edge Function named delete-account.
+const profileSignoutButton = $("profile-signout");
+if (profileSignoutButton) profileSignoutButton.onclick = async () => {
+  const status = $("account-settings-status");
+  status.textContent = "Signing out…";
+  profileSignoutButton.disabled = true;
+  try { await $("logout").onclick(); }
+  catch (e) { status.textContent = friendly(e); }
+  finally { profileSignoutButton.disabled = false; }
+};
+const profileDeleteButton = $("profile-delete-account");
+if (profileDeleteButton) profileDeleteButton.onclick = async () => {
+  const status = $("account-settings-status");
+  const confirmed = window.confirm("Delete your Mjadala account permanently? This cannot be undone. Your profile and account data may be removed.");
+  if (!confirmed) return;
+  const typed = window.prompt('To confirm permanent deletion, type DELETE');
+  if (typed !== "DELETE") { status.textContent = "Account deletion cancelled. Nothing was deleted."; return; }
+  status.textContent = "Requesting secure account deletion…";
+  profileDeleteButton.disabled = true;
+  try {
+    const { data, error } = await sb.functions.invoke("delete-account", { body: { confirmation: "DELETE" } });
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+    leaveChannel();
+    await sb.auth.signOut();
+    me = null; currentRoom = null;
+    $("p").value = ""; setMode("login"); show("auth");
+  } catch (e) {
+    status.textContent = "Secure deletion is not available yet, or the server rejected the request. No account deletion was confirmed. " + friendly(e);
+  } finally { profileDeleteButton.disabled = false; }
 };
 
 /* ---------- Public People directory ---------- */
