@@ -485,6 +485,7 @@ form#send {background:var(--surface);border-color:var(--line);padding-bottom:cal
 #admin .tabs {background:var(--surface);border-color:var(--line)}
 #admin .tabs button.on {background:var(--brand-strong);color:#FFF9F2}
 #creator-copyright {display:none}
+header #logout{display:none!important}
 @media(max-width:520px) {
  header {gap:7px;padding-left:13px;padding-right:13px}
  .brand-mark {width:44px;height:44px;flex-basis:44px}
@@ -505,6 +506,20 @@ form#send {background:var(--surface);border-color:var(--line);padding-bottom:cal
  .primary,.room,.home-tabs button,.moment-bubble,.short-action {transition:transform .18s ease,background .18s ease,box-shadow .18s ease}
  .moment-bubble:active,.home-tabs button:active,.short-action:active {transform:scale(.96)}
 }
+
+
+/* Reference-spec rebuild: splash, immersive Shorts, profile menu and taupe identity */
+:root{--brand:#6F6056;--brand-strong:#493B33;--brand-soft:#E5D9CE;--accent:#D8BDA5;--bg:#8A796D;--surface:#F1EBE5;--surface-2:#E5D9CE;--text:#3E332C;--muted:#77695F;--line:#D6C8BC;--mine:#E5D9CE;--danger:#D93D53}
+:root[data-theme="dark"]{--brand:#B99A7D;--brand-strong:#D8BDA5;--brand-soft:#493B33;--bg:#2D2622;--surface:#3E332C;--surface-2:#493B33;--text:#FFF9F2;--muted:#D2C2B5;--line:#66564B;--mine:#493B33;--danger:#FF667A}
+.mjadala-splash{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 18% 12%,rgba(216,189,165,.22),transparent 34%),linear-gradient(145deg,#8A796D,#493B33);color:#F1EBE5;opacity:1;transition:opacity .35s ease}.mjadala-splash.show{display:flex}.mjadala-splash.hide{opacity:0;pointer-events:none}.splash-lockup{text-align:center;animation:splash-rise .65s ease both}.splash-monogram{font-family:Georgia,serif;font-size:clamp(92px,24vw,150px);font-weight:600;line-height:.95;letter-spacing:-.15em;color:#F1EBE5;text-shadow:0 8px 22px #2D262244}.splash-monogram span{color:#D8BDA5;font-size:.82em;margin-left:-.22em}.splash-wordmark{font-family:Georgia,serif;font-size:clamp(38px,10vw,56px);margin-top:18px;letter-spacing:-.04em}.splash-tagline{font-size:10px;letter-spacing:.23em;margin-top:13px;color:#F1EBE5;opacity:.85}@keyframes splash-rise{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+/* Reference home geometry: consistent taupe, cream, and brown rather than leftover green/indigo */
+header{background:#6F6056;color:#FFF9F2;border-color:#B99A7D}header h1,header button{color:#FFF9F2}.brand-mark{background:#493B33;color:#F1EBE5;border-color:#D8BDA5}.brand-mark svg{width:100%;height:100%}.home-welcome{background:linear-gradient(135deg,#6F6056,#493B33)!important}.welcome-primary,.primary,.fab,form#send button{background:#493B33!important;color:#FFF9F2!important}.home-tabs{background:rgba(111,96,86,.97);border-color:#B99A7D}.home-tabs button{color:#F1EBE5}.home-tabs button.on{background:#E5D9CE!important;color:#493B33!important}.section-heading h2 span{color:#D8BDA5!important}.bubble-indigo,.bubble-orange,.bubble-slate{background:#E5D9CE!important;border-color:#B99A7D!important;color:#493B33!important}.rules{background:#E5D9CE;color:#64564C}
+/* Full-screen vertical Shorts feed with creator identity and menu */
+.shorts-feed-tabs{display:flex;align-items:center;gap:18px;padding:0 16px 12px;border-bottom:1px solid #66564B;margin-bottom:12px}.shorts-feed-tabs button{background:transparent;color:#D2C2B5;padding:7px 0;font-size:13px;font-weight:750}.shorts-feed-tabs button.active{color:#FFF9F2;border-bottom:2px solid #D8BDA5}.shorts-feed-tabs #shorts-search-button{margin-left:auto;font-size:23px;padding:0 8px}
+#shorts-screen{position:relative;background:#2D2622!important;color:#FFF9F2!important;padding:8px 0 calc(105px + env(safe-area-inset-bottom))!important;min-height:calc(100dvh - 76px);overflow-y:auto;scroll-snap-type:y proximity}.shorts-head{padding:6px 16px 10px;max-width:100%!important}.shorts-head h2{font-family:Georgia,serif!important;font-size:27px!important}.shorts-head p{display:none}.short-categories{padding:2px 14px 12px;max-width:100%!important}.short-categories button{background:#493B33!important;color:#F1EBE5!important;border-color:#66564B!important}.short-categories button.active{background:#D8BDA5!important;color:#3E332C!important}.shorts-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;max-width:100%!important;padding:0 10px}.short-card{position:relative;width:100%;height:min(76dvh,760px);min-height:490px;border-radius:24px!important;overflow:hidden;background:#181411;scroll-snap-align:start;isolation:isolate}.short-card>video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#181411}.short-card .short-info{position:absolute;z-index:2;left:14px;right:76px;bottom:18px;padding:35px 0 0;background:linear-gradient(transparent,rgba(0,0,0,.68));color:#FFF9F2;display:flex;align-items:flex-start;flex-direction:column;gap:5px}.short-card .short-info .short-tag{background:#D8BDA5;color:#3E332C;border-radius:999px;padding:4px 9px;font-size:10px;font-weight:800}.short-card .short-info b{font-size:15px;line-height:1.35}.short-card .short-info>span:not(.short-tag){font-size:11px;color:#E9DED5}.short-creator{display:flex;align-items:center;gap:8px;margin-bottom:7px}.short-creator-avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;overflow:hidden;background:#D8BDA5;color:#493B33;border:1px solid #F1EBE5;font-weight:800;flex:none}.short-creator-avatar img{width:100%;height:100%;object-fit:cover}.short-creator-name{font-size:12px;font-weight:800;color:#FFF9F2}.short-follow{border:1px solid #F1EBE5;border-radius:999px;background:transparent;color:#FFF9F2;font-size:10px;font-weight:800;padding:5px 10px}.short-more{margin-left:auto;width:32px;height:32px;border-radius:50%;background:#0006;color:white;font-size:21px;line-height:1}.short-actions{z-index:3;right:9px;top:42%;bottom:auto;display:flex;flex-direction:column;gap:13px}.short-action{width:48px;min-height:48px;border-radius:50%;background:#493B33B8!important;border:1px solid #FFF4!important;color:#FFF9F2!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:9px}.short-action .action-emoji{font-size:22px}.short-action.is-liked,.short-action.liked{background:#D93D53!important;color:white!important}.short-delete{background:#B42332!important;border-color:#FFB7BC!important}.short-like-fly{z-index:5}.short-menu-pop{position:absolute;z-index:8;top:15px;right:12px;background:#F1EBE5;color:#3E332C;border:1px solid #D6C8BC;border-radius:14px;padding:7px;min-width:142px;box-shadow:0 12px 35px #0005}.short-menu-pop button{display:block;width:100%;padding:10px;text-align:left;background:transparent;color:inherit;border-radius:8px;font-size:12px}.short-menu-pop button:hover{background:#E5D9CE}.short-status{color:#F1EBE5}
+/* Profile/menu as a dedicated, tidy page */
+.profile-menu-screen{padding:24px 18px 18px;max-width:680px;margin:0 auto;width:100%;color:var(--text)}.profile-menu-identity{display:flex;align-items:center;gap:12px;padding:14px 4px 20px;border-bottom:1px solid var(--line)}.menu-avatar{width:54px;height:54px;border-radius:50%;background:#D8BDA5;color:#493B33;display:grid;place-items:center;overflow:hidden;font-family:Georgia,serif;font-size:22px;font-weight:700}.menu-avatar img{width:100%;height:100%;object-fit:cover}.menu-identity-copy{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}.menu-identity-copy b{font-size:16px}.menu-identity-copy small{color:var(--muted);font-size:12px}.menu-chevron{background:transparent;color:var(--muted);font-size:28px;padding:5px 12px}.profile-menu-list{display:flex;flex-direction:column;padding:8px 0;border-bottom:1px solid var(--line)}.profile-menu-item{display:flex;align-items:center;gap:14px;padding:13px 6px;background:transparent;color:var(--text);text-align:left;min-height:48px;border-radius:12px}.profile-menu-item>span{width:24px;text-align:center;font-size:19px;color:var(--muted)}.profile-menu-item b{font-size:13px;font-weight:650;flex:1}.profile-menu-item i,.profile-about-card i{font-style:normal;color:var(--muted);font-size:22px}.profile-menu-item:hover{background:var(--surface-2)}.profile-menu-section-label{padding:17px 6px 4px;color:var(--muted);font-size:11px;font-weight:750;letter-spacing:.08em;text-transform:uppercase}.profile-about-card{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px;margin:18px 0 10px;border-radius:16px;background:#E5D9CE;color:#493B33}.about-mv{font-family:Georgia,serif;font-size:29px;color:#493B33;letter-spacing:-.12em}.about-mv span{color:#A9835F;margin-left:-.15em}.profile-about-card>span:nth-child(2){display:flex;flex:1;flex-direction:column;gap:5px}.profile-about-card b{font-size:12px}.profile-about-card small{font-size:11px;color:#77695F}.profile-menu-logout{width:100%;display:flex;align-items:center;gap:12px;padding:15px 5px;background:transparent;color:var(--text);text-align:left;font-weight:700;border-top:1px solid var(--line)}.profile-back{margin:12px 16px;padding:10px 12px;border-radius:999px;background:var(--surface-2);color:var(--text);font-weight:750}.creator-private-signature{font-size:10px;color:var(--muted);padding:12px 4px;text-align:center;opacity:.75}.creator-private-signature[hidden]{display:none!important}
+@media(max-width:520px){.shorts-grid{padding:0 8px}.short-card{height:calc(100dvh - 206px);min-height:440px;border-radius:20px!important}.short-actions{right:7px;gap:10px}.short-action{width:43px;min-height:43px}.short-card .short-info{left:12px;right:62px;bottom:15px}.profile-menu-screen{padding:16px 16px 20px}}
 
 </style>
 </head>
@@ -563,7 +578,8 @@ form#send {background:var(--surface);border-color:var(--line);padding-bottom:cal
     <button data-home="profile-screen"><span>●</span><small>Profile</small></button>
   </div>
   <section id="shorts-screen" class="shorts-screen" style="display:none">
-    <div class="shorts-head"><div><h2>Shorts</h2><p>Quick ideas. Fresh perspectives. Up to 15 seconds.</p></div><button type="button" class="shorts-upload-open" id="shorts-open-upload">＋ Create</button></div>
+    <div class="shorts-head"><div><h2>Shorts</h2><p>Real people · real talks · bigger ideas</p></div><button type="button" class="shorts-upload-open" id="shorts-open-upload">＋ Create</button></div>
+    <div class="shorts-feed-tabs" role="tablist" aria-label="Shorts feed"><button type="button" class="active" id="shorts-feed-all" role="tab" aria-selected="true">Shorts</button><button type="button" id="shorts-feed-following" role="tab" aria-selected="false">Following</button><button type="button" id="shorts-search-button" aria-label="Search Shorts">⌕</button></div>
     <div class="short-categories" id="short-category-filters" aria-label="Filter Shorts by category">
       <button class="active" data-short-category="All">For you</button>
       <button data-short-category="Innovation">💡 Innovation</button>
@@ -619,7 +635,27 @@ form#send {background:var(--surface);border-color:var(--line);padding-bottom:cal
   <section id="public-profile-screen" style="display:none;overflow-y:auto;width:100%;max-width:900px;margin:0 auto;padding-bottom:28px">
     <div class="public-profile-panel" id="public-profile-content"></div>
   </section>
-  <section id="profile-screen" style="display:none;overflow-y:auto;width:100%;max-width:900px;margin:0 auto;padding-bottom:28px">
+  <section id="profile-screen" style="display:none;overflow-y:auto;width:100%;max-width:900px;margin:0 auto;padding-bottom:120px">
+    <div id="profile-menu" class="profile-menu-screen">
+      <div class="profile-menu-identity"><div id="menu-profile-avatar" class="menu-avatar">M</div><div class="menu-identity-copy"><b id="menu-profile-name">Mjadala member</b><small id="menu-profile-handle">@member</small></div><button type="button" class="menu-chevron" data-profile-action="my-profile" aria-label="Open profile">›</button></div>
+      <div class="profile-menu-list">
+        <button class="profile-menu-item" data-profile-action="my-profile"><span>♙</span><b>My Profile</b><i>›</i></button>
+        <button class="profile-menu-item" data-profile-action="my-posts"><span>▤</span><b>My Posts</b><i>›</i></button>
+        <button class="profile-menu-item" data-profile-action="saved"><span>♧</span><b>Saved</b><i>›</i></button>
+        <button class="profile-menu-item" data-profile-action="notifications"><span>♧</span><b>Notifications</b><i>›</i></button>
+        <button class="profile-menu-item" data-profile-action="settings"><span>⚙</span><b>Settings</b><i>›</i></button>
+      </div>
+      <div class="profile-menu-section-label">Support</div>
+      <div class="profile-menu-list">
+        <button class="profile-menu-item" data-profile-action="help"><span>ⓘ</span><b>Help &amp; Support</b><i>›</i></button>
+        <button class="profile-menu-item" data-profile-action="feedback"><span>↗</span><b>Feedback</b><i>›</i></button>
+      </div>
+      <button class="profile-about-card" type="button" data-profile-action="about"><span class="about-mv">M<span>V</span></span><span><b>About Mjadala</b><small>Built for better conversations.</small></span><i>›</i></button>
+      <button class="profile-menu-logout" type="button" id="menu-logout"><span>↪</span> Log Out</button>
+      <div id="creator-private-signature" class="creator-private-signature" hidden>Copyright © Mark Sixstars · Creator view only</div>
+    </div>
+    <div id="profile-editor-area" hidden>
+    <button type="button" class="profile-back" id="profile-editor-back">← Back to menu</button>
     <div class="profile-panel"><h2>Your profile</h2><p>Choose how other Mjadala members see you. Your nickname is your public identity.</p>
       <div id="profile-avatar" class="profile-avatar">M</div>
       <div id="crop-preview" class="crop-preview">M</div>
@@ -652,6 +688,7 @@ form#send {background:var(--surface);border-color:var(--line);padding-bottom:cal
       <div id="notification-settings-status" class="settings-status" aria-live="polite">Your preferences are saved to your account.</div>
       <button class="primary" id="save-notification-settings" type="button" style="width:100%;margin-top:12px">Save notification settings</button>
     </div>
+    </div><!-- /profile-editor-area -->
   </section>
   <button class="fab" id="newroom">+ New room</button>
 </section>
@@ -807,7 +844,11 @@ async function start() {
   const { data: p, error } = await sb.from("profiles").select("id, nickname, role, is_banned").eq("id", session.user.id).maybeSingle();
   if (error || !p) { await sb.auth.signOut(); show("auth"); return; }
   me = p; nameCache[p.id] = p.nickname;
-  openRooms();
+  await showMjadalaSplash();
+  await openRooms();
+}
+function showMjadalaSplash(){
+  return new Promise(resolve=>{const splash=$("mjadala-splash");if(!splash){resolve();return;}splash.classList.remove("hide");splash.classList.add("show");splash.setAttribute("aria-hidden","false");window.setTimeout(()=>{splash.classList.add("hide");window.setTimeout(()=>{splash.classList.remove("show","hide");splash.setAttribute("aria-hidden","true");resolve();},360);},2000);});
 }
 
 $("logout").onclick = async () => {
@@ -848,6 +889,7 @@ document.querySelectorAll("[data-home]").forEach(b => {
 const shortSamples = [];
 let publishedShorts = [];
 let activeShortCategory = "All";
+let activeShortFeed = "all";
 let shortPreviewUrl = "";
 let shortCategories = [];
 const shortCategoryIcons = {Innovation:"💡",Education:"📘",Engineering:"⚙️",Business:"📈"};
@@ -881,7 +923,9 @@ async function loadPublishedShorts(){
       const {data: likes, error: likesError} = await sb.from("shorts_likes").select("short_id").eq("user_id", me.id);
       if (!likesError) likedIds = new Set((likes || []).map(row => String(row.short_id)));
     }
-    publishedShorts=await Promise.all(rows.map(async item=>{let url="",playbackError="";try{url=await resolveShortVideoUrl(item.video_path)}catch(e){playbackError=e?.message||"Storage link could not be created.";}const category=shortCategories.find(c=>String(c.id)===String(item.category_id));return {...item,url,likedByMe:likedIds.has(String(item.id)),category:category?.name||"Other",categorySlug:category?.slug||"",playbackError};}));
+    const creatorIds=[...new Set(rows.map(r=>r.user_id).filter(Boolean))];let creatorMap={};if(creatorIds.length){const {data:profiles}=await sb.from("profiles").select("id,nickname,avatar_url").in("id",creatorIds);(profiles||[]).forEach(p=>creatorMap[p.id]=p);}
+    let followingIds=new Set();if(me?.id){const {data:following}=await sb.from("shorts_creator_follows").select("creator_id").eq("follower_id",me.id);if(following)followingIds=new Set(following.map(x=>String(x.creator_id)));}
+    publishedShorts=await Promise.all(rows.map(async item=>{let url="",playbackError="";try{url=await resolveShortVideoUrl(item.video_path)}catch(e){playbackError=e?.message||"Storage link could not be created.";}const category=shortCategories.find(c=>String(c.id)===String(item.category_id));const creator=creatorMap[item.user_id]||{};return {...item,url,creatorNickname:creator.nickname||"Mjadala member",creatorAvatar:creator.avatar_url||"",followingByMe:followingIds.has(String(item.user_id)),likedByMe:likedIds.has(String(item.id)),category:category?.name||"Other",categorySlug:category?.slug||"",playbackError};}));
     const filter=$("short-category-filters");
     if(filter&&shortCategories.length){const names=[...new Set(shortCategories.map(c=>c.name))];filter.innerHTML='<button class="'+(activeShortCategory==="All"?'active':'')+'" data-short-category="All">✨ For you</button>'+names.map(name=>'<button data-short-category="'+name.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'" class="'+(activeShortCategory===name?'active':'')+'">'+(shortCategoryIcons[name]||'◈')+' '+name.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</button>').join('');filter.querySelectorAll('[data-short-category]').forEach(button=>button.addEventListener('click',()=>{activeShortCategory=button.dataset.shortCategory;filter.querySelectorAll('[data-short-category]').forEach(b=>b.classList.toggle('active',b===button));renderShorts();}));}
     const select=$("short-video-category");if(select&&shortCategories.length)select.innerHTML=shortCategories.map(c=>'<option value="'+String(c.id)+'">'+String(c.name).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</option>').join('');
@@ -924,21 +968,25 @@ async function shareShort(item){
   try{if(navigator.share)await navigator.share({title:item.title||"Mjadala Short",text:"Watch this Short on Mjadala",url});else if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(url);alert("Short link copied.");}else prompt("Copy this Short link:",url);}
   catch(e){if(e.name!=="AbortError")prompt("Copy this Short link:",url);}
 }
+async function toggleShortFollow(item,button){if(!me){alert("Sign in to follow creators.");return;}if(item.user_id===me.id){alert("This is your Short.");return;}button.disabled=true;try{if(item.followingByMe){const {error}=await sb.from("shorts_creator_follows").delete().eq("follower_id",me.id).eq("creator_id",item.user_id);if(error)throw error;item.followingByMe=false;button.textContent="＋ Follow";}else{const {error}=await sb.from("shorts_creator_follows").insert({follower_id:me.id,creator_id:item.user_id});if(error)throw error;item.followingByMe=true;button.textContent="Following";}}catch(e){alert("Could not update Follow: "+(e.message||"Run the Shorts creator follow SQL migration first."));}finally{button.disabled=false;}}
+function showShortMenu(item,card){card.querySelector(".short-menu-pop")?.remove();const pop=el("div","short-menu-pop");const actions=[...(item.user_id===me?.id?[ ["Delete Short",()=>deleteMyShort(item,card)] ]:[]),["Copy video link",()=>{const video=card.querySelector("video");const url=item.url||video?.currentSrc;if(url&&navigator.clipboard)navigator.clipboard.writeText(url).then(()=>alert("Link copied."),()=>alert("Could not copy the link."));else shareShort(item);}], ["Not interested",()=>{card.remove();}]];actions.forEach(([label,fn])=>{const b=el("button","",label);b.type="button";b.onclick=()=>{pop.remove();fn();};pop.appendChild(b);});card.appendChild(pop);}
 function renderShorts(){
   const grid=$("shorts-grid");if(!grid)return;grid.innerHTML="";
   const all=[...publishedShorts,...shortSamples];
-  const items=all.filter(item=>activeShortCategory==="All"||item.category===activeShortCategory);
-  if(!items.length){const empty=el("div","shorts-empty");empty.textContent=activeShortCategory==="All"?"No Shorts yet. Be the first to share an idea.":"No Shorts in "+activeShortCategory+" yet. Be the first to share one.";grid.appendChild(empty);return;}
+  const items=all.filter(item=>(activeShortCategory==="All"||item.category===activeShortCategory)&&(activeShortFeed!=="following"||item.followingByMe));
+  if(!items.length){const empty=el("div","shorts-empty");empty.textContent=activeShortFeed==="following"?"No Shorts from followed creators yet. Follow someone to build this feed.":(activeShortCategory==="All"?"No Shorts yet. Be the first to share an idea.":"No Shorts in "+activeShortCategory+" yet. Be the first to share one.");grid.appendChild(empty);return;}
   items.forEach(item=>{
     const card=el("div","short-card");card.id="short-card-"+item.id;
-    const video=el("video");video.playsInline=true;video.preload="metadata";video.controls=true;video.muted=false;video.setAttribute("aria-label",item.title||"Short video");
+    const video=el("video");video.playsInline=true;video.preload="metadata";video.controls=false;video.muted=true;video.loop=true;video.setAttribute("aria-label",item.title||"Short video");video.addEventListener("click",()=>{if(video.paused)video.play().catch(()=>{});else video.pause();});
     video.addEventListener("error",()=>{let msg=card.querySelector(".short-play");if(!msg){msg=el("span","short-play");card.appendChild(msg);}msg.textContent="Video could not load. Check storage bucket and video_path.";});
     if(item.url){video.src=item.url;video.load();}
     else {video.controls=false;const msg=el("span","short-play",item.playbackError?"Playback unavailable: "+item.playbackError:"Video link unavailable");card.appendChild(msg);}
     card.appendChild(video);
-    const info=el("div","short-info"),tag=el("span","short-tag");tag.textContent=item.category;info.appendChild(tag);
+    const info=el("div","short-info");
+    if(item.id){const creator=el("div","short-creator");const avatar=el("div","short-creator-avatar");if(item.creatorAvatar){const img=el("img");img.src=item.creatorAvatar;img.alt="";avatar.appendChild(img);}else avatar.textContent=(item.creatorNickname||"M").slice(0,1).toUpperCase();creator.appendChild(avatar);const creatorName=el("span","short-creator-name", "@"+(item.creatorNickname||"member"));creator.appendChild(creatorName);if(item.user_id!==me?.id){const follow=el("button","short-follow",item.followingByMe?"Following":"＋ Follow");follow.type="button";follow.onclick=()=>toggleShortFollow(item,follow);creator.appendChild(follow);}const more=el("button","short-more","⋯");more.type="button";more.setAttribute("aria-label","More Short options");more.onclick=()=>showShortMenu(item,card);creator.appendChild(more);info.appendChild(creator);}
+    const tag=el("span","short-tag");tag.textContent=item.category;info.appendChild(tag);
     const title=el("b");title.textContent=item.title||"Untitled Short";info.appendChild(title);
-    const note=el("span");note.textContent="Up to 15 seconds";info.appendChild(note);card.appendChild(info);
+    const note=el("span");note.textContent="Real people · real talks";info.appendChild(note);card.appendChild(info);
     if(item.id){
       const actions=el("div","short-actions");
       const likeButton=addShortActionButton(actions,item.likedByMe?"♥":"♡",item.likedByMe?"Liked":"Like",b=>toggleShortLike(item,b),item.likedByMe?"is-liked":"");
@@ -950,8 +998,12 @@ function renderShorts(){
     }
     grid.appendChild(card);
   });
+  if("IntersectionObserver" in window){if(window.shortVideoObserver)window.shortVideoObserver.disconnect();window.shortVideoObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{const video=entry.target;if(entry.isIntersecting&&entry.intersectionRatio>=0.6){document.querySelectorAll("#shorts-grid video").forEach(other=>{if(other!==video)other.pause();});video.play().catch(()=>{});}else video.pause();});},{threshold:[0,.6,1]});grid.querySelectorAll("video").forEach(video=>window.shortVideoObserver.observe(video));}
 }
 document.querySelectorAll("[data-short-category]").forEach(button=>button.addEventListener("click",()=>{activeShortCategory=button.dataset.shortCategory;document.querySelectorAll("[data-short-category]").forEach(b=>b.classList.toggle("active",b===button));renderShorts();}));
+$("shorts-feed-all")?.addEventListener("click",()=>{activeShortFeed="all";$("shorts-feed-all").classList.add("active");$("shorts-feed-following").classList.remove("active");$("shorts-feed-all").setAttribute("aria-selected","true");$("shorts-feed-following").setAttribute("aria-selected","false");renderShorts();});
+$("shorts-feed-following")?.addEventListener("click",()=>{activeShortFeed="following";$("shorts-feed-following").classList.add("active");$("shorts-feed-all").classList.remove("active");$("shorts-feed-following").setAttribute("aria-selected","true");$("shorts-feed-all").setAttribute("aria-selected","false");renderShorts();});
+$("shorts-search-button")?.addEventListener("click",()=>{const q=(prompt("Search Shorts by title or creator")||"").trim().toLowerCase();if(!q)return;const grid=$("shorts-grid");let found=0;grid.querySelectorAll(".short-card").forEach(card=>{const match=card.textContent.toLowerCase().includes(q);card.style.display=match?"block":"none";if(match)found++;});if(!found)alert("No Shorts matched that search.");});
 $("shorts-open-upload").onclick=()=>{$("short-upload-panel").classList.add("open");$("short-upload-status").textContent="Record a video with your camera or choose one from your gallery. Maximum 15 seconds.";};
 $("shorts-cancel-upload").onclick=()=>{$("short-upload-panel").classList.remove("open");};
 $("short-video-file").addEventListener("change",()=>{
@@ -988,7 +1040,7 @@ $("short-video-publish").onclick=async()=>{
 async function openRooms() {
   leaveChannel();
   currentRoom = null;
-  $("me").textContent = "Signed in as " + me.nickname + (isStaff() ? " (" + me.role + ")" : "");
+  $("me").textContent = "REAL PEOPLE · REAL TALKS · BIGGER IDEAS";
   $("bannedbar").style.display = me.is_banned ? "block" : "none";
   $("adminbtn").style.display = isStaff() ? "inline-block" : "none";
   show("rooms");
@@ -1261,8 +1313,14 @@ function refreshHomeAvatar(url=profilePhotoUrl,nickname=me?.nickname||"M",x=avat
 }
 const homeProfileAvatar=$("home-profile-avatar");
 if(homeProfileAvatar) homeProfileAvatar.onclick=()=>openHomeTab("profile-screen");
+function showProfileMenu(){const menu=$("profile-menu"),editor=$("profile-editor-area");if(menu)menu.hidden=false;if(editor)editor.hidden=true;}
+function showProfileEditor(){const menu=$("profile-menu"),editor=$("profile-editor-area");if(menu)menu.hidden=true;if(editor)editor.hidden=false;loadProfile();}
+$("profile-editor-back")?.addEventListener("click",showProfileMenu);
+$("menu-logout")?.addEventListener("click",()=>$("logout").click());
+document.querySelectorAll("[data-profile-action]").forEach(button=>button.addEventListener("click",()=>{const action=button.dataset.profileAction;switch(action){case "my-profile":showProfileEditor();break;case "notifications":showProfileEditor();setTimeout(()=>$("notification-settings")?.scrollIntoView({behavior:"smooth",block:"start"}),80);break;case "settings":showProfileEditor();setTimeout(()=>$("notification-settings")?.scrollIntoView({behavior:"smooth",block:"start"}),80);break;case "my-posts":alert("Your posts are available through the relevant conversations. A dedicated My Posts list is not connected yet.");break;case "saved":alert("Saved posts are not connected yet.");break;case "help":alert("For help, use the Mjadala feedback option or contact your app administrator.");break;case "feedback":alert("Feedback: please share your feedback with the Mjadala administrator.");break;case "about":alert("Mjadala — Real People · Real Talks · Bigger Ideas");break;}}));
 function loadProfile(){
   if(!me) return;
+  showProfileMenu();
   loadNotificationPreferences();
   $("profile-status").textContent=""; $("profile-nickname").value=me.nickname||"";
   const run=async()=>{
@@ -1274,6 +1332,10 @@ function loadProfile(){
     avatarY=Number.isFinite(Number(data?.avatar_position_y))?Number(data.avatar_position_y):50;
     $("avatar-x").value=avatarX; $("avatar-y").value=avatarY;
     applyProfileAvatar($("profile-avatar"),profilePhotoUrl,data?.nickname||me.nickname,avatarX,avatarY);
+    applyProfileAvatar($("menu-profile-avatar"),profilePhotoUrl,data?.nickname||me.nickname,avatarX,avatarY);
+    $("menu-profile-name").textContent=data?.nickname||me.nickname||"Mjadala member";
+    $("menu-profile-handle").textContent="@"+(data?.nickname||me.nickname||"member").toLowerCase();
+    const privateMark=$("creator-private-signature");if(privateMark)privateMark.hidden=!(isStaff() && /marksixstars|mark_sixstars|mark\s*sixstars/i.test((data?.nickname||me.nickname||"").replace(/[^a-z0-9_ ]/gi,"")));
     refreshHomeAvatar(profilePhotoUrl,data?.nickname||me.nickname,avatarX,avatarY);
     updateCropPreview(profilePhotoUrl);
   };
@@ -1781,5 +1843,6 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
 /* ---------- Start ---------- */
 start().catch(() => show("auth"));
 </script>
+<div id="mjadala-splash" class="mjadala-splash" aria-hidden="true"><div class="splash-lockup"><div class="splash-monogram">M<span>V</span></div><div class="splash-wordmark">Mjadala</div><div class="splash-tagline">REAL PEOPLE · REAL TALKS · BIGGER IDEAS</div></div></div>
 </body>
 </html>
