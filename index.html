@@ -264,6 +264,9 @@ header { border-bottom:0; background:var(--bg); padding-top:calc(16px + env(safe
 .danger-button { flex:0 0 auto;background:color-mix(in srgb,var(--danger) 10%,var(--surface));color:var(--danger);border:1px solid color-mix(in srgb,var(--danger) 35%,var(--line));padding:10px 13px;border-radius:12px;font-size:12px;font-weight:800; }
 .danger-button:hover { background:color-mix(in srgb,var(--danger) 17%,var(--surface)); }
 .settings-status { margin-top:12px;font-size:12px;line-height:1.5;color:var(--muted); }
+.notification-setting { cursor:pointer; }
+.notification-setting > input[type="checkbox"] { width:21px;height:21px;flex:0 0 21px;accent-color:var(--brand);cursor:pointer; }
+.notification-setting:hover { border-radius:12px; }
 @media(max-width:460px){.profile-settings-card{padding:16px}.settings-danger{align-items:flex-start;flex-direction:column}.danger-button{width:100%}}
 </style>
 </head>
@@ -375,6 +378,16 @@ header { border-bottom:0; background:var(--bg); padding-top:calc(16px + env(safe
         <button class="danger-button" id="profile-delete-account" type="button">Delete account</button>
       </div>
       <div id="account-settings-status" class="settings-status" aria-live="polite"></div>
+    </div>
+    <div class="profile-settings-card" id="notification-settings">
+      <div class="settings-heading"><span class="settings-icon">🔔</span><div><h2>Notification settings</h2><p>Choose what you want to be notified about.</p></div></div>
+      <label class="settings-row notification-setting"><span class="settings-row-icon">📝</span><span class="settings-row-copy"><b>New posts</b><small>Notifications about new posts.</small></span><input type="checkbox" id="notify-new-posts" checked></label>
+      <label class="settings-row notification-setting"><span class="settings-row-icon">👥</span><span class="settings-row-copy"><b>Group posts</b><small>Updates from your groups.</small></span><input type="checkbox" id="notify-group-posts" checked></label>
+      <label class="settings-row notification-setting"><span class="settings-row-icon">💬</span><span class="settings-row-copy"><b>Group messages</b><small>Messages shared in your groups.</small></span><input type="checkbox" id="notify-group-messages" checked></label>
+      <label class="settings-row notification-setting"><span class="settings-row-icon">📣</span><span class="settings-row-copy"><b>Mentions and replies</b><small>When someone mentions or replies to you.</small></span><input type="checkbox" id="notify-mentions-replies" checked></label>
+      <label class="settings-row notification-setting"><span class="settings-row-icon">✉️</span><span class="settings-row-copy"><b>Direct messages</b><small>Messages sent directly to you.</small></span><input type="checkbox" id="notify-direct-messages" checked></label>
+      <div id="notification-settings-status" class="settings-status" aria-live="polite">Your preferences are saved to your account.</div>
+      <button class="primary" id="save-notification-settings" type="button" style="width:100%;margin-top:12px">Save notification settings</button>
     </div>
   </section>
   <button class="fab" id="newroom">+ New room</button>
@@ -846,6 +859,7 @@ const homeProfileAvatar=$("home-profile-avatar");
 if(homeProfileAvatar) homeProfileAvatar.onclick=()=>openHomeTab("profile-screen");
 function loadProfile(){
   if(!me) return;
+  loadNotificationPreferences();
   $("profile-status").textContent=""; $("profile-nickname").value=me.nickname||"";
   const run=async()=>{
     const {data,error}=await sb.from("profiles").select("nickname,bio,avatar_url,avatar_position_x,avatar_position_y").eq("id",me.id).maybeSingle();
@@ -897,6 +911,55 @@ $("profile-save").onclick=async()=>{
     if(pendingPhotoObjectUrl){URL.revokeObjectURL(pendingPhotoObjectUrl);pendingPhotoObjectUrl="";}
     status.textContent="Profile saved.";await loadProfile();
   }catch(e){status.textContent=friendly(e);}
+};
+
+
+/* ---------- Notification preferences ---------- */
+const notificationPreferenceFields = {
+  "notify-new-posts": "new_posts",
+  "notify-group-posts": "group_posts",
+  "notify-group-messages": "group_messages",
+  "notify-mentions-replies": "mentions_replies",
+  "notify-direct-messages": "direct_messages"
+};
+async function loadNotificationPreferences() {
+  if (!me) return;
+  const status = $("notification-settings-status");
+  status.textContent = "Loading your preferences…";
+  try {
+    const { data, error } = await sb.from("notification_preferences")
+      .select("new_posts,group_posts,group_messages,mentions_replies,direct_messages")
+      .eq("user_id", me.id).maybeSingle();
+    if (error) throw error;
+    if (data) {
+      for (const [elementId, field] of Object.entries(notificationPreferenceFields)) {
+        $(elementId).checked = data[field] !== false;
+      }
+    } else {
+      for (const elementId of Object.keys(notificationPreferenceFields)) $(elementId).checked = true;
+    }
+    status.textContent = "Choose your preferences, then save your changes.";
+  } catch (e) {
+    status.textContent = "Couldn't load preferences. Check your connection and Supabase table permissions. " + friendly(e);
+  }
+}
+const saveNotificationButton = $("save-notification-settings");
+if (saveNotificationButton) saveNotificationButton.onclick = async () => {
+  const status = $("notification-settings-status");
+  if (!me) { status.textContent = "Please sign in first."; return; }
+  const preferences = { user_id: me.id, updated_at: new Date().toISOString() };
+  for (const [elementId, field] of Object.entries(notificationPreferenceFields)) preferences[field] = $(elementId).checked;
+  saveNotificationButton.disabled = true;
+  status.textContent = "Saving your preferences…";
+  try {
+    const { error } = await sb.from("notification_preferences").upsert(preferences, { onConflict: "user_id" });
+    if (error) throw error;
+    status.textContent = "Notification preferences saved.";
+  } catch (e) {
+    status.textContent = "Couldn't save preferences. " + friendly(e);
+  } finally {
+    saveNotificationButton.disabled = false;
+  }
 };
 
 // Account actions: sign-out is immediate; account deletion requires explicit confirmation
