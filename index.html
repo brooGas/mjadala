@@ -62,7 +62,8 @@ form#send{position:sticky;bottom:0;display:flex;gap:9px;padding:12px max(16px,ca
 .profile-panel input,.profile-panel textarea,.groups-panel input,.groups-panel textarea{width:100%;padding:12px 13px;margin:0 0 10px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);color:var(--text)}
 .profile-panel textarea,.groups-panel textarea{min-height:76px;resize:vertical}.profile-avatar{width:76px;height:76px;border-radius:24px;object-fit:cover;background:var(--brand-soft);display:grid;place-items:center;font-size:28px;font-weight:900;color:var(--brand-strong);margin-bottom:14px;border:1px solid var(--line)}
 .groups-list{display:grid;gap:10px;margin-top:14px}.group-card{display:block;text-align:left;width:100%;padding:15px;border-radius:15px;background:var(--surface-2);border:1px solid var(--line);color:var(--text)}.group-card b{display:block;margin-bottom:5px}.group-card small{color:var(--muted)}.group-chat{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}.group-chat-list{max-height:280px;overflow:auto;display:flex;flex-direction:column;gap:8px;margin:10px 0}.group-chat-msg{padding:10px 12px;background:var(--surface-2);border-radius:12px;overflow-wrap:anywhere}.group-chat-msg small{display:block;color:var(--muted);font-size:11px;margin-bottom:4px}.inline-row{display:flex;gap:8px}.inline-row>*{min-width:0}.inline-row button{flex:0 0 auto;width:auto}
-.group-role-note{display:block;color:var(--muted);font-size:12px;margin:2px 0 12px}.group-delete{margin:0 0 12px}.group-roster-title{font-size:14px;margin:14px 0 8px}.group-roster{display:grid;gap:7px;margin-bottom:14px}.group-member-row{display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap;padding:9px 10px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}.group-member-name{display:flex;flex-direction:column;gap:3px;min-width:90px;flex:1}.group-member-name b{font-size:13px}.group-member-name small{font-size:11px;color:var(--muted);text-transform:capitalize}.group-member-row .btn{padding:7px 9px}.group-chat{padding-bottom:18px}@media(min-width:640px){.moment-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.group-role-note{display:block;color:var(--muted);font-size:12px;margin:2px 0 12px}.group-delete{margin:0 0 12px}.group-roster-title{font-size:14px;margin:14px 0 8px}.group-roster{display:grid;gap:7px;margin-bottom:14px}.group-member-row{display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap;padding:9px 10px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}.group-member-name{display:flex;flex-direction:column;gap:3px;min-width:90px;flex:1}.group-member-name b{font-size:13px}.group-member-name small{font-size:11px;color:var(--muted);text-transform:capitalize}.group-member-row .btn{padding:7px 9px}.group-chat{padding-bottom:18px}.group-chat-msg-body{white-space:pre-wrap;line-height:1.45}.group-msg-action{margin:8px 6px 0 0;padding:5px 9px;font-size:11px}.group-chat-msg .danger{color:var(--danger)}
+@media(min-width:640px){.moment-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
 /* Mjadala Design Step 1 — visual refresh; preserves existing app markup and JS */
 :root {
@@ -924,31 +925,80 @@ async function openGroup(g){
   }
   const rosterTitle=el("h4","group-roster-title","Members and roles");box.appendChild(rosterTitle);
   const roster=el("div","group-roster");box.appendChild(roster);
-  const {data:members,error:memberError}=await sb.from("group_members").select("user_id,group_role,profiles(nickname)").eq("group_id",g.id).order("joined_at",{ascending:true});
+  // Fetch membership and profiles separately: this avoids ambiguous PostgREST
+  // relationships when group_members has both user_id and added_by FKs.
+  const {data:memberRows,error:memberError}=await sb.from("group_members").select("user_id,group_role,joined_at").eq("group_id",g.id).order("joined_at",{ascending:true});
   if(memberError){roster.appendChild(el("small","",friendly(memberError)));}else{
-    members.forEach(m=>{
-      const line=el("div","group-member-row");const role=m.user_id===g.created_by?"creator":(m.group_role||"member");
-      const who=el("div","group-member-name");who.appendChild(el("b","",m.profiles?.nickname||"Member"));who.appendChild(el("small","",role));line.appendChild(who);
-      if(creator&&m.user_id!==g.created_by){
-        const promote=el("button","btn",role==="admin"?"Remove admin":"Make admin");
-        promote.onclick=async()=>{promote.disabled=true;try{await rpc("set_group_admin",{p_group_id:g.id,p_nickname:m.profiles?.nickname||"",p_make_admin:role!=="admin"});await openGroup(g);}catch(e){promote.disabled=false;$("group-status").textContent=friendly(e);}};line.appendChild(promote);
-      }
-      if((creator||myGroupRole==="admin")&&m.user_id!==me.id&&m.user_id!==g.created_by&&(creator||role==="member")){
-        const remove=el("button","btn danger","Remove");remove.onclick=async()=>{if(!confirm("Remove @"+(m.profiles?.nickname||"this member")+" from the group?"))return;remove.disabled=true;try{await rpc("remove_group_member",{p_group_id:g.id,p_nickname:m.profiles?.nickname||""});await openGroup(g);}catch(e){remove.disabled=false;$("group-status").textContent=friendly(e);}};line.appendChild(remove);
-      }
-      roster.appendChild(line);
-    });
+    const memberIds=memberRows.map(m=>m.user_id);
+    const {data:profileRows,error:profileError}=memberIds.length
+      ? await sb.from("profiles").select("id,nickname").in("id",memberIds)
+      : {data:[],error:null};
+    if(profileError){roster.appendChild(el("small","",friendly(profileError)));}
+    else {
+      const nicknames=new Map((profileRows||[]).map(p=>[p.id,p.nickname]));
+      memberRows.forEach(m=>{
+        const nickname=nicknames.get(m.user_id)||"Member";
+        const line=el("div","group-member-row");const role=m.user_id===g.created_by?"creator":(m.group_role||"member");
+        const who=el("div","group-member-name");who.appendChild(el("b","",nickname));who.appendChild(el("small","",role));line.appendChild(who);
+        if(creator&&m.user_id!==g.created_by){
+          const promote=el("button","btn",role==="admin"?"Remove admin":"Make admin");
+          promote.onclick=async()=>{promote.disabled=true;try{await rpc("set_group_admin",{p_group_id:g.id,p_nickname:nickname,p_make_admin:role!=="admin"});await openGroup(g);}catch(e){promote.disabled=false;$("group-status").textContent=friendly(e);}};line.appendChild(promote);
+        }
+        if((creator||myGroupRole==="admin")&&m.user_id!==me.id&&m.user_id!==g.created_by&&(creator||role==="member")){
+          const remove=el("button","btn danger","Remove");remove.onclick=async()=>{if(!confirm("Remove @"+nickname+" from the group?"))return;remove.disabled=true;try{await rpc("remove_group_member",{p_group_id:g.id,p_nickname:nickname});await openGroup(g);}catch(e){remove.disabled=false;$("group-status").textContent=friendly(e);}};line.appendChild(remove);
+        }
+        roster.appendChild(line);
+      });
+    }
   }
   const msgs=el("div","group-chat-list");msgs.id="group-msg-list";box.appendChild(msgs);
   const form=el("form","inline-row");const input=el("input");input.placeholder="Message this Group";input.maxLength=500;input.required=true;const send=el("button","primary","Send");send.style.width="auto";form.append(input,send);box.appendChild(form);
-  form.onsubmit=async e=>{e.preventDefault();const body=input.value.trim();if(!body)return;send.disabled=true;const {error}=await sb.from("group_messages").insert({group_id:g.id,author_id:me.id,body});send.disabled=false;if(error){$("group-status").textContent=friendly(error);return;}input.value="";await refreshGroupMessages(g,msgs);};
-  await refreshGroupMessages(g,msgs);
+  form.onsubmit=async e=>{e.preventDefault();const body=input.value.trim();if(!body)return;send.disabled=true;const {error}=await sb.from("group_messages").insert({group_id:g.id,author_id:me.id,body});send.disabled=false;if(error){$("group-status").textContent=friendly(error);return;}input.value="";await refreshGroupMessages(g,msgs,myGroupRole,creator);};
+  await refreshGroupMessages(g,msgs,myGroupRole,creator);
 }
 
-async function refreshGroupMessages(g,target){
-  const {data,error}=await sb.from("group_messages").select("id,body,created_at,author_id,profiles(nickname)").eq("group_id",g.id).order("id",{ascending:true}).limit(100);
+async function refreshGroupMessages(g,target,myGroupRole="member",isCreator=false){
+  const {data,error}=await sb.from("group_messages").select("id,body,created_at,author_id").eq("group_id",g.id).order("id",{ascending:true}).limit(100);
   target.innerHTML="";if(error){target.textContent=friendly(error);return;}
-  data.forEach(m=>{const item=el("div","group-chat-msg");item.appendChild(el("small","",(m.profiles?.nickname||"Member")+" · "+new Date(m.created_at).toLocaleString()));item.appendChild(el("div","",m.body));target.appendChild(item);});target.scrollTop=target.scrollHeight;
+  const authorIds=[...new Set((data||[]).map(m=>m.author_id))];
+  const {data:authors,error:authorError}=authorIds.length
+    ? await sb.from("profiles").select("id,nickname").in("id",authorIds)
+    : {data:[],error:null};
+  if(authorError){target.textContent=friendly(authorError);return;}
+  const names=new Map((authors||[]).map(p=>[p.id,p.nickname]));
+  data.forEach(m=>{
+    const item=el("div","group-chat-msg");
+    item.appendChild(el("small","",(names.get(m.author_id)||"Member")+" · "+new Date(m.created_at).toLocaleString()));
+    item.appendChild(el("div","group-chat-msg-body",m.body));
+    const canDelete=m.author_id===me.id||isCreator||myGroupRole==="admin";
+    if(m.author_id===me.id){
+      const edit=el("button","btn group-msg-action","Edit");
+      edit.onclick=async()=>{
+        const revised=prompt("Edit your message:",m.body);
+        if(revised===null)return;
+        const body=revised.trim();if(!body){alert("A message cannot be empty.");return;}
+        if(body.length>500){alert("Messages must be 500 characters or fewer.");return;}
+        edit.disabled=true;
+        const {error:updateError}=await sb.from("group_messages").update({body}).eq("id",m.id).eq("group_id",g.id).eq("author_id",me.id);
+        if(updateError){alert(friendly(updateError));edit.disabled=false;return;}
+        await refreshGroupMessages(g,target,myGroupRole,isCreator);
+      };
+      item.appendChild(edit);
+    }
+    if(canDelete){
+      const del=el("button","btn danger group-msg-action","Delete");
+      del.onclick=async()=>{
+        if(!confirm(m.author_id===me.id?"Delete your message?":"Delete this member's message?"))return;
+        del.disabled=true;
+        const {data:deleted,error:deleteError}=await sb.from("group_messages").delete().eq("id",m.id).eq("group_id",g.id).select("id");
+        if(deleteError||!deleted?.length){alert(friendly(deleteError||new Error("You do not have permission to delete this message.")));del.disabled=false;return;}
+        await refreshGroupMessages(g,target,myGroupRole,isCreator);
+      };
+      item.appendChild(del);
+    }
+    target.appendChild(item);
+  });
+  target.scrollTop=target.scrollHeight;
 }
 
 /* ---------- Admin panel ---------- */
