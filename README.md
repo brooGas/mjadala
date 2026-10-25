@@ -1,7 +1,5 @@
 # Mjadala (web version)
 
-Copyright (c) 2026 Mark Sixstars. All rights reserved.
-
 Static website + Supabase. No server to run, no terminal needed.
 
 ## Put it online (from a phone)

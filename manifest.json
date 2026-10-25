@@ -1,12 +1,12 @@
 {
   "name": "Mjadala",
   "short_name": "Mjadala",
-  "description": "Thoughtful conversations, communities, and 24-hour Moments.",
+  "description": "Thoughtful conversations, communities, and 24-hour Moments. Real people. Real talks. Bigger ideas.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#88776B",
+  "background_color": "#F1EBE5",
   "theme_color": "#6F6056",
   "icons": [
     {

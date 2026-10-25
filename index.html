@@ -1,10 +1,8 @@
 <!doctype html>
-<!-- Copyright (c) 2026 Mark Sixstars. All rights reserved. -->
+<!-- Mjadala application entry point. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="author" content="Mark Sixstars">
-<meta name="copyright" content="Copyright (c) 2026 Mark Sixstars">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F1EBE5">
 <meta name="description" content="Mjadala is a community for thoughtful conversations and 24-hour photo Moments.">
@@ -15,17 +13,17 @@
 <style>
 :root {
   color-scheme: light;
-  --brand:#6F6056; --brand-strong:#493B33; --brand-soft:#E7DDD3;
-  --accent:#C6A77B; --bg:#88776B; --surface:#F1EBE5; --surface-2:#E6DCD2; --text:#302821;
-  --muted:#74665C; --line:#D3C4B7; --mine:#E7DDD3; --danger:#C7354A;
-  --shadow:0 14px 38px rgba(48,40,33,.13); --radius:20px;
+  --brand:#4F46E5; --brand-strong:#3730A3; --brand-soft:#EEEAFE;
+  --accent:#F59E0B; --bg:#FAFAF8; --surface:#FFFFFF; --surface-2:#F4F3F8; --text:#0F172A;
+  --muted:#64748B; --line:#E8E7EF; --mine:#EEEAFE; --danger:#B42332;
+  --shadow:0 12px 36px rgba(41,40,33,.08); --radius:20px;
 }
- :root[data-theme="dark"] {
+:root[data-theme="dark"] {
   color-scheme:dark;
-  --brand:#D8BDA5; --brand-strong:#F1DCC8; --brand-soft:#493B33; --accent:#D8BDA5;
-  --bg:#211B18; --surface:#302722; --surface-2:#40352E; --text:#FFF9F2;
-  --muted:#C5B4A6; --line:#57483D; --mine:#493B33; --danger:#FF8A9A;
-  --shadow:0 14px 38px rgba(0,0,0,.28);
+  --brand:#818CF8; --brand-strong:#A5B4FC; --brand-soft:#24234A; --accent:#F59E0B;
+  --bg:#0F172A; --surface:#111827; --surface-2:#1E293B; --text:#F8FAFC;
+  --muted:#AAB6CC; --line:#293449; --mine:#24234A; --danger:#FF8B94;
+  --shadow:0 12px 36px rgba(0,0,0,.25);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 .brand-lockup{display:flex;align-items:center;gap:10px;flex:1;min-width:0}.brand-lockup h1{flex:1}.brand-mark{width:38px;height:38px;flex:0 0 38px;border-radius:13px;background:#292821;color:#E9A34F;display:grid;place-items:center;font-weight:950;font-size:19px;letter-spacing:-.13em;border:1px solid rgba(245,158,11,.6);box-shadow:0 5px 15px rgba(41,40,33,.14)}.brand-mark span{font-size:12px;margin-left:-3px;align-self:center;color:#fff}.msg .mention{display:inline;border:0;background:transparent;color:var(--brand-strong);font-weight:850;padding:0;text-decoration:underline;text-underline-offset:2px}.msg .mention:hover{filter:brightness(.85)}
@@ -402,37 +400,111 @@ header { border-bottom:0; background:var(--bg); padding-top:calc(16px + env(safe
 :root:not([data-theme="dark"]) .home-welcome {background:linear-gradient(125deg,#6F6056,#493B33);border-color:#A9988B;color:#FFF9F2}
 :root:not([data-theme="dark"]) .theme-toggle {color:#FFF9F2;border-color:#A9988B}
 
-/* Mjadala premium taupe visual system — full-app refinement */
-:root{--brand:#6F6056;--brand-strong:#493B33;--brand-soft:#E7DDD3;--accent:#C6A77B;--bg:#88776B;--surface:#F1EBE5;--surface-2:#E6DCD2;--text:#302821;--muted:#74665C;--line:#D3C4B7;--mine:#E7DDD3;--danger:#C7354A;--shadow:0 14px 38px rgba(48,40,33,.13);--radius:20px;color-scheme:light}
-:root[data-theme="dark"]{--brand:#D8BDA5;--brand-strong:#F1DCC8;--brand-soft:#493B33;--accent:#D8BDA5;--bg:#211B18;--surface:#302722;--surface-2:#40352E;--text:#FFF9F2;--muted:#C5B4A6;--line:#57483D;--mine:#493B33;--danger:#FF8A9A;--shadow:0 14px 38px rgba(0,0,0,.28);color-scheme:dark}
-html,body{background:var(--bg);color:var(--text)}
-header{background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 3px 14px rgba(48,40,33,.04)}
-.brand-mark{display:grid;place-items:center;background:linear-gradient(145deg,#493B33,#88776B)!important;color:#FFF9F2!important;border:1px solid #D8BDA5!important;border-radius:14px!important;box-shadow:0 7px 18px rgba(48,40,33,.20)!important;overflow:hidden;width:42px;height:42px;flex:0 0 42px}
-.brand-mark svg{width:100%;height:100%;padding:2px}.brand-mark span{color:#FFF9F2!important}
-.brand-lockup h1{font-family:Georgia,'Times New Roman',serif!important;font-weight:700!important;letter-spacing:-.045em!important;color:var(--brand-strong)}
-.brand-lockup h1 small{font-family:Inter,ui-sans-serif,system-ui,sans-serif!important;color:var(--muted)!important;letter-spacing:.14em!important}
-.auth-card{background:var(--surface);border:1px solid var(--line);box-shadow:0 22px 60px rgba(48,40,33,.16);border-radius:30px}
-.auth-card:before{content:'MV';background:linear-gradient(145deg,#493B33,#88776B)!important;color:#FFF9F2!important;border:1px solid #D8BDA5!important;font-family:Georgia,'Times New Roman',serif;font-size:20px;letter-spacing:-.1em;box-shadow:0 9px 22px rgba(48,40,33,.2)}
-.primary,.fab,.shorts-upload-open{background:linear-gradient(135deg,#6F6056,#493B33)!important;color:#FFF9F2!important;box-shadow:0 8px 20px rgba(73,59,51,.23)!important;border:1px solid rgba(216,189,165,.55)}
-.link{color:var(--brand-strong)!important}
-.home-tabs{background:var(--surface);border-color:var(--line);border-radius:18px;box-shadow:0 5px 20px rgba(48,40,33,.06)}
-.home-tabs button.on,.short-categories button.active{background:var(--brand)!important;border-color:var(--brand)!important;color:#FFF9F2!important;box-shadow:0 5px 14px rgba(73,59,51,.17)}
-.room,.moment-compose,.moment-card,.msg,.settings-card,.profile-card,.short-card,.category-card,.modal-card,.sheet,.post-card{background:var(--surface)!important;border-color:var(--line)!important;box-shadow:0 6px 20px rgba(48,40,33,.055)}
-.room:before{background:var(--brand-soft)!important;color:var(--brand-strong)!important}
-input,textarea,select,form#send input,.moment-compose input[type=text],.moment-compose input[type=file]{background:var(--surface-2)!important;color:var(--text)!important;border-color:var(--line)!important}
-.msg.mine{background:var(--mine)!important;border-color:var(--line)!important}
-.msg .who,.msg .mention{color:var(--brand-strong)!important}
-header button:hover,.home-tabs button:hover,.short-categories button:hover{background:var(--brand-soft)!important;color:var(--brand-strong)!important}
-.danger-button,.delete-button,.short-delete,.danger{background:#C7354A!important;color:#fff!important;border:0!important;border-radius:12px!important;box-shadow:0 5px 14px rgba(199,53,74,.18)}
-#shorts-screen{background:radial-gradient(ellipse at 50% 0%,rgba(216,189,165,.23),transparent 55%),var(--bg)!important}
-#shorts-screen .short-card{border-radius:22px!important;overflow:hidden;box-shadow:0 12px 30px rgba(48,40,33,.16)!important}
-#shorts-screen .short-actions button{background:rgba(48,40,33,.76);color:#FFF9F2;border:1px solid rgba(255,249,242,.22);backdrop-filter:blur(10px)}
-#shorts-screen .short-actions button.liked,.like-button.liked{color:#F05275!important}
-.bottom-nav,.app-nav,.nav-bar,.tabbar{background:var(--surface)!important;border-color:var(--line)!important;box-shadow:0 -5px 24px rgba(48,40,33,.08)!important}
-button{transition:background-color .16s ease,color .16s ease,transform .16s ease,box-shadow .16s ease}
-button:active{transform:scale(.98)}
-:focus-visible{outline-color:#A98B70!important}
-@media(min-width:760px){.screen.active{padding-bottom:24px}.home-tabs{margin-top:18px}.room{border-radius:20px;padding-top:20px;padding-bottom:20px}}
+
+/* Mjadala complete reference-design pass: warm editorial taupe + cream. */
+:root:not([data-theme="dark"]) {
+ color-scheme:light;
+ --brand:#6F6056; --brand-strong:#493B33; --brand-soft:#E5D9CE;
+ --accent:#B99A7D; --bg:#F1EBE5; --surface:#FAF7F3; --surface-2:#E9E0D8;
+ --text:#3E332C; --muted:#77695F; --line:#D6C8BC; --mine:#E9DDD2;
+ --danger:#D93D53; --shadow:0 10px 28px rgba(62,51,44,.09); --radius:22px;
+}
+:root[data-theme="dark"] {
+ --brand:#C6AD98; --brand-strong:#E8D8C9; --brand-soft:#493B33; --accent:#D8BDA5;
+ --bg:#2D2622; --surface:#3E332C; --surface-2:#51443B; --text:#FFF9F2;
+ --muted:#D2C2B5; --line:#66564B; --mine:#59483D; --danger:#FF9BA3;
+ --shadow:0 12px 32px rgba(0,0,0,.24);
+}
+html,body {background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+body {letter-spacing:-.015em}
+.screen {background:var(--bg)}
+header {background:var(--surface);color:var(--text);border-bottom:1px solid var(--line);box-shadow:0 3px 14px rgba(62,51,44,.035);padding-top:calc(12px + env(safe-area-inset-top));padding-bottom:12px}
+header h1,.brand-lockup h1 {font-family:Georgia,"Times New Roman",serif;font-weight:700;letter-spacing:-.045em}
+.brand-mark {width:48px;height:48px;flex-basis:48px;border-radius:17px;background:linear-gradient(145deg,#493B33,#6F6056);color:#FFF9F2;border:1px solid #B99A7D;box-shadow:0 4px 12px rgba(62,51,44,.14)}
+.brand-mark svg {width:39px;height:39px}
+.brand-lockup h1 {font-size:25px}
+.brand-lockup h1 small {font-family:inherit;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.theme-toggle {border:1px solid var(--line)!important;border-radius:50%!important;width:46px;height:46px;display:grid;place-items:center;background:var(--surface)!important;color:var(--text)!important}
+header button.txt {background:var(--brand)!important;color:#FFF9F2!important;border:1px solid var(--brand)!important;border-radius:999px;padding:9px 13px!important}
+#auth {background:radial-gradient(ellipse at 15% 0%,#E7D9CD,transparent 42%),var(--bg)}
+.auth-card {background:var(--surface);border:1px solid var(--line);box-shadow:0 20px 55px rgba(62,51,44,.12);border-radius:30px}
+.auth-card:before {content:"MV";font-family:Georgia,"Times New Roman",serif;font-size:25px;letter-spacing:-.14em;background:linear-gradient(145deg,#493B33,#6F6056);color:#FFF9F2;border:1px solid #B99A7D;border-radius:18px}
+.auth-card h2 {font-family:Georgia,"Times New Roman",serif;font-size:34px;letter-spacing:-.045em}
+.primary,.fab,form#send button,.btn.good,.welcome-primary {background:var(--brand-strong);color:#FFF9F2;border:1px solid transparent;box-shadow:0 6px 16px rgba(73,59,51,.17)}
+.primary {border-radius:15px}
+.link,.msg .who,.code {color:var(--brand-strong)}
+input,textarea,select,form#send input,.people-search {background:var(--surface-2);color:var(--text);border-color:var(--line);border-radius:13px}
+input::placeholder,textarea::placeholder {color:#8C7B6F}
+.rules {background:#E7DCD2;border-color:var(--line);color:#64564C;border-radius:15px}
+.home-welcome {background:linear-gradient(135deg,#6F6056,#493B33)!important;color:#FFF9F2;border:1px solid #B99A7D;border-radius:28px;box-shadow:0 12px 26px rgba(62,51,44,.12);margin:20px 16px 18px;padding:22px}
+.home-welcome h2 {font-family:Georgia,"Times New Roman",serif;font-size:25px;letter-spacing:-.04em}
+.home-welcome p {color:#F0E5DC}
+.welcome-pencil {background:#E5D0BD!important;color:#493B33!important;border-radius:50%!important}
+.welcome-primary {background:#493B33!important;color:#FFF9F2!important;border:1px solid #B99A7D!important;border-radius:999px!important}
+.welcome-secondary {background:transparent!important;color:#FFF9F2!important;border:1px solid #CDB8A5!important;border-radius:999px!important}
+.moments-strip {padding:0 16px 20px;border-bottom:1px solid var(--line)}
+.section-heading {padding:8px 16px 12px;align-items:center}
+.section-heading h2 {font-family:Georgia,"Times New Roman",serif;font-size:22px;letter-spacing:-.035em}
+.section-heading h2 span {color:var(--brand)!important}
+.section-heading button,.heading-note {color:var(--brand-strong)}
+.moment-bubbles {gap:15px;overflow-x:auto;padding:4px 0 8px}
+.moment-bubble {min-width:82px;color:var(--text)}
+.bubble-ring {background:#E5D9CE!important;border:3px solid #B99A7D!important;color:#493B33!important;box-shadow:0 0 0 3px #F1EBE5}
+.bubble-indigo,.bubble-orange,.bubble-slate {background:#E5D9CE!important;color:#493B33!important;border-color:#B99A7D!important}
+.conversations-heading {margin-top:14px}
+#roomlist {padding:0 16px 120px;max-width:900px}
+.room {background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:0 4px 12px rgba(62,51,44,.045);padding:18px 16px 18px 64px;margin:9px 0}
+.room:before {background:#E5D9CE!important;color:#493B33!important;border:1px solid #D1BBA6;border-radius:50%;width:42px;height:42px;left:13px;top:16px}
+.room b {font-size:17px;color:var(--text)}
+.room span {font-size:13px;color:var(--muted)}
+.home-tabs {position:fixed;z-index:20;bottom:calc(8px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 16px);max-width:720px;margin:0;padding:7px;gap:4px;background:rgba(250,247,243,.96);backdrop-filter:blur(18px);border:1px solid #D6C8BC;border-radius:25px;box-shadow:0 8px 30px rgba(62,51,44,.18)}
+.home-tabs button {display:flex;flex:1;min-width:0;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:9px 3px;border-radius:17px;background:transparent;color:#77695F;font-size:19px}
+.home-tabs button small {font-size:10px;font-weight:750;line-height:1.2}
+.home-tabs button.on {background:#E5D9CE!important;color:#493B33!important;box-shadow:inset 0 0 0 1px #D6C8BC}
+.fab {bottom:calc(92px + env(safe-area-inset-bottom));border-radius:18px}
+#shorts-screen {background:#2D2622;color:#FFF9F2;min-height:calc(100dvh - 110px);padding:12px 12px calc(105px + env(safe-area-inset-bottom));}
+#shorts-screen .shorts-head h2 {font-family:Georgia,"Times New Roman",serif;font-size:29px;color:#FFF9F2}
+#shorts-screen .shorts-head p {color:#D2C2B5}
+#shorts-screen .shorts-upload-open {background:#6F6056;color:#FFF9F2;border-radius:999px;box-shadow:none}
+.short-categories button {background:#493B33!important;color:#F1EBE5!important;border-color:#66564B!important}
+.short-categories button.active {background:#D8BDA5!important;color:#3E332C!important;border-color:#D8BDA5!important;box-shadow:0 4px 14px rgba(0,0,0,.16)}
+.short-card {border-radius:26px!important;box-shadow:0 14px 35px rgba(0,0,0,.25)!important}
+.short-action {background:rgba(62,51,44,.82)!important;border:1px solid rgba(255,249,242,.22)!important;color:#FFF9F2!important;backdrop-filter:blur(10px)}
+.short-action.liked,.short-action.is-liked {background:#D93D53!important;color:white!important}
+.short-upload-panel,.short-comment-panel {background:#F1EBE5!important;color:#3E332C!important;border:1px solid #D6C8BC!important;border-radius:24px!important;box-shadow:0 18px 55px rgba(0,0,0,.28)!important}
+.short-upload-panel p,.short-comment-panel p {color:#77695F!important}
+.short-upload-panel input,.short-upload-panel select,.short-comment-panel input,.short-comment-panel textarea {background:#FAF7F3!important;color:#3E332C!important;border-color:#D6C8BC!important}
+#moments-screen,#groups-screen,#people-screen,#profile-screen,#public-profile-screen {background:var(--bg);padding-bottom:110px!important}
+.moment-compose,.groups-panel,.profile-panel,.people-panel,.public-profile-panel {background:var(--surface);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow)}
+.moment-card,.person-card,.group-card,.profile-panel .card {background:var(--surface);border-color:var(--line);border-radius:18px;color:var(--text)}
+#chat {background:var(--bg)}
+#msgs {padding-bottom:22px}
+.msg {background:var(--surface);border-color:var(--line);color:var(--text);box-shadow:0 2px 8px rgba(62,51,44,.04)}
+.msg.mine {background:#E5D9CE;color:#3E332C}
+form#send {background:var(--surface);border-color:var(--line);padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+#admin .tabs {background:var(--surface);border-color:var(--line)}
+#admin .tabs button.on {background:var(--brand-strong);color:#FFF9F2}
+#creator-copyright {display:none}
+@media(max-width:520px) {
+ header {gap:7px;padding-left:13px;padding-right:13px}
+ .brand-mark {width:44px;height:44px;flex-basis:44px}
+ .brand-lockup h1 {font-size:24px}
+ .rules {margin:10px 14px 0;width:auto}
+ .home-welcome {margin:16px 14px;padding:18px;border-radius:24px}
+ .welcome-actions {gap:8px}
+ .welcome-actions button {min-width:0;padding:12px 9px;font-size:12px}
+ .section-heading {padding-left:18px;padding-right:18px}
+ .home-tabs {width:calc(100% - 12px);bottom:calc(5px + env(safe-area-inset-bottom));border-radius:22px}
+ .home-tabs button {padding:8px 2px}
+ .home-tabs button small {font-size:9px}
+ #roomlist {padding-left:14px;padding-right:14px}
+ .room {padding-left:62px}
+ .shorts-grid {max-width:100%}
+}
+@media(prefers-reduced-motion:no-preference) {
+ .primary,.room,.home-tabs button,.moment-bubble,.short-action {transition:transform .18s ease,background .18s ease,box-shadow .18s ease}
+ .moment-bubble:active,.home-tabs button:active,.short-action:active {transform:scale(.96)}
+}
 
 </style>
 </head>
@@ -451,14 +523,14 @@ button:active{transform:scale(.98)}
     <div class="err" id="autherr"></div>
     <button class="primary" id="authbtn">Log in</button>
     <button class="link" id="authswitch">New here? Create an account</button>
-    <p class="copy">&copy; 2026 Mark Sixstars &middot; <a href="/terms.html#terms" target="_blank">Terms</a> &middot; <a href="/terms.html#privacy" target="_blank">Privacy</a></p>
+    <p class="copy"><a href="/terms.html#terms" target="_blank">Terms</a> &middot; <a href="/terms.html#privacy" target="_blank">Privacy</a></p>
   </div>
 </section>
 
 <!-- ROOM LIST -->
 <section id="rooms" class="screen">
   <header>
-    <div class="brand-lockup"><span class="brand-mark" aria-label="Mjadala MV logo"><svg viewBox="0 0 48 48" role="img" aria-label="Interlocking M V monogram"><text x="5" y="34" font-family="Georgia,Times New Roman,serif" font-size="35" font-weight="600" fill="currentColor">M</text><text x="22" y="40" font-family="Georgia,Times New Roman,serif" font-size="30" font-weight="600" fill="#D8BDA5">V</text></svg></span><h1>Mjadala<small id="me"></small></h1></div>
+    <div class="brand-lockup"><span class="brand-mark" aria-label="Mjadala MV logo"><svg viewBox="0 0 48 48" role="img" aria-label="MV"><text x="3" y="35" font-family="Georgia,Times New Roman,serif" font-size="34" font-weight="600" fill="currentColor">M</text><text x="18" y="39" font-family="Georgia,Times New Roman,serif" font-size="31" font-weight="600" fill="#D8BDA5">V</text></svg></span><h1>Mjadala<small id="me"></small></h1></div>
     <button class="theme-toggle" type="button" aria-label="Switch colour theme" title="Switch colour theme">☾</button>
     <button id="home-profile-avatar" class="home-profile-avatar" type="button" aria-label="Open your profile" title="Your profile">M</button>
     <button id="install">Install app</button>
@@ -611,12 +683,12 @@ button:active{transform:scale(.98)}
     <button data-tab="people">People</button>
     <button data-tab="invites" id="tabinvites">Invites</button>
   </div>
-  <div id="adminbody"></div>
+  <div id="adminbody"></div><div id="creator-copyright" class="profile-panel" aria-label="Creator ownership" style="display:none;margin-bottom:24px"></div>
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// Copyright (c) 2026 Mark Sixstars. All rights reserved.
+// Mjadala application logic.
 // These two values are PUBLIC by design (the database rules protect the data).
 // NEVER put a "service_role" or secret key in this file.
 const SUPABASE_URL = "https://olqwfscmhtdseljvfqvm.supabase.co";
@@ -1504,6 +1576,10 @@ async function rpc(name, args) {
 }
 
 function openAdmin() {
+  const creatorMark = document.getElementById("creator-copyright");
+  const normalizedNickname = String(me?.nickname || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (creatorMark) creatorMark.style.display = (me?.role === "admin" && normalizedNickname === "marksixstars") ? "block" : "none";
+  if (creatorMark && !creatorMark.dataset.ready) { creatorMark.innerHTML = "<b>Creator ownership</b><p>© 2026 Mark Sixstars. All rights reserved.</p>"; creatorMark.dataset.ready = "1"; }
   $("adminwho").textContent = me.nickname + " (" + me.role + ")";
   $("tabinvites").style.display = me.role === "admin" ? "block" : "none";
   adminTab = "reports";
