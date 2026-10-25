@@ -6,7 +6,7 @@
 <meta name="author" content="Mark Sixstars">
 <meta name="copyright" content="Copyright (c) 2026 Mark Sixstars">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#FAFAF8">
+<meta name="theme-color" content="#F1EBE5">
 <meta name="description" content="Mjadala is a community for thoughtful conversations and 24-hour photo Moments.">
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/icon-192.png">
@@ -300,6 +300,61 @@ header { border-bottom:0; background:var(--bg); padding-top:calc(16px + env(safe
 .short-status{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
 
 
+
+
+/* Mjadala Taupe Bright Mode — approved warm woven taupe palette */
+:root {
+  color-scheme: light;
+  --brand:#8A796D;
+  --brand-strong:#55473F;
+  --brand-soft:#E8DED5;
+  --accent:#B49A83;
+  --bg:#F1EBE5;
+  --surface:#FAF7F3;
+  --surface-2:#E7DDD4;
+  --text:#302821;
+  --muted:#77695F;
+  --line:#D6C8BC;
+  --mine:#E8D9CC;
+  --danger:#B42332;
+  --shadow:0 12px 34px rgba(66,49,38,.09);
+  --radius:22px;
+}
+/* Warm taupe replaces the old bright-mode green/purple accents consistently. */
+:root:not([data-theme="dark"]) .brand-mark,
+:root:not([data-theme="dark"]) .auth-card:before {
+  background:linear-gradient(140deg,#55473F 0%,#8A796D 62%,#C5AD98 100%);
+  color:#FFF9F2;
+  border-color:rgba(138,121,109,.45);
+  box-shadow:0 5px 15px rgba(85,71,63,.20);
+}
+:root:not([data-theme="dark"]) .brand-mark span {color:#FFF9F2}
+:root:not([data-theme="dark"]) .primary,
+:root:not([data-theme="dark"]) .fab,
+:root:not([data-theme="dark"]) form#send button,
+:root:not([data-theme="dark"]) .btn.good {
+  background:var(--brand); color:#FFF9F2; border-color:transparent;
+  box-shadow:0 7px 18px rgba(85,71,63,.18);
+}
+:root:not([data-theme="dark"]) .home-tabs button.on,
+:root:not([data-theme="dark"]) .tabs button.on {
+  color:var(--brand-strong); background:var(--brand-soft);
+  border-bottom-color:var(--brand);
+}
+:root:not([data-theme="dark"]) .link,
+:root:not([data-theme="dark"]) .msg .who,
+:root:not([data-theme="dark"]) .code {color:var(--brand-strong)}
+:root:not([data-theme="dark"]) .room:before,
+:root:not([data-theme="dark"]) #install {
+  background:var(--brand-soft); color:var(--brand-strong);
+}
+:root:not([data-theme="dark"]) button:focus-visible,
+:root:not([data-theme="dark"]) input:focus-visible {
+  outline-color:rgba(138,121,109,.55);
+}
+:root:not([data-theme="dark"]) .welcome-primary {background:var(--brand);color:#FFF9F2}
+:root:not([data-theme="dark"]) .welcome-secondary {color:var(--brand-strong);border-color:var(--brand)}
+:root:not([data-theme="dark"]) .home-welcome {background:linear-gradient(120deg,#F7F1EB,#E9DDD2);border-color:var(--line)}
 </style>
 </head>
 <body>
