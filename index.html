@@ -521,6 +521,39 @@ header{background:#6F6056;color:#FFF9F2;border-color:#B99A7D}header h1,header bu
 .profile-menu-screen{padding:24px 18px 18px;max-width:680px;margin:0 auto;width:100%;color:var(--text)}.profile-menu-identity{display:flex;align-items:center;gap:12px;padding:14px 4px 20px;border-bottom:1px solid var(--line)}.menu-avatar{width:54px;height:54px;border-radius:50%;background:#D8BDA5;color:#493B33;display:grid;place-items:center;overflow:hidden;font-family:Georgia,serif;font-size:22px;font-weight:700}.menu-avatar img{width:100%;height:100%;object-fit:cover}.menu-identity-copy{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}.menu-identity-copy b{font-size:16px}.menu-identity-copy small{color:var(--muted);font-size:12px}.menu-chevron{background:transparent;color:var(--muted);font-size:28px;padding:5px 12px}.profile-menu-list{display:flex;flex-direction:column;padding:8px 0;border-bottom:1px solid var(--line)}.profile-menu-item{display:flex;align-items:center;gap:14px;padding:13px 6px;background:transparent;color:var(--text);text-align:left;min-height:48px;border-radius:12px}.profile-menu-item>span{width:24px;text-align:center;font-size:19px;color:var(--muted)}.profile-menu-item b{font-size:13px;font-weight:650;flex:1}.profile-menu-item i,.profile-about-card i{font-style:normal;color:var(--muted);font-size:22px}.profile-menu-item:hover{background:var(--surface-2)}.profile-menu-section-label{padding:17px 6px 4px;color:var(--muted);font-size:11px;font-weight:750;letter-spacing:.08em;text-transform:uppercase}.profile-about-card{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px;margin:18px 0 10px;border-radius:16px;background:#E5D9CE;color:#493B33}.about-mv{font-family:Georgia,serif;font-size:29px;color:#493B33;letter-spacing:-.12em}.about-mv span{color:#A9835F;margin-left:-.15em}.profile-about-card>span:nth-child(2){display:flex;flex:1;flex-direction:column;gap:5px}.profile-about-card b{font-size:12px}.profile-about-card small{font-size:11px;color:#77695F}.profile-menu-logout{width:100%;display:flex;align-items:center;gap:12px;padding:15px 5px;background:transparent;color:var(--text);text-align:left;font-weight:700;border-top:1px solid var(--line)}.profile-back{margin:12px 16px;padding:10px 12px;border-radius:999px;background:var(--surface-2);color:var(--text);font-weight:750}.creator-private-signature{font-size:10px;color:var(--muted);padding:12px 4px;text-align:center;opacity:.75}.creator-private-signature[hidden]{display:none!important}
 @media(max-width:520px){.shorts-grid{padding:0 8px}.short-card{height:calc(100dvh - 206px);min-height:440px;border-radius:20px!important}.short-actions{right:7px;gap:10px}.short-action{width:43px;min-height:43px}.short-card .short-info{left:12px;right:62px;bottom:15px}.profile-menu-screen{padding:16px 16px 20px}}
 
+
+/* Shorts feed polish: one-card-per-swipe, near full-height mobile viewing */
+#shorts-screen{scroll-snap-type:y mandatory;scroll-padding-top:8px;overscroll-behavior-y:contain;scrollbar-width:none;padding-bottom:calc(88px + env(safe-area-inset-bottom))!important}
+#shorts-screen::-webkit-scrollbar{display:none}
+#shorts-screen .shorts-head{position:sticky;top:0;z-index:12;background:#2D2622;margin:0;padding:5px 14px 8px;min-height:42px}
+#shorts-screen .shorts-head h2{font-size:24px!important}
+#shorts-screen .shorts-upload-open{padding:9px 13px}
+#shorts-screen .shorts-feed-tabs{position:sticky;top:42px;z-index:11;background:#2D2622;padding:0 14px 7px;margin:0;border-bottom:1px solid #66564B}
+#shorts-screen .short-categories{padding:7px 12px 9px;margin:0;background:#2D2622;position:relative;z-index:2}
+#shorts-screen .shorts-grid{gap:12px;padding:0 8px;margin:0 auto;max-width:560px!important}
+#shorts-screen .short-card{height:calc(100dvh - 260px);min-height:360px;max-height:760px;border-radius:22px!important;scroll-snap-align:start;scroll-snap-stop:always;touch-action:pan-y;box-shadow:0 8px 28px #0003!important}
+#shorts-screen .short-card>video{object-fit:cover;object-position:center;background:#181411}
+#shorts-screen .short-card .short-info{bottom:14px;padding-top:48px}
+#shorts-screen .short-creator{pointer-events:auto}
+#shorts-screen .short-follow,#shorts-screen .short-more{pointer-events:auto;touch-action:manipulation}
+#shorts-screen .short-actions{top:auto;bottom:112px;gap:12px}
+#shorts-screen .short-action{width:46px;min-height:46px;border-radius:50%;font-size:9px;backdrop-filter:blur(10px)}
+#shorts-screen .short-action .action-emoji{font-size:21px}
+.short-sound-toggle{position:absolute;z-index:7;top:14px;right:14px;width:38px;height:38px;border:1px solid #ffffff55;border-radius:50%;background:#17120fb8;color:#fff;font-size:17px;display:grid;place-items:center;backdrop-filter:blur(10px);touch-action:manipulation}
+.short-play-toggle{position:absolute;z-index:4;top:50%;left:50%;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:50%;background:#17120f88;border:1px solid #ffffff55;color:#fff;font-size:25px;display:grid;place-items:center;pointer-events:none;opacity:0;transition:opacity .18s}
+.short-card.is-paused .short-play-toggle{opacity:1}
+@media(max-width:520px){
+ #shorts-screen{padding-left:0!important;padding-right:0!important}
+ #shorts-screen .shorts-head{padding-left:14px;padding-right:14px}
+ #shorts-screen .short-card{height:calc(100dvh - 258px);min-height:340px;max-height:none;border-radius:16px!important}
+ #shorts-screen .shorts-grid{padding:0 5px;gap:10px}
+ #shorts-screen .short-actions{right:8px;bottom:100px;gap:10px}
+ #shorts-screen .short-action{width:42px;min-height:42px}
+ #shorts-screen .short-card .short-info{left:12px;right:58px;bottom:12px}
+ #shorts-screen .shorts-feed-tabs{top:40px}
+}
+@media(max-height:650px){#shorts-screen .short-card{height:calc(100dvh - 220px);min-height:300px}#shorts-screen .short-actions{bottom:86px;gap:7px}#shorts-screen .short-action{width:38px;min-height:38px}}
+
 </style>
 </head>
 <body>
@@ -977,11 +1010,15 @@ function renderShorts(){
   if(!items.length){const empty=el("div","shorts-empty");empty.textContent=activeShortFeed==="following"?"No Shorts from followed creators yet. Follow someone to build this feed.":(activeShortCategory==="All"?"No Shorts yet. Be the first to share an idea.":"No Shorts in "+activeShortCategory+" yet. Be the first to share one.");grid.appendChild(empty);return;}
   items.forEach(item=>{
     const card=el("div","short-card");card.id="short-card-"+item.id;
-    const video=el("video");video.playsInline=true;video.preload="metadata";video.controls=false;video.muted=true;video.loop=true;video.setAttribute("aria-label",item.title||"Short video");video.addEventListener("click",()=>{if(video.paused)video.play().catch(()=>{});else video.pause();});
+    const video=el("video");video.playsInline=true;video.preload="metadata";video.controls=false;video.muted=true;video.loop=true;video.setAttribute("aria-label",item.title||"Short video");video.addEventListener("click",()=>{if(video.paused){video.play().catch(()=>{});}else{video.pause();}});
     video.addEventListener("error",()=>{let msg=card.querySelector(".short-play");if(!msg){msg=el("span","short-play");card.appendChild(msg);}msg.textContent="Video could not load. Check storage bucket and video_path.";});
     if(item.url){video.src=item.url;video.load();}
     else {video.controls=false;const msg=el("span","short-play",item.playbackError?"Playback unavailable: "+item.playbackError:"Video link unavailable");card.appendChild(msg);}
     card.appendChild(video);
+    const playMark=el("div","short-play-toggle","▶");playMark.setAttribute("aria-hidden","true");card.appendChild(playMark);
+    video.addEventListener("play",()=>card.classList.remove("is-paused"));
+    video.addEventListener("pause",()=>{if(!video.ended)card.classList.add("is-paused");});
+    const sound=el("button","short-sound-toggle","🔇");sound.type="button";sound.setAttribute("aria-label","Turn sound on");sound.setAttribute("aria-pressed","false");sound.addEventListener("click",e=>{e.stopPropagation();const nextMuted=!video.muted;document.querySelectorAll("#shorts-grid video").forEach(other=>{if(other!==video)other.muted=true;});video.muted=!nextMuted;sound.textContent=video.muted?"🔇":"🔊";sound.setAttribute("aria-label",video.muted?"Turn sound on":"Mute video");sound.setAttribute("aria-pressed",String(!video.muted));});card.appendChild(sound);
     const info=el("div","short-info");
     if(item.id){const creator=el("div","short-creator");const avatar=el("div","short-creator-avatar");if(item.creatorAvatar){const img=el("img");img.src=item.creatorAvatar;img.alt="";avatar.appendChild(img);}else avatar.textContent=(item.creatorNickname||"M").slice(0,1).toUpperCase();creator.appendChild(avatar);const creatorName=el("span","short-creator-name", "@"+(item.creatorNickname||"member"));creator.appendChild(creatorName);if(item.user_id!==me?.id){const follow=el("button","short-follow",item.followingByMe?"Following":"＋ Follow");follow.type="button";follow.onclick=()=>toggleShortFollow(item,follow);creator.appendChild(follow);}const more=el("button","short-more","⋯");more.type="button";more.setAttribute("aria-label","More Short options");more.onclick=()=>showShortMenu(item,card);creator.appendChild(more);info.appendChild(creator);}
     const tag=el("span","short-tag");tag.textContent=item.category;info.appendChild(tag);
@@ -998,7 +1035,7 @@ function renderShorts(){
     }
     grid.appendChild(card);
   });
-  if("IntersectionObserver" in window){if(window.shortVideoObserver)window.shortVideoObserver.disconnect();window.shortVideoObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{const video=entry.target;if(entry.isIntersecting&&entry.intersectionRatio>=0.6){document.querySelectorAll("#shorts-grid video").forEach(other=>{if(other!==video)other.pause();});video.play().catch(()=>{});}else video.pause();});},{threshold:[0,.6,1]});grid.querySelectorAll("video").forEach(video=>window.shortVideoObserver.observe(video));}
+  if("IntersectionObserver" in window){if(window.shortVideoObserver)window.shortVideoObserver.disconnect();window.shortVideoObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{const video=entry.target;if(entry.isIntersecting&&entry.intersectionRatio>=0.72){document.querySelectorAll("#shorts-grid video").forEach(other=>{if(other!==video){other.pause();other.muted=true;}});video.play().catch(()=>{});}else{video.pause();}});},{threshold:[0,.25,.5,.72,1]});grid.querySelectorAll("video").forEach(video=>window.shortVideoObserver.observe(video));}
 }
 document.querySelectorAll("[data-short-category]").forEach(button=>button.addEventListener("click",()=>{activeShortCategory=button.dataset.shortCategory;document.querySelectorAll("[data-short-category]").forEach(b=>b.classList.toggle("active",b===button));renderShorts();}));
 $("shorts-feed-all")?.addEventListener("click",()=>{activeShortFeed="all";$("shorts-feed-all").classList.add("active");$("shorts-feed-following").classList.remove("active");$("shorts-feed-all").setAttribute("aria-selected","true");$("shorts-feed-following").setAttribute("aria-selected","false");renderShorts();});
