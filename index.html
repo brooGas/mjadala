@@ -833,14 +833,20 @@ $("profile-save").onclick=async()=>{
   try{
     let avatar_url=profilePhotoUrl; const file=$("profile-photo").files[0];
     if(file){if(!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error("Use a JPG, PNG or WebP image.");if(file.size>4*1024*1024) throw new Error("Profile photos must be 4 MB or smaller.");
-      const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";const key=me.id+"/avatar."+ext;
-      const up=await sb.storage.from("profile-photos").upload(key,file,{upsert:true,contentType:file.type});if(up.error) throw new Error("Photo storage is not set up yet. "+friendly(up.error));
-      const pub=sb.storage.from("profile-photos").getPublicUrl(key);avatar_url=pub.data.publicUrl;
+      // Use a fresh object name for every photo change to avoid stale browser/CDN images.
+      const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
+      const key=me.id+"/avatar-"+Date.now()+"."+ext;
+      const up=await sb.storage.from("profile-photos").upload(key,file,{upsert:false,contentType:file.type,cacheControl:"0"});
+      if(up.error) throw new Error("Could not upload profile photo: "+friendly(up.error));
+      const pub=sb.storage.from("profile-photos").getPublicUrl(key);
+      avatar_url=pub.data.publicUrl;
     }
     if(nick.toLowerCase()!==me.nickname.toLowerCase()) {const taken=await sb.from("profiles").select("id").ilike("nickname",nick).neq("id",me.id).limit(1);if(taken.error) throw taken.error;if(taken.data?.length) throw new Error("That nickname is already taken.");}
     const update={nickname:nick,bio,avatar_position_x:Math.round(avatarX),avatar_position_y:Math.round(avatarY)};
     if(file) update.avatar_url=avatar_url;
-    const result=await sb.from("profiles").update(update).eq("id",me.id);if(result.error) throw result.error;
+    const result=await sb.from("profiles").update(update).eq("id",me.id).select("id").maybeSingle();
+    if(result.error) throw result.error;
+    if(!result.data) throw new Error("Profile was not saved. Check your profile update permissions in Supabase, then try again.");
     me.nickname=nick;nameCache[me.id]=nick;$("me").textContent="Signed in as "+nick+(isStaff()?" ("+me.role+")":"");
     profilePhotoUrl=avatar_url;$("profile-photo").value="";
     if(pendingPhotoObjectUrl){URL.revokeObjectURL(pendingPhotoObjectUrl);pendingPhotoObjectUrl="";}
