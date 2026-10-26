@@ -778,6 +778,23 @@ body.shorts-immersive #shorts-screen .short-card .short-menu-pop {
 }
 body.shorts-immersive #short-category-filters { z-index: 43 !important; }
 </style>
+
+<style id="mjadala-short-menu-overlay-ribbon-final">
+body.shorts-immersive .short-menu-pop {
+  position: fixed !important;
+  top: calc(env(safe-area-inset-top) + 112px) !important;
+  right: 12px !important;
+  left: auto !important;
+  z-index: 2147483647 !important;
+  width: max-content !important;
+  min-width: 142px !important;
+  max-width: min(240px, calc(100vw - 24px)) !important;
+  max-height: calc(100dvh - env(safe-area-inset-top) - 128px) !important;
+  overflow-y: auto !important;
+  pointer-events: auto !important;
+}
+body.shorts-immersive .short-menu-pop button { position: relative !important; z-index: 2147483647 !important; }
+</style>
 </head>
 <body>
 
@@ -1248,7 +1265,7 @@ async function shareShort(item){
   catch(e){if(e.name!=="AbortError")prompt("Copy this Short link:",url);}
 }
 async function toggleShortFollow(item,button){if(!me){alert("Sign in to follow creators.");return;}if(item.user_id===me.id){alert("This is your Short.");return;}button.disabled=true;try{if(item.followingByMe){const {error}=await sb.from("shorts_creator_follows").delete().eq("follower_id",me.id).eq("creator_id",item.user_id);if(error)throw error;item.followingByMe=false;button.textContent="＋ Follow";}else{const {error}=await sb.from("shorts_creator_follows").insert({follower_id:me.id,creator_id:item.user_id});if(error)throw error;item.followingByMe=true;button.textContent="Following";}}catch(e){alert("Could not update Follow: "+(e.message||"Run the Shorts creator follow SQL migration first."));}finally{button.disabled=false;}}
-function showShortMenu(item,card){const existing=card.querySelector(".short-menu-pop");if(existing){existing.remove();return;}const pop=el("div","short-menu-pop");const actions=[...(item.user_id===me?.id?[ ["Delete Short",()=>deleteMyShort(item,card)] ]:[]),["Copy video link",()=>{const video=card.querySelector("video");const url=item.url||video?.currentSrc;if(url&&navigator.clipboard)navigator.clipboard.writeText(url).then(()=>alert("Link copied."),()=>alert("Could not copy the link."));else shareShort(item);}], ["Not interested",()=>{card.remove();}]];actions.forEach(([label,fn])=>{const b=el("button","",label);b.type="button";b.onclick=()=>{pop.remove();fn();};pop.appendChild(b);});card.appendChild(pop);}
+function showShortMenu(item,card){const existing=card.querySelector(".short-menu-pop");if(existing){existing.remove();return;}const pop=el("div","short-menu-pop");const actions=[...(item.user_id===me?.id?[ ["Delete Short",()=>deleteMyShort(item,card)] ]:[]),["Copy video link",()=>{const video=card.querySelector("video");const url=item.url||video?.currentSrc;if(url&&navigator.clipboard)navigator.clipboard.writeText(url).then(()=>alert("Link copied."),()=>alert("Could not copy the link."));else shareShort(item);}], ["Not interested",()=>{card.remove();}]];actions.forEach(([label,fn])=>{const b=el("button","",label);b.type="button";b.onclick=()=>{pop.remove();fn();};pop.appendChild(b);});document.body.appendChild(pop);}
 function renderShorts(){
   const grid=$("shorts-grid");if(!grid)return;grid.innerHTML="";
   const all=[...publishedShorts].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
