@@ -2342,5 +2342,45 @@ start().catch(() => show("auth"));
   head.appendChild(close);
 })();
 </script>
+
+<style id="mjadala-text-contrast-fix">
+/* Improve readability without replacing the existing light/dark theme palettes. */
+:root:not([data-theme="dark"]) {
+  --text:#342B26;
+  --muted:#65564D;
+  --line:#CDBDB0;
+}
+:root[data-theme="dark"] {
+  --text:#FFF9F2;
+  --muted:#E0D2C6;
+  --line:#6B594D;
+}
+/* Common secondary labels and metadata use the theme's readable contrast color. */
+label, .label, .field-label, .form-label, .setting-label, .settings-label,
+.helper-text, .help-text, .hint, .sub, .caption, .muted, .meta, .timestamp,
+.post-time, .comment-time, .section-subtitle, .empty-state, .form-hint,
+.profile-meta, .group-member-name small, .card .sub {
+  color:var(--muted);
+}
+/* Keep ordinary content and controls readable on their theme surfaces. */
+input:not([type="checkbox"]):not([type="radio"]), textarea, select {
+  color:var(--text);
+  background-color:var(--surface);
+  border-color:var(--line);
+}
+input::placeholder, textarea::placeholder {
+  color:var(--muted);
+  opacity:1;
+}
+/* Preserve branded button fills, but give neutral controls clear text and borders. */
+button:not(.primary):not(.welcome-primary):not(.brand-mark):not(.danger),
+.btn:not(.primary):not(.danger) {
+  border-color:var(--line);
+}
+/* Ensure disabled text remains legible instead of fading into its background. */
+button:disabled, input:disabled, textarea:disabled, select:disabled {
+  opacity:.78;
+}
+</style>
 </body>
 </html>
