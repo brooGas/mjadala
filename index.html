@@ -795,41 +795,6 @@ body.shorts-immersive .short-menu-pop {
 }
 body.shorts-immersive .short-menu-pop button { position: relative !important; z-index: 2147483647 !important; }
 </style>
-
-<style id="mjadala-light-mode-readable-navy-fix">
-/* Light-mode readability only: preserve the existing theme backgrounds and dark-mode palette. */
-:root:not([data-theme="dark"]) {
-  --text: #102A56 !important;
-  --muted: #263F68 !important;
-  --brand-strong: #102A56 !important;
-}
-:root:not([data-theme="dark"]) body { color: #102A56; }
-:root:not([data-theme="dark"]) .home-tabs button,
-:root:not([data-theme="dark"]) .short-categories button:not(.active),
-:root:not([data-theme="dark"]) .section-heading,
-:root:not([data-theme="dark"]) .shorts-head p,
-:root:not([data-theme="dark"]) .profile-panel p,
-:root:not([data-theme="dark"]) .groups-panel p,
-:root:not([data-theme="dark"]) .group-card,
-:root:not([data-theme="dark"]) .message-author,
-:root:not([data-theme="dark"]) .msg-author,
-:root:not([data-theme="dark"]) .chat-name,
-:root:not([data-theme="dark"]) .person-name,
-:root:not([data-theme="dark"]) .profile-name,
-:root:not([data-theme="dark"]) .conversation-name,
-:root:not([data-theme="dark"]) .user-name,
-:root:not([data-theme="dark"]) label,
-:root:not([data-theme="dark"]) .settings-row-copy small { color: #102A56 !important; }
-:root:not([data-theme="dark"]) input,
-:root:not([data-theme="dark"]) textarea,
-:root:not([data-theme="dark"]) select { color: #102A56; }
-:root:not([data-theme="dark"]) input::placeholder,
-:root:not([data-theme="dark"]) textarea::placeholder { color: #526783 !important; opacity: 1; }
-/* Keep intentional white text on filled/active controls and preserve all dark-mode styling. */
-:root:not([data-theme="dark"]) .primary,
-:root:not([data-theme="dark"]) .shorts-upload-open,
-:root:not([data-theme="dark"]) .short-categories button.active { color: #FFFFFF !important; }
-</style>
 </head>
 <body>
 
@@ -2465,6 +2430,31 @@ button:disabled, input:disabled, textarea:disabled, select:disabled {
   :root:not([data-theme="dark"]) .muted,
   :root:not([data-theme="dark"]) .meta { color:#243F5A; }
 }
+</style>
+
+
+<style id="mjadala-readable-light-labels-and-profile-actions">
+/* Light mode readability only: keep the existing theme fills and branding. */
+:root:not([data-theme="dark"]) { --text:#102A43; --muted:#334E68; }
+:root:not([data-theme="dark"]) .home-tabs button,
+:root:not([data-theme="dark"]) .home-tabs button small,
+:root:not([data-theme="dark"]) .room b,
+:root:not([data-theme="dark"]) .room span,
+:root:not([data-theme="dark"]) .section-heading h2,
+:root:not([data-theme="dark"]) .profile-menu-item,
+:root:not([data-theme="dark"]) .profile-menu-item b,
+:root:not([data-theme="dark"]) .settings-row,
+:root:not([data-theme="dark"]) .settings-row-copy b,
+:root:not([data-theme="dark"]) .msg .who,
+:root:not([data-theme="dark"]) .group-card,
+:root:not([data-theme="dark"]) .person-card,
+:root:not([data-theme="dark"]) .moment-card { color:#102A43 !important; }
+:root:not([data-theme="dark"]) .msg .meta,
+:root:not([data-theme="dark"]) .settings-row-copy small,
+:root:not([data-theme="dark"]) .settings-heading p,
+:root:not([data-theme="dark"]) .settings-status { color:#334E68 !important; }
+.profile-menu-item, [data-profile-action], [data-home] { cursor:pointer; touch-action:manipulation; }
+.profile-menu-item { pointer-events:auto; }
 </style>
 
 </body>
