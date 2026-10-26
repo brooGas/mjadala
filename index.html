@@ -1051,20 +1051,26 @@ const shortCategorySlug = name => String(name || "Other").toLowerCase().replace(
 async function resolveShortVideoUrl(rawPath){
   if(!rawPath)throw new Error("This Short has no video_path saved.");
   const raw=String(rawPath).trim();
-  if(/^https?:\/\//i.test(raw))return raw;
-  const candidates=[raw,raw.replace(/^mjadala-shorts\//,""),raw.replace(/^\/storage\/v1\/object\/(?:sign|public)\/mjadala-shorts\//,"")];
+  // Rows should ideally store an object path, not a temporary signed URL. If an older
+  // row contains a Supabase Storage URL, recover its object path and sign it afresh.
+  let objectPath=raw;
+  if(/^https?:\/\//i.test(raw)){
+    try{
+      const parsed=new URL(raw);
+      const match=parsed.pathname.match(/\/storage\/v1\/object\/(?:sign|public|authenticated)\/mjadala-shorts\/(.+)$/i);
+      if(!match) return raw; // An external video URL is not a Supabase Storage object.
+      objectPath=decodeURIComponent(match[1]);
+    }catch(_){return raw;}
+  }
+  objectPath=objectPath.replace(/^\/+/,"").replace(/^mjadala-shorts\//i,"");
+  const candidates=[objectPath,objectPath.replace(/^storage\/v1\/object\/(?:sign|public)\/mjadala-shorts\//i,"")];
   let lastError=null;
-  for(const path of [...new Set(candidates)]){
+  for(const path of [...new Set(candidates)].filter(Boolean)){
     const {data,error}=await sb.storage.from(SHORT_BUCKET).createSignedUrl(path,3600);
     if(!error&&data?.signedUrl)return data.signedUrl;
     lastError=error;
-    // Public buckets can still play a video if signed URLs are unavailable.
-    try {
-      const publicResult=sb.storage.from(SHORT_BUCKET).getPublicUrl(path);
-      if(publicResult?.data?.publicUrl)return publicResult.data.publicUrl;
-    } catch (_) {}
   }
-  throw lastError||new Error("Could not create a video playback link.");
+  throw new Error("Could not create an authorized playback link for this video. Check that video_path is the object path inside the private mjadala-shorts bucket. "+(lastError?.message||""));
 }
 async function loadPublishedShorts(){
   const grid=$("shorts-grid"); if(!grid || !me)return;
@@ -1604,7 +1610,7 @@ function showFeedbackPanel(){document.getElementById("profile-feedback-modal")?.
 
 function loadProfile(){
   if(!me) return;
-  showProfileMenu();
+  // Do not force the menu open here: this loader is also called from the profile editor.
   loadNotificationPreferences();
   $("profile-status").textContent=""; $("profile-nickname").value=me.nickname||"";
   const run=async()=>{
