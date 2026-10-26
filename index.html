@@ -763,6 +763,20 @@ body.shorts-immersive #shorts-screen .short-card .short-time-slider {
 body.shorts-immersive #shorts-screen .short-card .short-rewind-btn {top:calc(env(safe-area-inset-top) + 166px)!important;left:14px!important;z-index:30!important;}
 </style>
 
+
+<style id="mjadala-short-menu-on-top-of-ribbon">
+/* Keep the three-dot command menu above the category ribbon so every command stays visible. */
+body.shorts-immersive #shorts-screen .short-card .short-menu-pop {
+  position: fixed !important;
+  z-index: 2147483000 !important;
+  top: calc(env(safe-area-inset-top) + 72px) !important;
+  right: 12px !important;
+  max-height: calc(100dvh - env(safe-area-inset-top) - 100px) !important;
+  overflow-y: auto !important;
+  pointer-events: auto !important;
+}
+body.shorts-immersive #short-category-filters { z-index: 11 !important; }
+</style>
 </head>
 <body>
 
