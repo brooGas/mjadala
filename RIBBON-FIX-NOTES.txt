@@ -1,0 +1,1 @@
+Mjadala fix: removed category dropdown, restored compact horizontally scrollable category ribbon, and moved Shorts controls CSS inside the HTML head so it is not displayed as floating page text. Preserved the 10-second rewind, mute icon, trash icon, and existing Save action.

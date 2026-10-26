@@ -660,6 +660,38 @@ body.shorts-immersive #shorts-screen .short-upload-panel.open{position:absolute!
 @media(max-width:520px){body.shorts-immersive #shorts-screen .short-card .short-info{left:13px!important;right:62px!important}body.shorts-immersive #shorts-screen .short-actions{right:8px!important;gap:12px!important}body.shorts-immersive #shorts-screen .short-action{width:42px!important;min-width:42px!important;min-height:42px!important}body.shorts-immersive #shorts-screen .short-card .short-creator-avatar{width:34px!important;height:34px!important;min-width:34px!important;flex-basis:34px!important}}
 </style>
 
+
+<style id="mjadala-shorts-controls-fix">
+/* Final Shorts controls polish: compact category dropdown, separated feed tabs, rewind and clean icons */
+#shorts-screen .shorts-feed-tabs,body.shorts-immersive #shorts-screen .shorts-feed-tabs{position:relative!important;left:auto!important;right:auto!important;top:auto!important;z-index:12!important;display:flex!important;flex-wrap:nowrap!important;gap:18px!important;min-height:42px!important;padding:0 14px 7px!important;margin:0!important;background:#2D2622!important;justify-content:flex-start!important;border-bottom:1px solid #66564B!important;}
+#shorts-screen .short-categories,body.shorts-immersive #short-category-filters{position:relative!important;top:auto!important;left:auto!important;right:auto!important;z-index:9!important;display:flex!important;align-items:center!important;gap:8px!important;overflow:visible!important;white-space:normal!important;padding:6px 14px 10px!important;margin:0!important;background:#2D2622!important;min-height:44px!important;}
+.short-sound-toggle svg,.short-action .action-emoji svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.short-sound-toggle{top:12px!important;right:12px!important;width:36px!important;height:36px!important;font-size:0!important;}
+.short-rewind-btn{position:absolute;z-index:8;top:12px;left:12px;min-width:54px;height:36px;padding:0 9px;border:1px solid #ffffff55;border-radius:18px;background:#17120fb8;color:#fff;font-size:12px;font-weight:750;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);touch-action:manipulation;}
+.short-delete .action-emoji{display:grid;place-items:center}.short-delete .action-emoji svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+@media(max-width:520px){#shorts-screen .shorts-feed-tabs{gap:16px!important;padding-left:12px!important;padding-right:12px!important}#shorts-screen .short-categories{padding-left:12px!important;padding-right:12px!important}}
+
+/* Compact category ribbon: buttons stay in the document, scroll sideways on small screens. */
+#shorts-screen .short-categories, body.shorts-immersive #short-category-filters {
+  position:relative!important; inset:auto!important; z-index:11!important;
+  display:flex!important; flex-wrap:nowrap!important; align-items:center!important;
+  gap:6px!important; width:100%!important; max-width:100%!important;
+  box-sizing:border-box!important; overflow-x:auto!important; overflow-y:hidden!important;
+  white-space:nowrap!important; padding:5px 12px 8px!important; margin:0!important;
+  min-height:0!important; height:auto!important; background:#2D2622!important;
+  scrollbar-width:none!important; -webkit-overflow-scrolling:touch;
+}
+#shorts-screen .short-categories::-webkit-scrollbar {display:none!important;}
+#shorts-screen .short-categories button {
+  flex:0 0 auto!important; width:auto!important; max-width:none!important;
+  min-height:30px!important; height:30px!important; padding:0 10px!important;
+  margin:0!important; border-radius:16px!important; font-size:11px!important;
+  line-height:1!important; white-space:nowrap!important; border:1px solid #66564B!important;
+  background:#493B33!important; color:#FFF9F2!important;
+}
+#shorts-screen .short-categories button.active {background:#F2D0A7!important;color:#2D2622!important;border-color:#F2D0A7!important;}
+#shorts-screen .shorts-feed-tabs, body.shorts-immersive #shorts-screen .shorts-feed-tabs {gap:14px!important;}
+</style>
 </head>
 <body>
 
@@ -1088,7 +1120,7 @@ async function loadPublishedShorts(){
     let followingIds=new Set(),savedIds=new Set();if(me?.id){const {data:following}=await sb.from("shorts_creator_follows").select("creator_id").eq("follower_id",me.id);if(following)followingIds=new Set(following.map(x=>String(x.creator_id)));const savedResult=await sb.from("saved_shorts").select("short_id").eq("user_id",me.id);if(!savedResult.error&&savedResult.data)savedIds=new Set(savedResult.data.map(x=>String(x.short_id)));}
     publishedShorts=await Promise.all(rows.map(async item=>{let url="",playbackError="";try{url=await resolveShortVideoUrl(item.video_path)}catch(e){playbackError=e?.message||"Storage link could not be created.";}const category=shortCategories.find(c=>String(c.id)===String(item.category_id));const creator=creatorMap[item.user_id]||{};return {...item,url,creatorNickname:creator.nickname||"Mjadala member",creatorAvatar:creator.avatar_url||"",followingByMe:followingIds.has(String(item.user_id)),likedByMe:likedIds.has(String(item.id)),savedByMe:savedIds.has(String(item.id)),category:category?.name||"Other",categorySlug:category?.slug||"",playbackError};}));
     const filter=$("short-category-filters");
-    if(filter&&shortCategories.length){const names=[...new Set(shortCategories.map(c=>c.name))];filter.innerHTML='<label class="short-category-label" for="short-category-select">Category</label><select id="short-category-select" aria-label="Filter Shorts by category"><option value="All">For you · All categories</option>'+names.map(name=>'<option value="'+name.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'">'+(shortCategoryIcons[name]||'◈')+' '+name.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</option>').join('')+'</select>';const categorySelect=filter.querySelector('#short-category-select');categorySelect.value=activeShortCategory;categorySelect.addEventListener('change',()=>{activeShortCategory=categorySelect.value;renderShorts();});}
+    if(filter&&shortCategories.length){const names=[...new Set(shortCategories.map(c=>c.name))];filter.innerHTML='<button type="button" data-short-category="All" class="'+(activeShortCategory==="All"?'active':'')+'">For you</button>'+names.map(name=>'<button type="button" data-short-category="'+name.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'" class="'+(activeShortCategory===name?'active':'')+'">'+(shortCategoryIcons[name]||'◈')+' '+name.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</button>').join('');filter.querySelectorAll('[data-short-category]').forEach(button=>button.addEventListener('click',()=>{activeShortCategory=button.dataset.shortCategory;filter.querySelectorAll('[data-short-category]').forEach(b=>b.classList.toggle('active',b===button));renderShorts();}));}
     const select=$("short-video-category");if(select&&shortCategories.length)select.innerHTML=shortCategories.map(c=>'<option value="'+String(c.id)+'">'+String(c.name).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</option>').join('');
     renderShorts();
   }catch(e){grid.innerHTML='';const empty=el("div","shorts-empty");empty.textContent="Couldn't load Shorts: "+(e.message||"Check your database policies and connection.");grid.appendChild(empty);}
@@ -2201,14 +2233,3 @@ start().catch(() => show("auth"));
 </script>
 </body>
 </html>
-
-/* Final Shorts controls polish: compact category dropdown, separated feed tabs, rewind and clean icons */
-#shorts-screen .shorts-feed-tabs,body.shorts-immersive #shorts-screen .shorts-feed-tabs{position:relative!important;left:auto!important;right:auto!important;top:auto!important;z-index:12!important;display:flex!important;flex-wrap:nowrap!important;gap:18px!important;min-height:42px!important;padding:0 14px 7px!important;margin:0!important;background:#2D2622!important;justify-content:flex-start!important;border-bottom:1px solid #66564B!important;}
-#shorts-screen .short-categories,body.shorts-immersive #short-category-filters{position:relative!important;top:auto!important;left:auto!important;right:auto!important;z-index:9!important;display:flex!important;align-items:center!important;gap:8px!important;overflow:visible!important;white-space:normal!important;padding:6px 14px 10px!important;margin:0!important;background:#2D2622!important;min-height:44px!important;}
-#shorts-screen .short-category-label{font-size:11px;color:#D2C2B5;white-space:nowrap;}
-#shorts-screen #short-category-select{display:block;min-width:0;width:auto;max-width:min(220px,62vw);flex:0 1 220px;padding:8px 30px 8px 10px;border:1px solid #66564B;border-radius:10px;background:#493B33;color:#FFF9F2;font-size:12px;font-weight:650;outline-offset:2px;}
-.short-sound-toggle svg,.short-action .action-emoji svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
-.short-sound-toggle{top:12px!important;right:12px!important;width:36px!important;height:36px!important;font-size:0!important;}
-.short-rewind-btn{position:absolute;z-index:8;top:12px;left:12px;min-width:54px;height:36px;padding:0 9px;border:1px solid #ffffff55;border-radius:18px;background:#17120fb8;color:#fff;font-size:12px;font-weight:750;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);touch-action:manipulation;}
-.short-delete .action-emoji{display:grid;place-items:center}.short-delete .action-emoji svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
-@media(max-width:520px){#shorts-screen .shorts-feed-tabs{gap:16px!important;padding-left:12px!important;padding-right:12px!important}#shorts-screen .short-categories{padding-left:12px!important;padding-right:12px!important}#shorts-screen #short-category-select{max-width:62vw;flex-basis:62vw}}
