@@ -1782,7 +1782,7 @@ function showFeedbackPanel(){document.getElementById("profile-feedback-modal")?.
 
 function loadProfile(){
   if(!me) return;
-  showProfileMenu();
+  // Do not switch back to the menu here: this loader is also called by My Profile, Notifications, and Settings.
   loadNotificationPreferences();
   $("profile-status").textContent=""; $("profile-nickname").value=me.nickname||"";
   const run=async()=>{
@@ -2455,6 +2455,33 @@ button:disabled, input:disabled, textarea:disabled, select:disabled {
 :root:not([data-theme="dark"]) .settings-status { color:#334E68 !important; }
 .profile-menu-item, [data-profile-action], [data-home] { cursor:pointer; touch-action:manipulation; }
 .profile-menu-item { pointer-events:auto; }
+</style>
+
+
+<style id="mjadala-profile-charcoal-reddish-light-mode">
+/* Profile/editor pages: charcoal-reddish text in light mode, with dark mode untouched. */
+:root:not([data-theme="dark"]) #profile-screen,
+:root:not([data-theme="dark"]) #profile-screen h1,
+:root:not([data-theme="dark"]) #profile-screen h2,
+:root:not([data-theme="dark"]) #profile-screen h3,
+:root:not([data-theme="dark"]) #profile-screen p,
+:root:not([data-theme="dark"]) #profile-screen label,
+:root:not([data-theme="dark"]) #profile-screen .profile-menu-item,
+:root:not([data-theme="dark"]) #profile-screen .profile-menu-item b,
+:root:not([data-theme="dark"]) #profile-screen .menu-identity-copy b,
+:root:not([data-theme="dark"]) #profile-screen .settings-row-copy b,
+:root:not([data-theme="dark"]) #profile-screen .profile-panel,
+:root:not([data-theme="dark"]) #profile-screen .settings-heading h2,
+:root:not([data-theme="dark"]) #profile-screen input:not([type="checkbox"]),
+:root:not([data-theme="dark"]) #profile-screen textarea,
+:root:not([data-theme="dark"]) #profile-screen select { color: #593434 !important; }
+:root:not([data-theme="dark"]) #profile-screen small,
+:root:not([data-theme="dark"]) #profile-screen .menu-identity-copy small,
+:root:not([data-theme="dark"]) #profile-screen .settings-row-copy small,
+:root:not([data-theme="dark"]) #profile-screen .settings-heading p,
+:root:not([data-theme="dark"]) #profile-screen .settings-status { color: #765252 !important; }
+:root:not([data-theme="dark"]) #profile-screen input::placeholder,
+:root:not([data-theme="dark"]) #profile-screen textarea::placeholder { color: #765252 !important; opacity: 1; }
 </style>
 
 </body>
