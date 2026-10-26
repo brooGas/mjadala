@@ -1,0 +1,14 @@
+MJADALA CHARCOAL + GOLD PASS
+
+This pass updates the profile menu palette, gives the My Profile / Notifications / Settings entries distinct destinations, and replaces the PWA icon assets with the approved MV emblem/chat-extension concept crop.
+
+Deployment:
+1. Upload the contents of this ZIP to the same Git repository root used by Vercel.
+2. Wait for Vercel to show Ready.
+3. On Android, open the Vercel site in Chrome first. If the site looks current, then refresh/reinstall the home-screen shortcut to refresh the icon.
+4. Test Profile > My Profile, Profile > Notifications, Profile > Settings, and the Reels tab while signed in.
+
+Database:
+MIGRATION_PROFILE_FEATURES.sql is included as an idempotent additive migration for saved Reels and profile preferences. If the equivalent tables/policies were already created successfully in Supabase, do not rerun just for the sake of it. The migration is safe to run again, but existing tables with custom policies should still be reviewed before applying.
+
+Note: this ZIP is a code/assets update, not a claim that the live site has been tested. Reels playback can also depend on the Supabase Storage bucket, file URL, and bucket policies.

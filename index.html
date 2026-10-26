@@ -554,6 +554,26 @@ header{background:#6F6056;color:#FFF9F2;border-color:#B99A7D}header h1,header bu
 }
 @media(max-height:650px){#shorts-screen .short-card{height:calc(100dvh - 220px);min-height:300px}#shorts-screen .short-actions{bottom:86px;gap:7px}#shorts-screen .short-action{width:38px;min-height:38px}}
 
+
+/* Mjadala charcoal + gold finishing pass */
+:root{--brand:#D9A93A;--brand-strong:#F0C65A;--bg:#111111;--surface:#1A1A1A;--surface-2:#242424;--text:#F7F2E7;--muted:#B8B0A0;--line:#51452D;--shadow:0 12px 34px #0007}
+.profile-menu-screen{color:#F7F2E7}
+.profile-menu-identity{border-bottom-color:#51452D}
+.menu-avatar{background:#171717;color:#F0C65A;border:1px solid #D9A93A}
+.profile-menu-item{border:1px solid transparent;min-height:54px;padding:13px 10px}
+.profile-menu-item>span{color:#D9A93A}
+.profile-menu-item:hover,.profile-menu-item:focus-visible{background:#242019;border-color:#8C6A25;outline:none}
+.profile-menu-item:active{transform:scale(.99)}
+.profile-about-card{background:linear-gradient(135deg,#252117,#171717);color:#F7F2E7;border:1px solid #8C6A25}
+.about-mv,.about-mv span{color:#F0C65A}
+.profile-back{background:#242019;color:#F7F2E7;border:1px solid #8C6A25}
+.profile-settings-card{background:#1A1A1A;border-color:#51452D;color:#F7F2E7}
+.settings-heading h2{color:#F7F2E7}
+.settings-row{color:#F7F2E7}
+.settings-row-icon{color:#D9A93A}
+.profile-menu-logout{color:#F7F2E7}
+.profile-menu-item b{font-weight:700}
+
 </style>
 <style id="mjadala-immersive-reels-fix">
 /* Mjadala Shorts: true edge-to-edge Reels mode. Hide the conversation chrome while watching. */
@@ -1523,8 +1543,10 @@ if(!window.mjadalaProfileActionsBound){
     const action=button.dataset.profileAction;
     switch(action){
       case "my-profile": showProfileEditor(); break;
-      case "notifications": case "settings":
-        showProfileEditor();setTimeout(()=>$("notification-settings")?.scrollIntoView({behavior:"smooth",block:"start"}),120);break;
+      case "notifications":
+        showProfileEditor();setTimeout(()=>$("notification-settings")?.scrollIntoView({behavior:"smooth",block:"start"}),180);break;
+      case "settings":
+        showProfileEditor();setTimeout(()=>$("privacy-account-settings")?.scrollIntoView({behavior:"smooth",block:"start"}),180);break;
       case "my-posts": openProfileShorts(false);break;
       case "saved": openProfileShorts(true);break;
       case "help": showProfileUtility("Help & Support","For account or upload problems, describe what happened in Feedback so the Mjadala administrator can investigate.");break;
