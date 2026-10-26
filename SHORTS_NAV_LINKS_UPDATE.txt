@@ -1,0 +1,14 @@
+MJADALA SHORTS UPDATE
+
+Included:
+- Compact mute/unmute icon instead of overlapping sound text.
+- Previous and next Short buttons on each card.
+- Optional external URL field when creating a Short, with an "Open link" action for viewers.
+- Category filters remain visible in the immersive Shorts view and scroll horizontally.
+
+IMPORTANT DATABASE STEP FOR EXTERNAL LINKS:
+Before deploying, open Supabase Dashboard -> SQL Editor and run MIGRATION_SHORTS_EXTERNAL_LINK.sql once. This adds the optional external_url column. Existing Shorts remain valid with no link.
+
+Then upload/replace the project files in your GitHub repository and let Vercel deploy. Test with one new Short and an https:// link. External destinations open in a new browser tab/window; whether the TikTok app opens depends on the device and its app-link settings.
+
+Validation performed here: ZIP integrity and inline JavaScript syntax check. A live Supabase upload/playback test has not been performed.
