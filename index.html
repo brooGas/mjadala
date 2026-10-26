@@ -1051,26 +1051,20 @@ const shortCategorySlug = name => String(name || "Other").toLowerCase().replace(
 async function resolveShortVideoUrl(rawPath){
   if(!rawPath)throw new Error("This Short has no video_path saved.");
   const raw=String(rawPath).trim();
-  // Rows should ideally store an object path, not a temporary signed URL. If an older
-  // row contains a Supabase Storage URL, recover its object path and sign it afresh.
-  let objectPath=raw;
-  if(/^https?:\/\//i.test(raw)){
-    try{
-      const parsed=new URL(raw);
-      const match=parsed.pathname.match(/\/storage\/v1\/object\/(?:sign|public|authenticated)\/mjadala-shorts\/(.+)$/i);
-      if(!match) return raw; // An external video URL is not a Supabase Storage object.
-      objectPath=decodeURIComponent(match[1]);
-    }catch(_){return raw;}
-  }
-  objectPath=objectPath.replace(/^\/+/,"").replace(/^mjadala-shorts\//i,"");
-  const candidates=[objectPath,objectPath.replace(/^storage\/v1\/object\/(?:sign|public)\/mjadala-shorts\//i,"")];
+  if(/^https?:\/\//i.test(raw))return raw;
+  const candidates=[raw,raw.replace(/^mjadala-shorts\//,""),raw.replace(/^\/storage\/v1\/object\/(?:sign|public)\/mjadala-shorts\//,"")];
   let lastError=null;
-  for(const path of [...new Set(candidates)].filter(Boolean)){
+  for(const path of [...new Set(candidates)]){
     const {data,error}=await sb.storage.from(SHORT_BUCKET).createSignedUrl(path,3600);
     if(!error&&data?.signedUrl)return data.signedUrl;
     lastError=error;
+    // Public buckets can still play a video if signed URLs are unavailable.
+    try {
+      const publicResult=sb.storage.from(SHORT_BUCKET).getPublicUrl(path);
+      if(publicResult?.data?.publicUrl)return publicResult.data.publicUrl;
+    } catch (_) {}
   }
-  throw new Error("Could not create an authorized playback link for this video. Check that video_path is the object path inside the private mjadala-shorts bucket. "+(lastError?.message||""));
+  throw lastError||new Error("Could not create a video playback link.");
 }
 async function loadPublishedShorts(){
   const grid=$("shorts-grid"); if(!grid || !me)return;
@@ -1145,7 +1139,7 @@ function renderShorts(){
     video.addEventListener("error",()=>{let msg=card.querySelector(".short-play");if(!msg){msg=el("span","short-play");card.appendChild(msg);}const code=video.error?.code;msg.textContent=code===4?"Unsupported video format or invalid video URL. Check MP4/H.264 and storage path.":"Video could not load. Check the mjadala-shorts bucket, object path and read policy.";});
     video.addEventListener("loadeddata",()=>{const msg=card.querySelector(".short-play");if(msg)msg.remove();});
     if(item.url){video.src=item.url;video.load();}
-    else {video.controls=false;const msg=el("span","short-play",item.playbackError?"Playback unavailable: "+item.playbackError:"Video link unavailable");card.appendChild(msg);}
+    else {video.controls=false;const msg=el("span","short-play",item.playbackError?"Playback unavailable: "+item.playbackError:"Video link unavailable");msg.setAttribute("role","status");card.appendChild(msg);}
     card.appendChild(video);
     const playMark=el("div","short-play-toggle","▶");playMark.setAttribute("aria-hidden","true");card.appendChild(playMark);
     video.addEventListener("play",()=>card.classList.remove("is-paused"));
@@ -1230,12 +1224,21 @@ $("short-video-publish").onclick=async()=>{
   button.disabled=true;progress.hidden=false;bar.style.width="8%";status.textContent="Uploading in the background… keep Mjadala open until it finishes.";
   let path="";
   try{
-    const categoryId=Number($("short-video-category").value);
-    const categoryName=$("short-video-category").selectedOptions?.[0]?.textContent||"selected";
-    const {data:categoryRow,error:categoryError}=await sb.from("short_categories").select("id,name").eq("id",categoryId).maybeSingle();
-    if(categoryError)throw new Error("Could not look up Shorts categories: "+categoryError.message);
-    if(!categoryRow)throw new Error("The "+categoryName+" category is not available in the Shorts database. Please add it to short_categories first.");
-    const ext=(shortUploadName.split(".").pop()||"mp4").toLowerCase().replace(/[^a-z0-9]/g,"");path=me.id+"/"+crypto.randomUUID()+"."+ext;
+    // Always load real category IDs before publishing. The HTML fallback options
+    // use names, so Number("Innovation") becomes NaN and prevents a valid insert.
+    const selectedValue=$("short-video-category").value;
+    const categoryName=$("short-video-category").selectedOptions?.[0]?.textContent||selectedValue||"Innovation";
+    const {data:categoryRows,error:categoryError}=await sb.from("short_categories").select("id,name,slug").order("name");
+    if(categoryError)throw new Error("Could not load Shorts categories: "+categoryError.message);
+    const categoryRow=(categoryRows||[]).find(c=>String(c.id)===String(selectedValue)) ||
+      (categoryRows||[]).find(c=>String(c.name).toLowerCase()===String(categoryName).toLowerCase()) ||
+      (categoryRows||[]).find(c=>String(c.name).toLowerCase()===String(selectedValue).toLowerCase()) ||
+      (categoryRows||[]).find(c=>String(c.slug).toLowerCase()===String(selectedValue).toLowerCase());
+    if(!categoryRow)throw new Error("Category ‘"+categoryName+"’ was not found in short_categories. Please check the Shorts categories table.");
+    // Match the file extension to the actual encoded blob, especially trimmed WebM clips.
+    const mime=(shortUploadMime||shortUploadBlob.type||file.type||"").toLowerCase();
+    const ext=mime.includes("webm")?"webm":(mime.includes("quicktime")?"mov":"mp4");
+    path=me.id+"/"+crypto.randomUUID()+"."+ext;
     bar.style.width="18%";
     const {error:upErr}=await sb.storage.from(SHORT_BUCKET).upload(path,shortUploadBlob,{contentType:shortUploadMime||file.type||"video/mp4",upsert:false,cacheControl:"3600"});if(upErr)throw upErr;
     bar.style.width="75%";
@@ -1255,7 +1258,11 @@ $("short-video-publish").onclick=async()=>{
     }
     status.textContent="Published. Your Reel is at the top of All Shorts.";
     setTimeout(()=>{progress.hidden=true;bar.style.width="0";$("short-upload-panel").classList.remove("open");},1100);
-  }catch(e){status.textContent="Could not publish: "+(e.message||"Check Supabase permissions and storage settings.");progress.hidden=true;bar.style.width="0";}
+  }catch(e){
+    console.error("Mjadala Shorts publish failed:",e);
+    status.textContent="Upload failed: "+(e.message||e.error_description||"Unknown error. Check Storage access and database permissions.");
+    progress.hidden=true;bar.style.width="0";
+  }
   finally{button.disabled=false;}
 };
 
@@ -1610,7 +1617,7 @@ function showFeedbackPanel(){document.getElementById("profile-feedback-modal")?.
 
 function loadProfile(){
   if(!me) return;
-  // Do not force the menu open here: this loader is also called from the profile editor.
+  showProfileMenu();
   loadNotificationPreferences();
   $("profile-status").textContent=""; $("profile-nickname").value=me.nickname||"";
   const run=async()=>{
