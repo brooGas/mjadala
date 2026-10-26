@@ -1,15 +1,7 @@
-Mjadala UI pass — 26 October 2026
-
-Changes in index.html:
-- Previous/next Reel controls now disable correctly at the first/last item in the currently filtered feed.
-- Reel search is applied inside the feed renderer, so it combines properly with category and Following filters instead of hiding DOM cards until the next render.
-- Search covers Reel title, creator nickname, and category.
-- Chat messages and group messages safely render http://, https://, and www. links as underlined, tappable links opened in a new tab. Sentence punctuation is kept outside the link.
-- Existing @mention behavior in direct/room messages is preserved. User content remains text nodes; links are not injected as raw HTML.
-- Added focus styling and disabled-state styling for accessibility.
-
-Database note:
-No database migration is required for these frontend-only changes. Category filters still depend on the existing public.short_categories table and shorts.category_id relation. If the category list/table is missing or categories do not appear, apply/fix the database schema and category seed data separately; this package does not claim to have changed the live Supabase database.
-
-Validation:
-Inline JavaScript passed Node syntax checks. Live Supabase policies, real device playback, and production visual layout still need testing in the deployed app.
+Mjadala Shorts final controls polish
+- Added a 10-second rewind button on each Short, seeking back immediately without restarting playback.
+- Replaced the wide category ribbon with a compact dropdown that collapses after selection.
+- Separated the Shorts/Following row from category controls to prevent overlap.
+- Replaced speaker emoji with clean inline mute/unmute icons and the delete emoji with a standard trash-can outline.
+- Saved Shorts remains available through the existing bookmark/save action and saved_shorts table.
+- No database migration is included; existing schema is reused.
