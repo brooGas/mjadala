@@ -671,6 +671,27 @@ body.shorts-immersive #shorts-screen .short-upload-panel.open{position:absolute!
 .short-delete .action-emoji{display:grid;place-items:center}.short-delete .action-emoji svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
 @media(max-width:520px){#shorts-screen .shorts-feed-tabs{gap:16px!important;padding-left:12px!important;padding-right:12px!important}#shorts-screen .short-categories{padding-left:12px!important;padding-right:12px!important}}
 
+/* Mobile Shorts header alignment: center feed tabs, keep Create clear, and lower the ribbon. */
+body.shorts-immersive #shorts-screen .shorts-feed-tabs {
+  position:absolute!important; top:calc(env(safe-area-inset-top) + 12px)!important;
+  left:50%!important; right:auto!important; transform:translateX(-50%)!important;
+  width:max-content!important; max-width:calc(100% - 190px)!important;
+  justify-content:center!important; gap:18px!important; padding:0!important;
+  min-height:38px!important; border:0!important; background:transparent!important;
+}
+body.shorts-immersive #shorts-screen .shorts-feed-tabs #shorts-search-button {display:none!important;}
+body.shorts-immersive #shorts-screen .shorts-upload-open {
+  top:calc(env(safe-area-inset-top) + 12px)!important; right:12px!important;
+}
+body.shorts-immersive #short-category-filters {
+  margin-top:26px!important; padding-top:8px!important; padding-bottom:10px!important;
+}
+@media(max-width:520px){
+  body.shorts-immersive #shorts-screen .shorts-feed-tabs {max-width:calc(100% - 190px)!important; gap:14px!important;}
+  body.shorts-immersive #shorts-screen .shorts-feed-tabs button {font-size:14px!important;}
+  body.shorts-immersive #short-category-filters {margin-top:26px!important;}
+}
+
 /* Compact category ribbon: buttons stay in the document, scroll sideways on small screens. */
 #shorts-screen .short-categories, body.shorts-immersive #short-category-filters {
   position:relative!important; inset:auto!important; z-index:11!important;
