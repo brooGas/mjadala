@@ -2382,5 +2382,55 @@ button:disabled, input:disabled, textarea:disabled, select:disabled {
   opacity:.78;
 }
 </style>
+
+<style id="mjadala-navy-light-labels">
+/* Light mode: use navy typography for stronger label contrast, including desktop layouts.
+   Dark mode and existing branded surfaces retain their current palette. */
+:root:not([data-theme="dark"]) {
+  --text:#102A43;
+  --muted:#334E68;
+}
+:root:not([data-theme="dark"]) label,
+:root:not([data-theme="dark"]) .label,
+:root:not([data-theme="dark"]) .field-label,
+:root:not([data-theme="dark"]) .form-label,
+:root:not([data-theme="dark"]) .setting-label,
+:root:not([data-theme="dark"]) .settings-label,
+:root:not([data-theme="dark"]) .helper-text,
+:root:not([data-theme="dark"]) .help-text,
+:root:not([data-theme="dark"]) .hint,
+:root:not([data-theme="dark"]) .sub,
+:root:not([data-theme="dark"]) .caption,
+:root:not([data-theme="dark"]) .muted,
+:root:not([data-theme="dark"]) .meta,
+:root:not([data-theme="dark"]) .timestamp,
+:root:not([data-theme="dark"]) .post-time,
+:root:not([data-theme="dark"]) .comment-time,
+:root:not([data-theme="dark"]) .section-subtitle,
+:root:not([data-theme="dark"]) .empty-state,
+:root:not([data-theme="dark"]) .form-hint,
+:root:not([data-theme="dark"]) .profile-meta,
+:root:not([data-theme="dark"]) .group-member-name small,
+:root:not([data-theme="dark"]) .card .sub {
+  color:#334E68;
+}
+:root:not([data-theme="dark"]) input:not([type="checkbox"]):not([type="radio"]),
+:root:not([data-theme="dark"]) textarea,
+:root:not([data-theme="dark"]) select { color:#102A43; }
+:root:not([data-theme="dark"]) input::placeholder,
+:root:not([data-theme="dark"]) textarea::placeholder { color:#526D82; opacity:1; }
+@media (min-width: 768px) {
+  :root:not([data-theme="dark"]) label,
+  :root:not([data-theme="dark"]) .label,
+  :root:not([data-theme="dark"]) .field-label,
+  :root:not([data-theme="dark"]) .form-label,
+  :root:not([data-theme="dark"]) .setting-label,
+  :root:not([data-theme="dark"]) .settings-label,
+  :root:not([data-theme="dark"]) .sub,
+  :root:not([data-theme="dark"]) .muted,
+  :root:not([data-theme="dark"]) .meta { color:#243F5A; }
+}
+</style>
+
 </body>
 </html>
