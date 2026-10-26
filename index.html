@@ -671,27 +671,6 @@ body.shorts-immersive #shorts-screen .short-upload-panel.open{position:absolute!
 .short-delete .action-emoji{display:grid;place-items:center}.short-delete .action-emoji svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
 @media(max-width:520px){#shorts-screen .shorts-feed-tabs{gap:16px!important;padding-left:12px!important;padding-right:12px!important}#shorts-screen .short-categories{padding-left:12px!important;padding-right:12px!important}}
 
-/* Mobile Shorts header alignment: center feed tabs, keep Create clear, and lower the ribbon. */
-body.shorts-immersive #shorts-screen .shorts-feed-tabs {
-  position:absolute!important; top:calc(env(safe-area-inset-top) + 12px)!important;
-  left:50%!important; right:auto!important; transform:translateX(-50%)!important;
-  width:max-content!important; max-width:calc(100% - 190px)!important;
-  justify-content:center!important; gap:18px!important; padding:0!important;
-  min-height:38px!important; border:0!important; background:transparent!important;
-}
-body.shorts-immersive #shorts-screen .shorts-feed-tabs #shorts-search-button {display:none!important;}
-body.shorts-immersive #shorts-screen .shorts-upload-open {
-  top:calc(env(safe-area-inset-top) + 12px)!important; right:12px!important;
-}
-body.shorts-immersive #short-category-filters {
-  margin-top:26px!important; padding-top:8px!important; padding-bottom:10px!important;
-}
-@media(max-width:520px){
-  body.shorts-immersive #shorts-screen .shorts-feed-tabs {max-width:calc(100% - 190px)!important; gap:14px!important;}
-  body.shorts-immersive #shorts-screen .shorts-feed-tabs button {font-size:14px!important;}
-  body.shorts-immersive #short-category-filters {margin-top:26px!important;}
-}
-
 /* Compact category ribbon: buttons stay in the document, scroll sideways on small screens. */
 #shorts-screen .short-categories, body.shorts-immersive #short-category-filters {
   position:relative!important; inset:auto!important; z-index:11!important;
@@ -712,6 +691,52 @@ body.shorts-immersive #short-category-filters {
 }
 #shorts-screen .short-categories button.active {background:#F2D0A7!important;color:#2D2622!important;border-color:#F2D0A7!important;}
 #shorts-screen .shorts-feed-tabs, body.shorts-immersive #shorts-screen .shorts-feed-tabs {gap:14px!important;}
+</style>
+
+<style id="mjadala-shorts-header-spacing-final">
+/* Header layout: dedicated rows so Create, feed tabs and category ribbon never collide. */
+body.shorts-immersive #shorts-screen .shorts-head {
+  position:absolute!important; inset:0 0 auto 0!important; height:0!important; min-height:0!important;
+  margin:0!important; padding:0!important; background:transparent!important; z-index:45!important;
+  display:block!important; pointer-events:none!important;
+}
+body.shorts-immersive #shorts-screen .shorts-head > div { display:none!important; }
+body.shorts-immersive #shorts-screen .shorts-upload-open {
+  position:absolute!important; top:calc(env(safe-area-inset-top) + 12px)!important; right:16px!important; left:auto!important;
+  z-index:46!important; margin:0!important; min-height:44px!important; padding:8px 16px!important;
+  white-space:nowrap!important; line-height:1.1!important; pointer-events:auto!important;
+}
+body.shorts-immersive #shorts-screen .shorts-feed-tabs {
+  position:absolute!important; top:calc(env(safe-area-inset-top) + 66px)!important;
+  left:0!important; right:0!important; width:100%!important; box-sizing:border-box!important;
+  min-height:42px!important; height:42px!important; margin:0!important; padding:0 16px!important;
+  display:flex!important; flex-direction:row!important; align-items:center!important; justify-content:center!important;
+  gap:clamp(24px, 8vw, 44px)!important; flex-wrap:nowrap!important;
+  background:linear-gradient(#0008,transparent)!important; border:0!important; z-index:44!important;
+}
+body.shorts-immersive #shorts-screen .shorts-feed-tabs > button:not(#shorts-search-button) {
+  flex:0 0 auto!important; min-width:max-content!important; margin:0!important; padding:6px 2px!important;
+  font-size:16px!important; line-height:1.2!important; white-space:nowrap!important;
+}
+body.shorts-immersive #shorts-screen .shorts-feed-tabs #shorts-search-button {
+  position:absolute!important; right:14px!important; left:auto!important; top:50%!important; transform:translateY(-50%)!important;
+  margin:0!important; padding:0!important; width:34px!important; min-width:34px!important; height:34px!important;
+}
+body.shorts-immersive #short-category-filters {
+  position:absolute!important; top:calc(env(safe-area-inset-top) + 112px)!important;
+  left:0!important; right:0!important; width:100%!important; max-width:100%!important; box-sizing:border-box!important;
+  display:flex!important; flex-direction:row!important; flex-wrap:nowrap!important; align-items:center!important;
+  justify-content:flex-start!important; gap:7px!important; height:48px!important; min-height:48px!important;
+  margin:0!important; padding:6px 12px 8px!important; overflow-x:auto!important; overflow-y:hidden!important;
+  white-space:nowrap!important; background:#2D2622!important; z-index:43!important;
+  scrollbar-width:none!important; -webkit-overflow-scrolling:touch!important;
+}
+body.shorts-immersive #short-category-filters::-webkit-scrollbar {display:none!important;}
+body.shorts-immersive #short-category-filters > button {
+  flex:0 0 auto!important; min-width:max-content!important; max-width:none!important; height:32px!important;
+  min-height:32px!important; margin:0!important; padding:0 12px!important; line-height:1!important;
+  font-size:12px!important; white-space:nowrap!important; border-radius:18px!important;
+}
 </style>
 </head>
 <body>
