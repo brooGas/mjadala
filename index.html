@@ -1135,7 +1135,7 @@ function renderShorts(){
   if(!items.length){const empty=el("div","shorts-empty");empty.textContent=activeShortFeed==="following"?"No Shorts from followed creators yet. Follow someone to build this feed.":(activeShortCategory==="All"?"No Shorts yet. Be the first to share an idea.":"No Shorts in "+activeShortCategory+" yet. Be the first to share one.");grid.appendChild(empty);return;}
   items.forEach(item=>{
     const card=el("div","short-card");card.id="short-card-"+item.id;
-    const video=el("video");video.playsInline=true;video.preload="metadata";video.controls=false;video.muted=true;video.loop=true;video.setAttribute("aria-label",item.title||"Short video");video.addEventListener("click",()=>{if(video.paused){video.muted=true;video.play().then(()=>{const err=card.querySelector(".short-play");if(err)err.remove();}).catch(e=>{let msg=card.querySelector(".short-play");if(!msg){msg=el("span","short-play");card.appendChild(msg);}msg.textContent="Tap to retry playback · "+(e?.name==="NotAllowedError"?"browser blocked autoplay":"video or storage access failed");});}else{video.pause();}});
+    const video=el("video");video.playsInline=true;video.preload="metadata";video.controls=false;video.muted=true;video.loop=true;video.setAttribute("aria-label",item.title||"Short video");video.addEventListener("click",()=>{if(video.paused){video.muted=true;const attempt=video.play();if(attempt&&typeof attempt.then==="function")attempt.then(()=>{const err=card.querySelector(".short-play");if(err)err.remove();}).catch(e=>{let msg=card.querySelector(".short-play");if(!msg){msg=el("span","short-play");card.appendChild(msg);}msg.textContent="Tap to retry playback · "+(e?.name==="NotAllowedError"?"tap again to allow playback":"check video format and Storage access");});}else{video.pause();}});
     video.addEventListener("error",()=>{let msg=card.querySelector(".short-play");if(!msg){msg=el("span","short-play");card.appendChild(msg);}const code=video.error?.code;msg.textContent=code===4?"Unsupported video format or invalid video URL. Check MP4/H.264 and storage path.":"Video could not load. Check the mjadala-shorts bucket, object path and read policy.";});
     video.addEventListener("loadeddata",()=>{const msg=card.querySelector(".short-play");if(msg)msg.remove();});
     if(item.url){video.src=item.url;video.load();}
@@ -1530,8 +1530,8 @@ function refreshHomeAvatar(url=profilePhotoUrl,nickname=me?.nickname||"M",x=avat
 }
 const homeProfileAvatar=$("home-profile-avatar");
 if(homeProfileAvatar) homeProfileAvatar.onclick=()=>openHomeTab("profile-screen");
-function showProfileMenu(){const menu=$("profile-menu"),editor=$("profile-editor-area");if(menu)menu.hidden=false;if(editor)editor.hidden=true;}
-function showProfileEditor(){const menu=$("profile-menu"),editor=$("profile-editor-area");if(menu)menu.hidden=true;if(editor)editor.hidden=false;loadProfile();loadPrivacyPreferences();}
+function showProfileMenu(){const menu=$("profile-menu"),editor=$("profile-editor-area");if(menu){menu.hidden=false;menu.style.display="block";}if(editor){editor.hidden=true;editor.style.display="none";}}
+function showProfileEditor(){const menu=$("profile-menu"),editor=$("profile-editor-area");if(menu){menu.hidden=true;menu.style.display="none";}if(editor){editor.hidden=false;editor.style.display="block";}loadProfile();loadPrivacyPreferences();}
 $("profile-editor-back")?.addEventListener("click",showProfileMenu);
 $("menu-logout")?.addEventListener("click",()=>$("logout").click());
 // Delegate profile menu actions so they remain responsive if the profile UI is re-rendered.
@@ -1544,9 +1544,9 @@ if(!window.mjadalaProfileActionsBound){
     switch(action){
       case "my-profile": showProfileEditor(); break;
       case "notifications":
-        showProfileEditor();setTimeout(()=>$("notification-settings")?.scrollIntoView({behavior:"smooth",block:"start"}),180);break;
+        showProfileEditor();requestAnimationFrame(()=>setTimeout(()=>{const target=$("notification-settings");if(target)target.scrollIntoView({behavior:"smooth",block:"start"});},80));break;
       case "settings":
-        showProfileEditor();setTimeout(()=>$("privacy-account-settings")?.scrollIntoView({behavior:"smooth",block:"start"}),180);break;
+        showProfileEditor();requestAnimationFrame(()=>setTimeout(()=>{const target=$("privacy-account-settings");if(target)target.scrollIntoView({behavior:"smooth",block:"start"});},80));break;
       case "my-posts": openProfileShorts(false);break;
       case "saved": openProfileShorts(true);break;
       case "help": showProfileUtility("Help & Support","For account or upload problems, describe what happened in Feedback so the Mjadala administrator can investigate.");break;

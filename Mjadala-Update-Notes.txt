@@ -1,0 +1,7 @@
+MJADALA ICON + NAVIGATION + REELS UPDATE
+
+Included: approved smooth light taupe outer tile and near-black bubble centre app icon assets; manifest theme colors; service-worker cache version bump; explicit profile editor visibility and navigation scroll improvements; improved tap-to-play feedback.
+
+IMPORTANT: This package must be tested against the actual Supabase project. Reels playback also depends on the Storage bucket `mjadala-shorts`, correct `shorts.video_path` values, supported video encoding (MP4/H.264 recommended), and Storage read/signing policies. No SQL was added for the icon itself. The existing MIGRATION_PROFILE_FEATURES.sql is included for reference; do not rerun migrations blindly if already applied.
+
+Deploy the contents of this folder to the same repository root configured in Vercel. Then test in the website before reinstalling the home-screen app.
