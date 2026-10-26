@@ -1,0 +1,1 @@
+Mjadala Shorts fixes: the three-dot menu now toggles closed when tapped again; its menu is layered above the feed controls and remains within the Short card; tapping the video background pauses/resumes playback while slider, rewind, menu, action buttons, and info area retain their own interactions.
