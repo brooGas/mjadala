@@ -117,6 +117,19 @@ button,input{font:inherit}button{cursor:pointer}
 .market-item button{width:100%;border:0;border-radius:9px;background:var(--green);color:#fff;padding:8px;font-size:11px;font-weight:800;margin-top:5px}
 @media(min-width:700px){.preview-wrap{max-width:620px}.phone{height:100dvh}}
 
+.reels-category-chips{display:flex;gap:8px;overflow-x:auto;white-space:nowrap;padding:8px 2px 10px;scrollbar-width:none;position:relative;z-index:4}
+.reels-category-chips::-webkit-scrollbar{display:none}.reels-category-chips .chip{flex:0 0 auto;border:1px solid #dce4dc;background:#fffdf7;color:#174d35;cursor:pointer}.reels-category-chips .chip.on{background:#174d35;color:#fff;border-color:#174d35}
+.instagram-reel-stage{height:calc(100dvh - 190px);min-height:430px;max-height:780px;margin:0 0 12px;padding:14px;border-radius:18px;background:#111;isolation:isolate;touch-action:pan-y;overflow:hidden}
+.instagram-reel-stage:before{z-index:1;pointer-events:none;background:linear-gradient(180deg,#0009,transparent 24%,transparent 55%,#000b 100%)}
+.instagram-reel-stage [data-live-reel-video]{object-fit:cover!important;z-index:0;border-radius:inherit}
+.instagram-reel-stage .reel-top,.instagram-reel-stage .reel-bottom,.instagram-reel-stage .reel-actions{z-index:2}
+.instagram-reel-stage .reel-top{align-items:flex-start}.instagram-reel-stage .reel-top b{font-size:15px;text-shadow:0 1px 4px #000}
+.instagram-reel-stage .reel-actions{right:9px;bottom:90px;gap:18px}.instagram-reel-stage .reel-actions button{min-width:44px;text-shadow:0 1px 4px #000}
+.instagram-reel-stage .reel-actions button b{width:44px;height:44px;background:#10101070;border:1px solid #ffffff45;font-size:22px}
+.instagram-reel-stage .reel-bottom{max-width:calc(100% - 58px);padding-bottom:2px;text-shadow:0 1px 4px #000}.instagram-reel-stage .reel-bottom h3{font-size:16px;line-height:1.35}.instagram-reel-stage .reel-bottom p{color:#fff;opacity:.9}
+.instagram-reel-stage .reel-bottom [data-live-reel="previous"],.instagram-reel-stage .reel-bottom [data-live-reel="next"]{display:none}
+.instagram-reel-stage .reel-icon-btn{backdrop-filter:blur(8px)}
+@media(max-width:480px){.instagram-reel-stage{height:calc(100dvh - 245px);min-height:360px;margin-top:0;border-radius:14px}.instagram-reel-stage .reel-bottom{max-width:calc(100% - 55px)}.instagram-reel-stage .reel-actions{bottom:84px}}
 </style></head>
 <body>
 
@@ -252,7 +265,8 @@ button,input{font:inherit}button{cursor:pointer}
     </section>
     <section class="screen" data-screen="2">
      <div class="chips"><span class="chip on">For You</span><span class="chip">Following</span><span class="chip">Engineering</span><span class="chip">Business</span></div>
-     <div class="reel-stage" id="sampleReel"><p class="live-empty" style="margin:auto;position:relative;z-index:2">Connecting to live Reels…</p></div>
+     <div class="chips reels-category-chips" id="reelsCategoryChips" role="tablist" aria-label="Filter Reels"><button class="chip on" type="button" data-reel-filter="all" role="tab" aria-selected="true">For You</button></div>
+     <div class="reel-stage instagram-reel-stage" id="sampleReel"><p class="live-empty" style="margin:auto;position:relative;z-index:2">Connecting to live Reels…</p></div>
      <div class="row-card"><div class="thumb">＋</div><div class="grow"><h4>Create a Reel</h4><p>Upload a short video for other members to watch.</p></div><input type="file" id="reelVideoInput" accept="video/mp4,video/webm,video/quicktime" hidden><button class="mini-btn" id="createReelButton" type="button">Choose</button></div><div class="field"><label for="reelTitleInput">Caption</label><input id="reelTitleInput" maxlength="180" placeholder="What is this Reel about?"></div><div class="field"><label for="reelCategoryInput">Category</label><select id="reelCategoryInput"><option value="">Loading categories…</option></select></div><button class="pill-btn" id="publishReelButton" type="button">Publish Reel</button><p class="subtle" id="reelCreateStatus" aria-live="polite">Choose a video up to 15 seconds, add a caption, and publish it to Supabase.</p>
     </section>
     <section class="screen" data-screen="3">
