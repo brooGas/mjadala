@@ -1,28 +1,18 @@
-MJADALA MARKETPLACE FIXES — FILES ONLY
+MJADALA MARKETPLACE FIXES — v3
 
-This ZIP contains two updated files for the existing repository:
+Replace ONLY these two files in the ROOT of your existing GitHub repository:
 - index.html
 - business-integration.js
 
-Before replacing anything, keep a copy of your current versions.
+Keep a backup of the current files first. Do not upload SQL and do not run a database migration for this UI/layout fix.
 
-Upload both files to the ROOT of your existing GitHub repository (the same folder where index.html and business-integration.js currently live), replacing those two files only.
-Do not upload this README to the app if you do not want to; it is instructions only.
-Do not run any SQL from older ZIPs as part of this update.
+Fixes:
+- Locks the selected product thumbnail to a true 56 x 56 px square, clips its contents, and constrains the image so it cannot overflow into the warranty section.
+- After publishing succeeds, refreshes the owner's inventory and clears the product name, description, price and selected photos to reduce accidental duplicate submissions.
+- Keeps the owner inventory's publish/unpublish controls for every product owned by the signed-in account, including unpublished products.
+- Unpublishing preserves existing orders.
 
-Changes included:
-- Removes the default Smart LED sample name/description/price so new listings do not accidentally copy the sample product.
-- Replaces the generic “MV” no-photo tile with initials based on each product's own name.
-- Clears the old detail image when a selected product has no photo.
-- Makes product details scroll into view when “View product” is tapped.
-- Adds a scrollable marketplace listing area to reduce overlap with warranty/terms.
-- Hides seller creation controls until a signed-in user opens My Business.
-- Shows “Remove my product” only on listings owned by the signed-in account and asks for confirmation before requesting deletion.
+Important:
+The app intentionally only shows owner controls for records whose seller_id matches the currently signed-in account. If older listings do not appear in My Products or have no owner controls, they may belong to a different account or have a different seller_id. Do not change database ownership or delete orders blindly. Send the exact message from My Products if inventory access fails.
 
-Important limitation:
-The app's Supabase Row Level Security must permit the seller to delete their own business_products row. If the database rejects deletion, the UI will show an error; do not weaken database security or run a guessed SQL policy. We should inspect the live table policies first.
-
-The paid business-website/admin control feature is not included in this focused marketplace patch.
-
-
-IMPORTANT UPDATE: Product removal now means unpublishing (published=false), not deleting the database row. This preserves orders that reference business_products. Owner inventory includes published and unpublished products. If Supabase blocks owner updates, do not run guessed SQL; inspect the exact RLS policy first. The image fallback is explicitly hidden when a real image loads.
+The code is syntax-checked, but it has not been tested against your live Supabase project.

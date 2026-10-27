@@ -200,7 +200,19 @@
       payload.image_urls = await uploadPhotos(files);
       const { data, error } = await sb.from('business_products').insert(payload).select('*').single();
       if (error) throw error;
-      renderProduct(data); await loadProduct(); status.textContent = 'Published and saved to Supabase.'; toast('Product published');
+      renderProduct(data);
+      await loadProduct();
+      await loadOwnerInventory();
+      // Clear the creation fields after a successful save so the same details/photos
+      // are not accidentally submitted as another listing.
+      $('sellerProductName').value = '';
+      $('sellerProductDescription').value = '';
+      $('sellerProductPrice').value = '';
+      selectedImages = [];
+      $('productPhotos').value = '';
+      $('productPhotoNames').textContent = 'No product photos selected';
+      status.textContent = 'Published and saved to Supabase. The form is ready for another product.';
+      toast('Product published');
     } catch (e) { status.textContent = 'Could not publish: ' + errorText(e); }
   }
   async function loadProduct() {
