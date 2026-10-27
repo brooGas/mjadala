@@ -1,0 +1,30 @@
+MJADALA UI + DATABASE SETUP (2026-10-27)
+
+UI updates in this package:
+- Fixed bottom navigation stays visible and is the only touch-based way to switch Home / Explore / Reels / Communities / Profile. Vertical scrolling remains available inside each section.
+- Dark Android-inspired palette with purple signature and blue, green, orange and pink category accents.
+- Avatar containers in Home's People to Connect section are clamped to small circular images so images cannot stretch into oversized shapes.
+- Existing live-social, profile, auth, business, and Reels scripts have been preserved.
+
+SUPABASE SQL ORDER
+Run these existing migrations in the Supabase SQL Editor, one file at a time, in this order. Wait for success after each file. Do not paste all unrelated migrations as one giant transaction: several features depend on tables/functions created earlier, and separate runs make errors easier to identify.
+1. MIGRATION_LIVE_SOCIAL.sql
+2. MIGRATION_MOMENTS.sql
+3. MIGRATION_SHORTS_ENGAGEMENT.sql
+4. MIGRATION_SHORTS_CREATOR_FOLLOWS.sql
+5. MIGRATION_SHORTS_EXTERNAL_LINK.sql
+6. MIGRATION_PRIVATE_GROUPS.sql
+7. MIGRATION_GROUP_ADMIN_TOOLS.sql
+8. MIGRATION_GROUP_MESSAGE_EDIT_DELETE.sql
+9. MIGRATION_PROFILE_FIELDS.sql
+10. MIGRATION_PROFILE_FEATURES.sql
+11. MIGRATION_STEP_2_PUBLIC_PROFILES.sql
+12. MIGRATION_EMAIL_OTP_CONSENT.sql
+13. MIGRATION_BUSINESS_SHOPPING_FUNCTIONAL.sql
+14. MIGRATION_DARAJA.sql (only if enabling M-Pesa checkout; server-side payment callback still needs deployment)
+
+Important:
+- The frontend uses the existing Supabase project URL/public publishable key already in live-reels.js and related scripts. Never put a service-role key in frontend code.
+- If any migration errors, stop and send the exact error plus filename; do not continue blindly because later migrations may depend on the failed one.
+- SQL setup cannot be run from this ZIP automatically. It must be executed in the correct Supabase project by an authorized project owner.
+- This package was checked for JavaScript syntax, manifest JSON validity and ZIP integrity. It has not been live-tested against the user's Supabase project or Android device.
