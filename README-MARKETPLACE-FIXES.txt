@@ -23,3 +23,6 @@ Important limitation:
 The app's Supabase Row Level Security must permit the seller to delete their own business_products row. If the database rejects deletion, the UI will show an error; do not weaken database security or run a guessed SQL policy. We should inspect the live table policies first.
 
 The paid business-website/admin control feature is not included in this focused marketplace patch.
+
+
+IMPORTANT UPDATE: Product removal now means unpublishing (published=false), not deleting the database row. This preserves orders that reference business_products. Owner inventory includes published and unpublished products. If Supabase blocks owner updates, do not run guessed SQL; inspect the exact RLS policy first. The image fallback is explicitly hidden when a real image loads.

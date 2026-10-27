@@ -57,7 +57,7 @@
       const opening = getComputedStyle(panel).display === 'none';
       panel.style.display = opening ? 'block' : 'none';
       $('openMyBusiness').textContent = opening ? 'Close' : 'Open';
-      if (opening) { panel.scrollIntoView({behavior:'smooth',block:'start'}); $('sellerBusinessName')?.focus({preventScroll:true}); }
+      if (opening) { loadOwnerInventory(); panel.scrollIntoView({behavior:'smooth',block:'start'}); $('sellerBusinessName')?.focus({preventScroll:true}); }
     }
   });
 
@@ -148,11 +148,32 @@
     host.innerHTML = '<div class="market-grid">' + catalogProducts.map(p => {
       const image = Array.isArray(p.image_urls) ? p.image_urls.find(url => typeof url === 'string' && url.trim()) : null;
       const isOwner = !!session?.user?.id && String(p.seller_id) === String(session.user.id);
+      const initials = escapeHTML((p.product_name || 'P').trim().slice(0,2).toUpperCase());
       const imageMarkup = image
-        ? `<img loading="lazy" src="${escapeHTML(image)}" alt="${escapeHTML(p.product_name)}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="market-image-fallback" hidden>${escapeHTML((p.product_name || 'P').trim().slice(0,2).toUpperCase())}</div>`
-        : `<div class="market-image-fallback">${escapeHTML((p.product_name || 'P').trim().slice(0,2).toUpperCase())}</div>`;
-      return `<article class="market-item">${imageMarkup}<h4>${escapeHTML(p.product_name)}</h4><p>${escapeHTML(p.description || 'Details available from the seller')}</p><strong>${money(p.price)}</strong><p>Standard delivery ${money(p.standard_delivery_fee || 0)} · Express ${money(p.express_delivery_fee || 0)}</p><button type="button" data-open-product="${escapeHTML(p.id)}">View product</button>${isOwner ? `<button type="button" class="market-remove" data-remove-product="${escapeHTML(p.id)}">Remove my product</button>` : ''}</article>`;
+        ? `<div class="market-image-wrap"><img loading="lazy" src="${escapeHTML(image)}" alt="${escapeHTML(p.product_name)}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="market-image-fallback" hidden>${initials}</div></div>`
+        : `<div class="market-image-fallback">${initials}</div>`;
+      return `<article class="market-item">${imageMarkup}<h4>${escapeHTML(p.product_name)}</h4><p>${escapeHTML(p.description || 'Details available from the seller')}</p><strong>${money(p.price)}</strong><p>Standard delivery ${money(p.standard_delivery_fee || 0)} · Express ${money(p.express_delivery_fee || 0)}</p><button type="button" data-open-product="${escapeHTML(p.id)}">View product</button>${isOwner ? `<button type="button" class="market-remove" data-unpublish-product="${escapeHTML(p.id)}">Remove from marketplace</button>` : ''}</article>`;
     }).join('') + '</div>';
+  }
+  async function loadOwnerInventory() {
+    if (!session?.user?.id) return;
+    const panel = $('ownerPanel'); if (!panel) return;
+    let inventory = panel.querySelector('#ownerProductInventory');
+    if (!inventory) {
+      inventory = document.createElement('div');
+      inventory.id = 'ownerProductInventory'; inventory.className = 'owner-inventory';
+      inventory.innerHTML = '<h4>My Products</h4><p class="subtle">Manage your existing listings without deleting order history.</p><div class="owner-product-list">Loading your products…</div>';
+      panel.insertBefore(inventory, panel.firstChild);
+    }
+    const list = inventory.querySelector('.owner-product-list');
+    try {
+      const {data,error} = await sb.from('business_products').select('id,product_name,price,published,created_at,seller_id').eq('seller_id',session.user.id).order('created_at',{ascending:false});
+      if (error) throw error;
+      if (!data?.length) { list.innerHTML = '<p class="subtle">You have no products yet.</p>'; return; }
+      list.innerHTML = data.map(p => `<div class="owner-product-row"><div class="owner-product-info"><strong>${escapeHTML(p.product_name || 'Untitled product')}</strong><small>${money(p.price)} · ${p.published ? 'Published' : 'Not published'}</small></div><button type="button" class="owner-product-action" ${p.published ? `data-unpublish-product="${escapeHTML(p.id)}"` : `data-publish-product="${escapeHTML(p.id)}"`}>${p.published ? 'Remove' : 'Publish'}</button></div>`).join('');
+    } catch (err) {
+      list.innerHTML = '<p class="subtle">Could not load your inventory: ' + escapeHTML(errorText(err)) + '</p>';
+    }
   }
   function escapeHTML(s) { return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function updateCartUI() {
@@ -269,22 +290,32 @@
     } catch(e) { toast('Could not open pool: '+errorText(e)); }
   }
   document.addEventListener('click', async e => {
-    const removeButton = e.target.closest('[data-remove-product]');
-    if (removeButton) {
+    const unpublishButton = e.target.closest('[data-unpublish-product]');
+    const publishAgainButton = e.target.closest('[data-publish-product]');
+    if (unpublishButton || publishAgainButton) {
       e.preventDefault(); e.stopImmediatePropagation();
       if (!session?.user?.id) { toast('Sign in as the product owner first.'); return; }
-      const product = catalogProducts.find(p => String(p.id) === String(removeButton.dataset.removeProduct));
-      if (!product || String(product.seller_id) !== String(session.user.id)) { toast('You can remove only products belonging to your account.'); return; }
-      if (!confirm(`Remove “${product.product_name}” from the marketplace? This cannot be undone from here.`)) return;
-      removeButton.disabled = true; removeButton.textContent = 'Removing…';
+      const button = unpublishButton || publishAgainButton;
+      const productId = button.dataset.unpublishProduct || button.dataset.publishProduct;
+      const product = catalogProducts.find(p => String(p.id) === String(productId));
+      const inventoryRow = button.closest('.owner-product-row');
+      // Inventory may include unpublished products not present in the public catalogue;
+      // seller_id is enforced in the database update filter as well.
+      if (product && String(product.seller_id) !== String(session.user.id)) { toast('You can manage only products belonging to your account.'); return; }
+      const shouldPublish = !!publishAgainButton;
+      const name = product?.product_name || inventoryRow?.querySelector('strong')?.textContent || 'this product';
+      if (!confirm(shouldPublish ? `Publish “${name}” to the marketplace?` : `Remove “${name}” from the marketplace? Its order history will be preserved.`)) return;
+      button.disabled = true; button.textContent = shouldPublish ? 'Publishing…' : 'Removing…';
       try {
-        const { error } = await sb.from('business_products').delete().eq('id', product.id).eq('seller_id', session.user.id);
+        const { data, error } = await sb.from('business_products').update({published: shouldPublish}).eq('id', productId).eq('seller_id', session.user.id).select('id');
         if (error) throw error;
-        if (activeProduct?.id === product.id) activeProduct = null;
-        await loadProduct(); toast('Product removed from the marketplace.');
+        if (!data?.length) throw new Error('No product was updated. Check that you are signed in as its owner.');
+        if (!shouldPublish && activeProduct?.id === productId) activeProduct = null;
+        await loadProduct(); await loadOwnerInventory();
+        toast(shouldPublish ? 'Product published.' : 'Product removed from the marketplace. Order history is preserved.');
       } catch (err) {
-        toast('Could not remove this product. Database permissions may not allow owner deletion yet. ' + errorText(err));
-        removeButton.disabled = false; removeButton.textContent = 'Remove my product';
+        toast('Could not update this product. Your database may restrict owner updates. ' + errorText(err));
+        button.disabled = false; button.textContent = shouldPublish ? 'Publish' : 'Remove';
       }
       return;
     }
@@ -316,6 +347,6 @@
   $('qtyMinus').addEventListener('click',()=>setTimeout(updateCartUI,0));
   let marketplaceChannel = null;
   function startMarketplaceRealtime(){ if(marketplaceChannel)sb.removeChannel(marketplaceChannel); marketplaceChannel=sb.channel('mjadala-marketplace').on('postgres_changes',{event:'*',schema:'public',table:'business_products'},()=>loadProduct()).subscribe(); }
-  sb.auth.getSession().then(({data})=>{ session=data.session; if (!session) addAuthUI(); else if($('businessAuthPanel'))$('businessAuthPanel').style.display='none'; if(session)loadBusinessProfile(); loadProduct(); startMarketplaceRealtime(); });
-  sb.auth.onAuthStateChange((_event,newSession)=>{session=newSession;if(session){if($('businessAuthPanel'))$('businessAuthPanel').style.display='none';loadBusinessProfile();}else{addAuthUI();$('myBusinessTitle').textContent='My Business';$('myBusinessOwner').textContent='Sign in to manage your business.';}loadProduct();});
+  sb.auth.getSession().then(({data})=>{ session=data.session; if (!session) addAuthUI(); else if($('businessAuthPanel'))$('businessAuthPanel').style.display='none'; if(session){loadBusinessProfile(); if($('ownerPanel') && getComputedStyle($('ownerPanel')).display!=='none') loadOwnerInventory();} loadProduct(); startMarketplaceRealtime(); });
+  sb.auth.onAuthStateChange((_event,newSession)=>{session=newSession;if(session){if($('businessAuthPanel'))$('businessAuthPanel').style.display='none';loadBusinessProfile(); if($('ownerPanel') && getComputedStyle($('ownerPanel')).display!=='none') loadOwnerInventory();}else{addAuthUI();$('myBusinessTitle').textContent='My Business';$('myBusinessOwner').textContent='Sign in to manage your business.';}loadProduct();});
 })();

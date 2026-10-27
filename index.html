@@ -111,9 +111,17 @@ button,input{font:inherit}button{cursor:pointer}
 .market-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:8px 0 14px;max-height:460px;overflow-y:auto;overscroll-behavior:contain;padding:2px 2px 8px;scrollbar-width:thin}
 .market-item{border:1px solid var(--line);border-radius:14px;background:var(--paper);padding:9px;min-width:0;overflow:hidden}
 .market-item img{display:block;width:100%;height:112px;object-fit:cover;border-radius:10px;background:var(--soft)}
+.market-image-fallback[hidden]{display:none!important}
 .market-image-fallback{height:112px;border-radius:10px;background:linear-gradient(145deg,var(--soft),var(--paper));border:1px dashed var(--line);display:grid;place-items:center;color:var(--muted);font-weight:850;font-size:22px;letter-spacing:.04em}
 .product-image-fallback{width:100%;height:100%;min-height:48px;display:grid;place-items:center;color:var(--muted);font-weight:850;font-size:18px}
 .market-item .market-remove{background:transparent;color:#a33;border:1px solid #d8aaaa;margin-top:6px}
+.owner-inventory{margin:10px 0;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
+.owner-inventory h4{margin:0 0 8px;font-size:14px}
+.owner-product-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line);min-width:0}
+.owner-product-info{flex:1;min-width:0;font-size:12px;overflow-wrap:anywhere}
+.owner-product-info small{display:block;color:var(--muted);margin-top:3px}
+.owner-product-action{width:auto!important;min-width:94px;padding:7px!important;background:transparent!important;color:var(--green)!important;border:1px solid var(--line)!important}
+.owner-product-action[data-unpublish-product]{color:#a33!important}
 #ownerPanel{display:none}
 .product-card{scroll-margin-top:16px}
 #customerTermsPanel{scroll-margin-top:16px}
