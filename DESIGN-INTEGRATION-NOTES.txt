@@ -1,0 +1,16 @@
+MJADALA — DESIGN-INTEGRATED V6
+
+The approved v6 design preview has been installed as mjadala-main/index.html, so it is now
+the entry page when the static app is served.
+
+The former index.html is preserved as mjadala-main/index-legacy-backup.html.
+
+Important current limitations:
+- The new index is a standalone visual/interaction prototype.
+- SQL/Supabase persistence, real login/session integration, live messaging, real product storage,
+  and real M-Pesa payment are not connected by this change.
+- Existing backend/configuration files from the source package are retained, but the standalone
+  design entry page does not yet call them.
+- Before deployment, test the visual prototype and preserve this ZIP as a backup. Next stage is
+  to merge the required live features and connect the database/backend without losing sound,
+  delete/bin, posts, messages, or authentication.
