@@ -847,18 +847,28 @@ body.shorts-immersive .short-menu-pop button { position: relative !important; z-
       <button class="moment-bubble" id="home-groups-bubble"><span class="bubble-ring bubble-slate">♧</span><small>Groups</small></button>
     </div>
   </section>
-  <div class="section-heading conversations-heading"><h2><span>▤</span> Conversations</h2><span class="heading-note">Find your community</span></div>
+  <section class="topic-shortcuts" aria-label="Explore Mjadala topics">
+    <div class="section-heading"><h2>Explore topics</h2><button type="button" id="home-explore-topics">See all</button></div>
+    <div class="topic-chip-row">
+      <button type="button" class="topic-chip" data-topic="Engineering & Technology"><span class="topic-chip-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1"/><circle cx="12" cy="12" r="5"/></svg></span>Engineering</button>
+      <button type="button" class="topic-chip" data-topic="Business & Entrepreneurship"><span class="topic-chip-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V4h8v3M3 12h18m-11 0v2h4v-2"/></svg></span>Business</button>
+      <button type="button" class="topic-chip" data-topic="Innovation & Invention"><span class="topic-chip-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 18h6m-5 3h4m-2-19a7 7 0 0 0-4 12.7c.6.4 1 1.1 1 2.3h6c0-1.2.4-1.9 1-2.3A7 7 0 0 0 12 2z"/></svg></span>Innovation</button>
+      <button type="button" class="topic-chip" data-topic="Education & Careers"><span class="topic-chip-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m2 9 10-5 10 5-10 5L2 9zM6 11v5c3 3 9 3 12 0v-5M22 9v6"/></svg></span>Education</button>
+      <button type="button" class="topic-chip" data-topic="Agriculture & Industry"><span class="topic-chip-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 4c-8 0-13 3-13 9a5 5 0 0 0 5 5c6 0 8-6 8-14zM4 21c2-5 5-8 10-11"/></svg></span>Agriculture</button>
+    </div>
+  </section>
+  <div class="section-heading conversations-heading"><h2>Topic conversations</h2><span class="heading-note">Find your community</span></div>
   <div id="roomlist"></div>
   <div class="home-tabs" id="home-tabs" aria-label="Main navigation">
-    <button class="on" data-home="rooms"><span>⌂</span><small>Home</small></button>
-    <button data-home="shorts-screen"><span>▷</span><small>Shorts</small></button>
-    <button data-home="groups-screen"><span>♟</span><small>Groups</small></button>
-    <button data-home="people-screen"><span>▤</span><small>People</small></button>
+    <button class="on" data-home="rooms"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg></span><small>Home</small></button>
+    <button data-home="people-screen"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg></span><small>Explore</small></button>
+    <button data-home="shorts-screen"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="m10 8 6 4-6 4z"/></svg></span><small>Reels</small></button>
+    <button data-home="groups-screen"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm13 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><small>Communities</small></button>
     <button data-home="moments-screen" hidden aria-hidden="true" tabindex="-1"></button>
-    <button data-home="profile-screen"><span>●</span><small>Profile</small></button>
+    <button data-home="profile-screen"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><small>Profile</small></button>
   </div>
   <section id="shorts-screen" class="shorts-screen" style="display:none">
-    <div class="shorts-head"><div><h2>Shorts</h2><p>Real people · real talks · bigger ideas</p></div><button type="button" class="shorts-upload-open" id="shorts-open-upload">＋ Create</button></div>
+    <div class="shorts-head"><div><h2>Reels</h2><p>Real people · real talks · bigger ideas</p></div><button type="button" class="shorts-upload-open" id="shorts-open-upload">＋ Create</button></div>
     <div class="shorts-feed-tabs" role="tablist" aria-label="Shorts feed"><button type="button" class="active" id="shorts-feed-all" role="tab" aria-selected="true">Shorts</button><button type="button" id="shorts-feed-following" role="tab" aria-selected="false">Following</button><button type="button" id="shorts-search-button" aria-label="Search Shorts">⌕</button></div>
     <div class="short-categories" id="short-category-filters" aria-label="Filter Shorts by category">
       <button class="active" data-short-category="All">For you</button>
@@ -870,7 +880,7 @@ body.shorts-immersive .short-menu-pop button { position: relative !important; z-
     <div class="short-upload-panel" id="short-upload-panel" aria-label="Create a Short">
       <button type="button" class="short-upload-close" id="shorts-cancel-upload" aria-label="Close upload">×</button>
       <h3>Create a Short</h3><p>Choose a video. Mjadala checks its length automatically; Shorts are up to 15 seconds.</p>
-      <label for="short-video-file">Choose or record a video</label><input id="short-video-file" type="file" accept="video/*" capture="environment">
+      <label for="short-video-file">Choose or record a video</label><input id="short-video-file" type="file" accept="video/*" capture="environment"><div class="drop-zone compact-drop" id="short-video-drop" tabindex="0">Drop a video here or choose a file</div>
       <video id="short-video-preview" class="short-preview" controls playsinline hidden></video>
       <div id="short-trim-tools" class="short-trim-tools" hidden><p class="short-trim-warning">This video is longer than 15 seconds. You can trim a 15-second section before publishing.</p><label for="short-trim-start">Start time (seconds)</label><input id="short-trim-start" type="number" min="0" step="0.1" value="0"><label for="short-trim-end">End time (seconds, maximum 15 seconds after start)</label><input id="short-trim-end" type="number" min="0.1" step="0.1" value="15"><button type="button" class="primary" id="short-video-trim">Trim to 15 seconds</button></div>
       <input id="short-video-title" type="text" maxlength="90" placeholder="Give your Short a title (optional)">
@@ -888,7 +898,7 @@ body.shorts-immersive .short-menu-pop button { position: relative !important; z-
     <div class="moment-compose">
       <h2>Share a Moment</h2>
       <p>Photos disappear after 24 hours. You can have up to five active Moments. Duplicate active photos are blocked.</p>
-      <input id="moment-file" type="file" accept="image/jpeg,image/png,image/webp">
+      <input id="moment-file" type="file" accept="image/jpeg,image/png,image/webp,image/avif"><div class="drop-zone compact-drop" id="moment-file-drop" tabindex="0">Drop a photo here or tap to choose</div>
       <input id="moment-caption" type="text" maxlength="180" placeholder="Add a caption (optional)">
       <button class="primary" id="moment-upload">Post Moment</button>
       <div id="moment-status" class="err" aria-live="polite" style="margin-top:8px"></div>
@@ -897,18 +907,19 @@ body.shorts-immersive .short-menu-pop button { position: relative !important; z-
     <div class="moment-grid" id="moment-grid"></div>
   </section>
   <section id="groups-screen" style="display:none;overflow-y:auto;width:100%;max-width:900px;margin:0 auto;padding-bottom:28px">
-    <div class="groups-panel"><h2>Your private Groups</h2><p>Groups are private. Only members can see the group and its conversation. Only the creator can invite members.</p>
-      <input id="group-name" maxlength="40" placeholder="Group name (3–40 characters)">
-      <textarea id="group-description" maxlength="180" placeholder="What is this group for? (optional)"></textarea>
-      <button class="primary" id="group-create">Create private Group</button><div id="group-status" class="err" aria-live="polite" style="margin-top:8px"></div>
+    <div class="groups-panel"><div class="community-heading"><div><h2>Communities</h2><p>Find your people, share updates, and build something together.</p></div><span class="community-heading-mark"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm13 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span></div>
+      <div class="community-create-card"><h3>Create a community</h3><input id="group-name" maxlength="40" placeholder="Community name (3–40 characters)">
+      <textarea id="group-description" maxlength="180" placeholder="What is this community for? (optional)"></textarea>
+      <label class="field-label" for="group-visibility">Who can join?</label><select id="group-visibility"><option value="public">Public — anyone can join</option><option value="private" selected>Private — approval required</option><option value="hidden">Hidden — invitation only</option></select>
+      <button class="primary" id="group-create">Create community</button></div><div id="group-status" class="err" aria-live="polite" style="margin-top:8px"></div>
       <div class="groups-list" id="groups-list"></div>
       <div id="group-detail" class="group-chat" style="display:none"></div>
     </div>
   </section>
   <section id="people-screen" style="display:none">
     <div class="people-panel">
-      <h2>Find your people</h2>
-      <p>Discover creators, builders and communities on Mjadala. Search by nickname or bio.</p>
+      <h2>Explore Mjadala</h2>
+      <p>Discover people, builders and ideas across Mjadala. Search creators by nickname or bio, or start with a topic on Home.</p>
       <input id="people-search" class="people-search" type="search" maxlength="80" placeholder="Search nicknames and bios…" autocomplete="off">
       <div id="people-status" class="muted-note" aria-live="polite">Loading people…</div>
       <div id="people-list" class="people-list"></div>
@@ -946,7 +957,10 @@ body.shorts-immersive .short-menu-pop button { position: relative !important; z-
         <label>Vertical framing <input id="avatar-y" type="range" min="0" max="100" value="50"></label>
         <small style="color:var(--muted)">Move the sliders until your photo is framed the way you want. The circular preview shows the crop.</small>
       </div>
-      <label for="profile-photo" style="display:block;font-size:13px;color:var(--muted);margin-bottom:7px">Profile photo (optional)</label><input id="profile-photo" type="file" accept="image/jpeg,image/png,image/webp">
+      <label style="display:block;font-size:13px;color:var(--muted);margin-bottom:7px">Profile photo</label>
+      <div class="photo-choice-row"><button type="button" class="secondary-action" id="profile-take-photo"><svg viewBox="0 0 24 24"><path d="M4 7h3l2-3h6l2 3h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"/><circle cx="12" cy="13" r="4"/></svg>Take photo</button><button type="button" class="secondary-action" id="profile-choose-photo"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Gallery / files</button></div>
+      <input id="profile-photo-camera" type="file" accept="image/*" capture="user" hidden><input id="profile-photo-gallery" type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden><input id="profile-photo" type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden>
+      <div id="profile-photo-drop" class="drop-zone" tabindex="0" role="button" aria-label="Drop a profile photo or choose one">Drop a photo here, or use the buttons above</div>
       <input id="profile-nickname" maxlength="20" placeholder="Nickname (3–20 letters, numbers or underscore)">
       <textarea id="profile-bio" maxlength="180" placeholder="A little about you (180 characters max)"></textarea>
       <button class="primary" id="profile-save">Save profile</button><div id="profile-status" class="err" aria-live="polite" style="margin-top:8px"></div>
@@ -1069,6 +1083,24 @@ function friendly(e) {
   if (/failed to fetch|network/i.test(m)) return "No internet connection";
   return m;
 }
+
+/* ---------- Draft 2 media pickers and drag/drop ---------- */
+async function compressImageFile(file,maxDimension=1600,quality=.82){
+  if(!file||!file.type.startsWith("image/")||file.size<350*1024||typeof createImageBitmap!=="function")return file;
+  let bitmap;try{bitmap=await createImageBitmap(file);}catch(_){return file;}
+  try{const scale=Math.min(1,maxDimension/Math.max(bitmap.width,bitmap.height));const canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));const ctx=canvas.getContext("2d");if(!ctx)return file;ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",quality));if(!blob||blob.size>=file.size)return file;const base=(file.name||"image").replace(/\.[^.]+$/,"" );return new File([blob],base+"-optimized.jpg",{type:"image/jpeg",lastModified:Date.now()});}finally{bitmap.close?.();}
+}
+function copySelectedFile(source,target){const file=source?.files?.[0];if(!file||!target)return;try{const dt=new DataTransfer();dt.items.add(file);target.files=dt.files;target.dispatchEvent(new Event("change",{bubbles:true}));}catch(_){/* Browser fallback: let the original picker remain selected. */}}
+$("profile-take-photo")?.addEventListener("click",()=>$("profile-photo-camera").click());
+$("profile-choose-photo")?.addEventListener("click",()=>$("profile-photo-gallery").click());
+$("profile-photo-camera")?.addEventListener("change",e=>copySelectedFile(e.currentTarget,$("profile-photo")));
+$("profile-photo-gallery")?.addEventListener("change",e=>copySelectedFile(e.currentTarget,$("profile-photo")));
+function attachDropZone(zoneId,inputId,accept){const zone=$(zoneId),input=$(inputId);if(!zone||!input)return;zone.addEventListener("click",()=>input.click());zone.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();input.click();}});["dragenter","dragover"].forEach(type=>zone.addEventListener(type,e=>{e.preventDefault();zone.classList.add("dragover");}));["dragleave","drop"].forEach(type=>zone.addEventListener(type,e=>{e.preventDefault();zone.classList.remove("dragover");}));zone.addEventListener("drop",e=>{const file=[...(e.dataTransfer?.files||[])].find(f=>!accept||accept(f));if(!file)return;try{const dt=new DataTransfer();dt.items.add(file);input.files=dt.files;input.dispatchEvent(new Event("change",{bubbles:true}));}catch(_){zone.textContent="Couldn't attach that file here. Use the file picker instead.";}});}
+attachDropZone("profile-photo-drop","profile-photo",f=>f.type.startsWith("image/"));
+attachDropZone("short-video-drop","short-video-file",f=>f.type.startsWith("video/"));
+attachDropZone("moment-file-drop","moment-file",f=>f.type.startsWith("image/"));
+$("home-explore-topics")?.addEventListener("click",()=>document.querySelector('[data-home="people-screen"]')?.click());
+document.querySelectorAll("[data-topic]").forEach(button=>button.addEventListener("click",()=>{const topic=button.dataset.topic;document.querySelector('[data-home="people-screen"]')?.click();const search=$("people-search");if(search){search.value=topic.split(" & ")[0];search.dispatchEvent(new Event("input",{bubbles:true}));}}));
 
 /* ---------- Auth ---------- */
 let needInvite = false;
@@ -1526,10 +1558,13 @@ async function loadMoments() {
 $("moment-upload").onclick = async () => {
   const button = $("moment-upload"), fileInput = $("moment-file"), status = $("moment-status");
   status.textContent = "";
-  const file = fileInput.files && fileInput.files[0];
+  let file = fileInput.files && fileInput.files[0];
   if (!file) { status.textContent = "Choose a photo first."; return; }
+  if (!file.type.startsWith("image/")) { status.textContent = "Choose an image file."; return; }
+  status.textContent = "Optimizing photo for lower data use…";
+  file = await compressImageFile(file, 1600, .82);
   if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) { status.textContent = "Use a JPG, PNG, or WebP photo."; return; }
-  if (file.size > 5 * 1024 * 1024) { status.textContent = "Photo must be 5 MB or smaller."; return; }
+  if (file.size > 5 * 1024 * 1024) { status.textContent = "Photo must be 5 MB or smaller after optimization."; return; }
   if (me.is_banned) { status.textContent = "Your account is restricted from posting."; return; }
   button.disabled = true; button.textContent = "Uploading…";
   try {
@@ -1835,8 +1870,8 @@ $("profile-save").onclick=async()=>{
   const nick=$("profile-nickname").value.trim(), bio=$("profile-bio").value.trim().slice(0,180); const status=$("profile-status"); status.textContent="";
   if(!/^[A-Za-z0-9_]{3,20}$/.test(nick)){status.textContent="Nickname must be 3–20 letters, numbers or underscores.";return;}
   try{
-    let avatar_url=profilePhotoUrl; const file=$("profile-photo").files[0];
-    if(file){if(!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error("Use a JPG, PNG or WebP image.");if(file.size>4*1024*1024) throw new Error("Profile photos must be 4 MB or smaller.");
+    let avatar_url=profilePhotoUrl; let file=$("profile-photo").files[0];
+    if(file){file=await compressImageFile(file,1200,.84);if(!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error("Use a JPG, PNG or WebP image.");if(file.size>4*1024*1024) throw new Error("Profile photos must be 4 MB or smaller after optimization.");
       // Use a fresh object name for every photo change to avoid stale browser/CDN images.
       const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
       const key=me.id+"/avatar-"+Date.now()+"."+ext;
@@ -2015,15 +2050,19 @@ async function openPublicProfile(id) {
 /* ---------- Private Groups ---------- */
 let currentGroup=null, groupRefreshTimer=null;
 async function loadGroups(){
-  const list=$("groups-list"), status=$("group-status");list.innerHTML="";status.textContent="Loading your Groups…";$("group-detail").style.display="none";
-  const {data,error}=await sb.from("groups").select("id,name,description,created_by,created_at").order("created_at",{ascending:false});
-  if(error){status.textContent="Groups need the private-Groups SQL migration applied in Supabase. "+friendly(error);return;}
-  status.textContent=data.length?"":"You haven't joined any Groups yet. Create one or ask a creator to invite your nickname.";
-  data.forEach(g=>{const b=el("button","group-card");b.appendChild(el("b","",g.name));b.appendChild(el("small","",(g.description||"Private Group")+(g.created_by===me.id?" · Creator": "")));b.onclick=()=>openGroup(g);list.appendChild(b);});
+  const list=$("groups-list"), status=$("group-status");list.innerHTML="";status.textContent="Loading communities…";$("group-detail").style.display="none";
+  const {data,error}=await sb.from("groups").select("id,name,description,created_by,created_at,visibility,avatar_url,cover_url").order("created_at",{ascending:false});
+  if(error){status.textContent="Run MIGRATION_DRAFT2_COMMUNITIES.sql in Supabase to enable public/private/hidden communities. "+friendly(error);return;}
+  const rows=data||[];const visible=rows.filter(g=>g.visibility!=="hidden"||g.created_by===me.id);
+  const {data:mine}=await sb.from("group_members").select("group_id").eq("user_id",me.id);const joined=new Set((mine||[]).map(m=>String(m.group_id)));
+  status.textContent=visible.length?"":"No communities yet. Create one or explore public communities.";
+  visible.forEach(g=>{const card=el("div","group-card");const title=el("b","",g.name);const visibility=g.visibility||"private";const meta=(g.description||"A Mjadala community")+" · "+(visibility==="public"?"Public":visibility==="hidden"?"Hidden · invite only":"Private · approval required")+(g.created_by===me.id?" · Owner":"");card.append(title,el("small","",meta));const actions=el("div","group-card-actions");if(joined.has(String(g.id))||g.created_by===me.id){const open=el("button","btn","Open community");open.onclick=()=>openGroup(g);actions.appendChild(open);}
+    if(!joined.has(String(g.id))&&g.created_by!==me.id){const join=el("button","btn community-join",visibility==="public"?"Join":visibility==="private"?"Request to join":"Invite only");join.disabled=visibility==="hidden";join.onclick=async()=>{join.disabled=true;try{if(visibility==="public"){await rpc("join_public_community",{p_group_id:g.id});status.textContent="You joined the community.";}else{await rpc("request_private_community_join",{p_group_id:g.id});status.textContent="Join request sent to the community owner.";}await loadGroups();}catch(e){join.disabled=false;status.textContent=friendly(e);}};actions.appendChild(join);}
+    card.appendChild(actions);list.appendChild(card);});
 }
 $("group-create").onclick=async()=>{
-  const name=$("group-name").value.trim(),description=$("group-description").value.trim();
-  try{if(name.length<3||name.length>40)throw new Error("Group name must be 3–40 characters.");const id=await rpc("create_private_group",{p_name:name,p_description:description});$("group-name").value="";$("group-description").value="";$("group-status").textContent="Private Group created.";await loadGroups();const {data}=await sb.from("groups").select("id,name,description,created_by,created_at").eq("id",id).single();if(data)openGroup(data);}
+  const name=$("group-name").value.trim(),description=$("group-description").value.trim(),visibility=$("group-visibility")?.value||"private";
+  try{if(name.length<3||name.length>40)throw new Error("Community name must be 3–40 characters.");const id=await rpc("create_community_group",{p_name:name,p_description:description,p_visibility:visibility});$("group-name").value="";$("group-description").value="";$("group-status").textContent="Community created.";await loadGroups();const {data}=await sb.from("groups").select("id,name,description,created_by,created_at,visibility,avatar_url,cover_url").eq("id",id).single();if(data)openGroup(data);}
   catch(e){$("group-status").textContent=friendly(e);}
 };
 async function openGroup(g){
@@ -2040,6 +2079,14 @@ async function openGroup(g){
   }
   if(creator||myGroupRole==="admin"){
     const row=el("div","inline-row");const inp=el("input");inp.placeholder="Invite by exact nickname";inp.maxLength=20;const btn=el("button","primary","Invite member");btn.style.width="auto";btn.onclick=async()=>{try{await rpc("add_group_member",{p_group_id:g.id,p_nickname:inp.value.trim()});inp.value="";$("group-status").textContent="Member added.";await openGroup(g);}catch(e){$("group-status").textContent=friendly(e);}};row.append(inp,btn);box.appendChild(row);
+  }
+  if(creator||myGroupRole==="admin"){
+    const requests=el("div","community-requests");requests.appendChild(el("h4","group-roster-title","Join requests"));
+    const {data:pendingRequests,error:requestError}=await sb.from("group_join_requests").select("id,user_id,message,created_at").eq("group_id",g.id).eq("status","pending").order("created_at",{ascending:true});
+    if(requestError){requests.appendChild(el("small","muted-note","Join request queue unavailable: "+friendly(requestError)));}
+    else if(!pendingRequests?.length){requests.appendChild(el("small","muted-note","No pending requests."));}
+    else {const ids=pendingRequests.map(r=>r.user_id);const {data:requestProfiles}=await sb.from("profiles").select("id,nickname").in("id",ids);const nickById=new Map((requestProfiles||[]).map(p=>[p.id,p.nickname]));pendingRequests.forEach(r=>{const row=el("div","community-request-row");const copy=el("div","community-request-copy");copy.appendChild(el("b","",nickById.get(r.user_id)||"Mjadala member"));if(r.message)copy.appendChild(el("small","",r.message));row.appendChild(copy);const approve=el("button","btn community-approve","Approve");approve.onclick=async()=>{approve.disabled=true;try{await rpc("review_private_community_join",{p_request_id:r.id,p_approve:true});await openGroup(g);await loadGroups();}catch(e){approve.disabled=false;$("group-status").textContent=friendly(e);}};const reject=el("button","btn danger","Decline");reject.onclick=async()=>{reject.disabled=true;try{await rpc("review_private_community_join",{p_request_id:r.id,p_approve:false});await openGroup(g);}catch(e){reject.disabled=false;$("group-status").textContent=friendly(e);}};row.append(approve,reject);requests.appendChild(row);});}
+    box.appendChild(requests);
   }
   const rosterTitle=el("h4","group-roster-title","Members and roles");box.appendChild(rosterTitle);
   const roster=el("div","group-roster");box.appendChild(roster);
@@ -2070,13 +2117,16 @@ async function openGroup(g){
     }
   }
   const msgs=el("div","group-chat-list");msgs.id="group-msg-list";box.appendChild(msgs);
-  const form=el("form","inline-row");const input=el("input");input.placeholder="Message this Group";input.maxLength=500;input.required=true;const send=el("button","primary","Send");send.style.width="auto";form.append(input,send);box.appendChild(form);
-  form.onsubmit=async e=>{e.preventDefault();const body=input.value.trim();if(!body)return;send.disabled=true;const {error}=await sb.from("group_messages").insert({group_id:g.id,author_id:me.id,body});send.disabled=false;if(error){$("group-status").textContent=friendly(error);return;}input.value="";await refreshGroupMessages(g,msgs,myGroupRole,creator);};
+  const form=el("form","inline-row group-message-composer");const input=el("input");input.placeholder="Message this community";input.maxLength=500;const fileInput=el("input");fileInput.type="file";fileInput.accept="image/*,application/pdf,text/plain,.docx,.xlsx,.pptx";fileInput.hidden=true;const attach=el("button","btn group-attach","＋ File");attach.type="button";attach.onclick=()=>fileInput.click();const send=el("button","primary","Send");send.style.width="auto";form.append(input,attach,send,fileInput);box.appendChild(form);
+  box.addEventListener("dragover",e=>{if([...((e.dataTransfer&&e.dataTransfer.items)||[])].some(item=>item.kind==="file")){e.preventDefault();box.classList.add("group-file-dragover");}});
+  box.addEventListener("dragleave",e=>{if(!box.contains(e.relatedTarget))box.classList.remove("group-file-dragover");});
+  box.addEventListener("drop",e=>{e.preventDefault();box.classList.remove("group-file-dragover");const file=e.dataTransfer?.files?.[0];if(!file)return;try{const dt=new DataTransfer();dt.items.add(file);fileInput.files=dt.files;input.placeholder="Attachment ready: "+file.name.slice(0,32);input.focus();}catch(_){$("group-status").textContent="Use the + File button to attach this file.";}});
+  form.onsubmit=async e=>{e.preventDefault();const body=input.value.trim(),file=fileInput.files?.[0];if(!body&&!file)return;send.disabled=true;attach.disabled=true;try{let attachment_path=null,attachment_name=null,attachment_type=null;if(file){if(file.size>20*1024*1024)throw new Error("Group attachments must be 20 MB or smaller.");attachment_name=file.name.slice(0,180);attachment_type=file.type||"application/octet-stream";attachment_path=g.id+"/"+me.id+"/"+crypto.randomUUID()+"-"+file.name.replace(/[^A-Za-z0-9._-]/g,"_").slice(0,100);const uploaded=await sb.storage.from("group-media").upload(attachment_path,file,{upsert:false,contentType:attachment_type,cacheControl:"3600"});if(uploaded.error)throw uploaded.error;}const {error}=await sb.from("group_messages").insert({group_id:g.id,author_id:me.id,body:body||(file?"Shared an attachment":""),attachment_path,attachment_name,attachment_type});if(error){if(attachment_path)await sb.storage.from("group-media").remove([attachment_path]);throw error;}input.value="";fileInput.value="";await refreshGroupMessages(g,msgs,myGroupRole,creator);}catch(e){$("group-status").textContent=friendly(e);}finally{send.disabled=false;attach.disabled=false;}};
   await refreshGroupMessages(g,msgs,myGroupRole,creator);
 }
 
 async function refreshGroupMessages(g,target,myGroupRole="member",isCreator=false){
-  const {data,error}=await sb.from("group_messages").select("id,body,created_at,author_id").eq("group_id",g.id).order("id",{ascending:true}).limit(100);
+  const {data,error}=await sb.from("group_messages").select("id,body,created_at,author_id,attachment_path,attachment_name,attachment_type,edited_at").eq("group_id",g.id).order("id",{ascending:true}).limit(100);
   target.innerHTML="";if(error){target.textContent=friendly(error);return;}
   const authorIds=[...new Set((data||[]).map(m=>m.author_id))];
   const {data:authors,error:authorError}=authorIds.length
@@ -2088,6 +2138,8 @@ async function refreshGroupMessages(g,target,myGroupRole="member",isCreator=fals
     const item=el("div","group-chat-msg");
     item.appendChild(el("small","",(names.get(m.author_id)||"Member")+" · "+new Date(m.created_at).toLocaleString()));
     const messageBody=el("div","group-chat-msg-body");appendLinkedMessageText(messageBody,m.body,false);item.appendChild(messageBody);
+    if(m.edited_at)item.appendChild(el("small","group-edited-note","edited"));
+    if(m.attachment_path){const link=el("a","group-attachment",m.attachment_name||"Download attachment");link.href="#";link.onclick=async e=>{e.preventDefault();link.textContent="Preparing secure download…";const {data:signed,error:signedError}=await sb.storage.from("group-media").createSignedUrl(m.attachment_path,90);if(signedError){link.textContent="Could not open attachment";return;}window.open(signed.signedUrl,"_blank","noopener");link.textContent=m.attachment_name||"Download attachment";};item.appendChild(link);}
     const canDelete=m.author_id===me.id||isCreator||myGroupRole==="admin";
     if(m.author_id===me.id){
       const edit=el("button","btn group-msg-action","Edit");
@@ -2518,6 +2570,34 @@ button:disabled, input:disabled, textarea:disabled, select:disabled {
 :root[data-theme="dark"] #notification-settings .settings-heading .vector-icon { color:#FFF1CC; }
 </style>
 
+
+<style id="mjadala-draft2-design-system">
+:root{--brand:#174D35;--brand-strong:#0E3A29;--brand-soft:#E2EEE6;--accent:#FFF1CC;--bg:#F7F6F0;--surface:#FFFFFF;--surface-2:#F0F2ED;--text:#17251E;--muted:#66756B;--line:#E0E6DF;--mine:#E3F2E8;--radius:18px;--shadow:0 8px 26px rgba(23,77,53,.07)}
+:root[data-theme="dark"]{--brand:#77B992;--brand-strong:#A9D7BA;--brand-soft:#203A2D;--accent:#FFF1CC;--bg:#101B15;--surface:#17251D;--surface-2:#203128;--text:#F1F6F1;--muted:#A8B9AD;--line:#2D4134;--mine:#203A2D;--shadow:0 8px 26px rgba(0,0,0,.22)}
+html,body{background:var(--bg);color:var(--text)}
+#rooms>header{background:var(--surface);border-bottom:1px solid var(--line);padding-left:16px;padding-right:16px;gap:8px}
+#rooms>header .brand-lockup h1{font-size:23px;color:var(--brand);font-weight:850;letter-spacing:-.045em}
+.brand-mark{background:var(--brand);color:#fff;border:0;border-radius:13px;box-shadow:none}
+.brand-mark svg{width:32px;height:32px}.brand-mark svg text{fill:#fff!important}.brand-mark svg text+text{fill:var(--accent)!important}
+#rooms>header #install,#rooms>header #logout{display:none}#rooms>header .theme-toggle{font-size:17px}
+.home-welcome{margin:12px 16px 18px;padding:18px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(125deg,var(--surface),color-mix(in srgb,var(--brand-soft) 60%,var(--surface)));box-shadow:var(--shadow)}
+.welcome-copy h2{font-size:20px;letter-spacing:-.04em}.welcome-copy p{color:var(--muted)}.welcome-primary,.primary{background:var(--brand);color:#fff;border-radius:12px;box-shadow:none}.welcome-secondary{border:1px solid var(--line);background:var(--surface);color:var(--brand);border-radius:12px}
+.moments-strip{padding:0 16px 10px}.section-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}.section-heading h2{font-size:17px;font-weight:800;letter-spacing:-.03em}.section-heading button{background:transparent;color:var(--brand);font-weight:750;font-size:12px}
+.bubble-ring{border:2px solid var(--brand);background:var(--surface);color:var(--brand);box-shadow:inset 0 0 0 3px var(--bg)}.bubble-indigo,.bubble-orange,.bubble-slate{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
+.topic-shortcuts{padding:4px 16px 10px;max-width:900px;margin:0 auto}.topic-chip-row{display:flex;gap:9px;overflow-x:auto;padding:12px 0 5px;scrollbar-width:none}.topic-chip-row::-webkit-scrollbar{display:none}.topic-chip{display:flex;align-items:center;gap:8px;flex:0 0 auto;padding:8px 12px 8px 8px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--text);font-size:12px;font-weight:750;box-shadow:0 2px 8px rgba(20,50,32,.03)}.topic-chip-icon{width:32px;height:32px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand);border-radius:10px}.topic-chip-icon svg,.nav-icon svg,.secondary-action svg,.community-heading-mark svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.conversations-heading{padding:6px 16px 0;margin-top:6px}
+#roomlist{padding:0 16px calc(100px + env(safe-area-inset-bottom));max-width:900px;margin:0 auto}.room{padding:14px 14px 14px 70px;margin:8px 0;border:1px solid var(--line);border-radius:16px;background:var(--surface);box-shadow:0 3px 12px rgba(20,50,32,.025);min-height:76px}.room:before{left:12px;top:15px;width:44px;height:44px;border-radius:14px;background:var(--brand);color:#fff;font-size:19px;content:'M'}.room:nth-child(3n+2):before,.room:nth-child(3n):before{background:var(--brand-soft);color:var(--brand);content:'•'}.room:hover{background:var(--surface);border-color:color-mix(in srgb,var(--brand) 30%,var(--line))}
+.home-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;padding:7px 8px calc(7px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--surface) 96%,transparent);border-top:1px solid var(--line);box-shadow:0 -5px 20px rgba(23,77,53,.06)}.home-tabs button{gap:4px;color:var(--muted);font-size:12px;min-width:0}.home-tabs button span.nav-icon{display:grid;place-items:center;height:24px}.home-tabs button .nav-icon svg{width:21px;height:21px}.home-tabs button.on{color:var(--brand);background:var(--brand-soft)}.home-tabs button.on small{text-decoration:none}.home-tabs button small{font-size:10px;font-weight:750;white-space:nowrap}
+#shorts-screen .shorts-head h2,#groups-screen h2,#people-screen h2{color:var(--text);letter-spacing:-.04em}.short-categories button{border-radius:999px!important}.short-categories button.active{background:var(--brand)!important;color:#fff!important}.short-categories button{background:var(--surface)!important;border:1px solid var(--line)!important;color:var(--text)!important}
+.groups-panel,.people-panel,.profile-panel,.moment-compose{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow)}.groups-panel{padding:16px;margin:14px 12px}.community-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.community-heading p{font-size:13px;color:var(--muted);line-height:1.5;margin-top:5px}.community-heading-mark{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand)}.community-heading-mark svg{width:26px;height:26px}.community-create-card{padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--bg);margin-bottom:14px}.community-create-card h3{font-size:15px;margin-bottom:10px}.community-create-card input,.community-create-card textarea,.community-create-card select{width:100%;margin:5px 0 9px;padding:12px;border-radius:11px;border:1px solid var(--line);background:var(--surface);color:var(--text)}.field-label{display:block;font-size:12px;font-weight:750;color:var(--muted);margin:6px 0 2px}.group-card{width:100%;display:flex;flex-direction:column;align-items:flex-start;gap:5px;text-align:left;padding:14px;margin:8px 0;border:1px solid var(--line);border-radius:15px;background:var(--surface);color:var(--text)}.group-card b{font-size:14px}.group-card small{font-size:12px;color:var(--muted)}.group-chat{margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:16px;background:var(--bg)}.group-chat-list{max-height:40vh;overflow:auto;padding:8px 0}.group-chat-msg{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:7px 0;max-width:95%}.group-chat-msg-body{line-height:1.45;overflow-wrap:anywhere}
+.photo-choice-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.secondary-action{display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 8px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--brand);font-size:12px;font-weight:750}.secondary-action svg{width:18px;height:18px}.drop-zone{display:flex;align-items:center;justify-content:center;min-height:68px;padding:14px;text-align:center;border:1.5px dashed color-mix(in srgb,var(--brand) 45%,var(--line));border-radius:14px;background:color-mix(in srgb,var(--brand-soft) 40%,var(--surface));color:var(--muted);font-size:12px;cursor:pointer;margin:8px 0}.drop-zone.dragover{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}.compact-drop{min-height:48px}
+#profile-screen .profile-panel,#profile-screen .settings-row{color:var(--text)}:root:not([data-theme="dark"]) #profile-screen .profile-panel,:root:not([data-theme="dark"]) #profile-screen .settings-heading h2,:root:not([data-theme="dark"]) #profile-screen input:not([type=checkbox]),:root:not([data-theme="dark"]) #profile-screen textarea,:root:not([data-theme="dark"]) #profile-screen select{color:var(--text)!important}:root:not([data-theme="dark"]) #profile-screen small,:root:not([data-theme="dark"]) #profile-screen .menu-identity-copy small,:root:not([data-theme="dark"]) #profile-screen .settings-row-copy small,:root:not([data-theme="dark"]) #profile-screen .settings-heading p,:root:not([data-theme="dark"]) #profile-screen .settings-status{color:var(--muted)!important}:root:not([data-theme="dark"]) #profile-screen input::placeholder,:root:not([data-theme="dark"]) #profile-screen textarea::placeholder{color:var(--muted)!important}
+@media(min-width:700px){.home-welcome{max-width:868px;margin:14px auto 18px}.moments-strip{max-width:868px;margin:auto}.topic-shortcuts{width:calc(100% - 32px)}.groups-panel{max-width:868px;margin:18px auto}.home-tabs{max-width:680px;left:50%;transform:translateX(-50%);border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0}}
+</style>
+
+<style id="mjadala-community-controls">
+.group-card-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:5px}.group-card-actions .btn,.community-request-row .btn{border:1px solid var(--line);background:var(--surface-2);color:var(--brand);border-radius:10px;padding:8px 12px;font-size:12px;font-weight:750}.group-card-actions .community-join,.community-request-row .community-approve{background:var(--brand);border-color:var(--brand);color:#fff}.group-card-actions .btn:disabled{opacity:.55}.community-requests{padding:12px;margin:12px 0;border:1px solid var(--line);border-radius:14px;background:var(--surface)}.community-request-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--line)}.community-request-copy{display:flex;flex-direction:column;gap:3px;flex:1;min-width:110px}.community-request-copy b{font-size:13px}.community-request-copy small{font-size:12px;color:var(--muted)}
+</style>
+<style id="mjadala-group-chat-polish">.group-message-composer{display:flex;align-items:center;gap:7px;flex-wrap:nowrap}.group-message-composer input:not([type=file]){flex:1;min-width:0}.group-attach{white-space:nowrap;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--brand);padding:10px;font-size:12px;font-weight:750}.group-attachment{display:inline-flex;max-width:100%;margin-top:8px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--brand-soft);color:var(--brand);font-size:12px;font-weight:750;overflow-wrap:anywhere}.group-edited-note{display:block;color:var(--muted);font-size:10px;margin-top:4px}.group-chat.group-file-dragover{outline:2px dashed var(--brand);outline-offset:-5px;background:var(--brand-soft)}</style>
 </body>
 </html>
 
