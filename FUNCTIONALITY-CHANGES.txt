@@ -1,0 +1,9 @@
+Mjadala v8 functionality pass
+- Current preview layout retained; no rollback to the older design.
+- Reels sound, menu, like, comment, share, save, local video preview, and safe local-preview deletion added.
+- Standard SVG icons used for action controls.
+- Local optimistic interactions persist in this browser.
+- Search overlay added.
+- Seller delivery fields now feed the actual Supabase product payload.
+- Sign-out calls Supabase auth when a session/client is available.
+- Read FUNCTIONALITY-TEST-REPORT.md for tested items and limits.

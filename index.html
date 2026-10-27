@@ -68,6 +68,8 @@ button,input{font:inherit}button{cursor:pointer}
 .std-icon{display:inline-block;width:1.15em;height:1.15em;vertical-align:-.2em;flex:0 0 auto;color:currentColor;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .std-icon use{fill:none;stroke:currentColor}
 .leaf .std-icon{width:21px;height:21px;vertical-align:middle}.nav-ico .std-icon{width:21px;height:21px}.category .std-icon{width:25px;height:25px;display:block;margin-bottom:auto}.thumb .std-icon{width:27px;height:27px}.drop-icon .std-icon{width:28px;height:28px}.micon .std-icon{width:18px;height:18px}.icon-btn .std-icon{width:19px;height:19px}.reel-actions b .std-icon{width:20px;height:20px}.post-actions .std-icon{width:15px;height:15px}.menu-row .chev .std-icon{width:14px;height:14px}
+
+.reel-top-actions{display:flex;align-items:center;gap:7px}.reel-icon-btn{width:32px;height:32px;border:1px solid #ffffff50;border-radius:50%;background:#0005;color:#fff;display:grid;place-items:center;cursor:pointer}.reel-icon-btn .std-icon{width:17px;height:17px}.reel-actions button{border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;display:flex;flex-direction:column;gap:4px;align-items:center;padding:0;min-width:42px}.reel-actions button b{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:#0006;font-size:19px;margin:auto}.reel-actions button[aria-pressed="true"] b{background:#174d35;color:#fff;outline:2px solid #fff}.reel-actions button span{font-size:11px}.reel-more-menu{position:absolute;z-index:5;right:10px;top:52px;background:#fff;color:#20352a;border-radius:12px;box-shadow:0 8px 28px #0004;min-width:180px;padding:5px}.reel-more-menu[hidden]{display:none}.reel-more-menu button{display:flex;gap:9px;align-items:center;width:100%;padding:11px;border:0;background:transparent;text-align:left;border-radius:8px;color:inherit}.reel-more-menu button:active{background:#edf3ee}.reel-more-menu .std-icon{width:17px;height:17px}.post-actions button{border:0;background:transparent;color:inherit;cursor:pointer;padding:5px 2px;font:inherit;display:inline-flex;align-items:center;gap:4px}.post-actions button[aria-pressed="true"]{color:var(--green,#174d35);font-weight:700}.is-hidden{display:none!important}.action-confirm{display:flex;align-items:center;gap:8px;padding:12px;border-radius:10px;background:var(--soft,#edf3ee);margin-top:8px}.action-confirm button{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:transparent;color:inherit}
 </style></head>
 <body>
 
@@ -106,10 +108,16 @@ button,input{font:inherit}button{cursor:pointer}
  <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></symbol>
+
+ <symbol id="i-volume-2" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4zM15.5 8.5a5 5 0 0 1 0 7M18 5a9 9 0 0 1 0 14"/></symbol>
+ <symbol id="i-volume-x" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4zM16 9l5 6m0-6-5 6"/></symbol>
+ <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6"/></symbol>
+ <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4m0 1c5-4 9 4 14 0v10c-5 4-9-4-14 0"/></symbol>
+ <symbol id="i-pause" viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z"/></symbol>
 </svg>
 
 <div class="preview-wrap">
- <header class="preview-head"><div><div class="brand"><span class="leaf"><svg class="std-icon"><use href="#i-sparkles"/></svg></span> Mjadala</div><p>Visual redesign preview · outlook first, functionality later</p></div><span class="mode" style="cursor:default">Design preview</span></header>
+ <header class="preview-head"><div><div class="brand"><span class="leaf"><svg class="std-icon"><use href="#i-sparkles"/></svg></span> Mjadala</div><p>Mjadala · connect, share, build</p></div><span class="mode" style="cursor:default">Design preview</span></header>
  <div class="layout">
   <main class="phone" aria-label="Mjadala app prototype">
    <div class="status"><span>9:41</span><span>● ▮▮ ▰ 92%</span></div>
@@ -149,7 +157,6 @@ button,input{font:inherit}button{cursor:pointer}
       <div class="field" style="border:1px solid var(--line);border-radius:10px;padding:10px"><label style="display:flex;align-items:center;gap:8px"><input id="sellerPoolEnabled" type="checkbox" style="width:auto"> <svg class="std-icon"><use href="#i-users"/></svg> Offer group-buy pooling to customers</label><p class="subtle" style="font-size:11px;margin:5px 0 0">The business owner decides whether this product supports pooling. If enabled, customers can join voluntarily.</p></div>
       <div id="sellerPoolSettings" style="display:none"><div class="field-grid"><div class="field"><label for="poolMinimum"><svg class="std-icon"><use href="#i-users"/></svg> Minimum pool size</label><input id="poolMinimum" type="number" min="2" max="50" value="5"></div><div class="field"><label for="poolDiscount"><svg class="std-icon"><use href="#i-check"/></svg> Pool item discount (%)</label><input id="poolDiscount" type="number" min="0" max="90" value="10"></div></div>
       <div class="field"><label for="poolCapacity"><svg class="std-icon"><use href="#i-users"/></svg> Maximum pool members</label><input id="poolCapacity" type="number" min="2" max="50" value="5"></div><p class="subtle" style="font-size:11px">Set the pool delivery price above based on your product, packaging, destination and delivery arrangement. Customers see the amount before they confirm.</p></div>
-      <div class="field-grid"><div class="field"><label for="sellerStandardDeliveryFee">Standard delivery fee (KSh)</label><input id="sellerStandardDeliveryFee" type="number" min="0" value="150"></div><div class="field"><label for="sellerExpressDeliveryFee">Express delivery fee (KSh)</label><input id="sellerExpressDeliveryFee" type="number" min="0" value="300"></div></div>
       <div class="field"><label for="sellerPickup">Fulfilment options</label><select id="sellerPickup"><option value="both">Pickup and delivery</option><option value="delivery">Delivery only</option><option value="pickup">Pickup only</option></select></div>
       <div class="section-title" style="margin-top:14px"><svg class="std-icon"><use href="#i-shield"/></svg> Customer protection & terms</div>
       <p class="subtle" style="font-size:11px">Set clear, fair terms for this product. The customer should be able to read them before ordering. Local consumer law still applies.</p>
@@ -201,8 +208,8 @@ button,input{font:inherit}button{cursor:pointer}
     </section>
     <section class="screen" data-screen="2">
      <div class="chips"><span class="chip on">For You</span><span class="chip">Following</span><span class="chip">Engineering</span><span class="chip">Business</span></div>
-     <div class="reel-stage"><div class="reel-art"></div><div class="reel-top"><b>▶ Reels</b><span>For You · Following</span></div><div class="reel-actions"><div><b>♡</b>1.2K</div><div><b>◯</b>243</div><div><b>↗</b>Share</div><div><b>♧</b>Save</div></div><div class="reel-bottom"><div style="font-size:12px;font-weight:800">◉ @TravelWithBrian</div><h3>Beautiful views, bigger dreams.</h3><p>Exploring Kenya one journey at a time. #Travel #Explore</p></div></div>
-     <div class="row-card"><div class="thumb">＋</div><div class="grow"><h4>Create a Reel</h4><p>Share a short video, idea, or tutorial.</p></div><button class="mini-btn" data-toast="Create Reel screen preview">Create</button></div>
+     <div class="reel-stage" id="sampleReel" data-reel-id="sample-travel-reel"><div class="reel-art"></div><div class="reel-top"><b><svg class="std-icon"><use href="#i-play"/></svg> Reels</b><div class="reel-top-actions"><span>For You · Following</span><button type="button" class="reel-icon-btn" data-reel-action="sound" aria-label="Turn sound on" title="Sound off"><svg class="std-icon"><use href="#i-volume-x"/></svg></button><button type="button" class="reel-icon-btn" data-reel-action="menu" aria-label="More Reel options"><svg class="std-icon"><use href="#i-dots"/></svg></button></div></div><div class="reel-more-menu" id="reelMoreMenu" hidden><button type="button" data-reel-action="report"><svg class="std-icon"><use href="#i-flag"/></svg> Report Reel</button><button type="button" data-reel-action="delete"><svg class="std-icon"><use href="#i-trash"/></svg> Delete my Reel</button></div><div class="reel-actions"><button type="button" data-reel-action="like" aria-label="Like Reel"><b><svg class="std-icon"><use href="#i-heart"/></svg></b><span data-count="likes">1.2K</span></button><button type="button" data-reel-action="comment" aria-label="Comment on Reel"><b><svg class="std-icon"><use href="#i-message"/></svg></b><span data-count="comments">243</span></button><button type="button" data-reel-action="share" aria-label="Share Reel"><b><svg class="std-icon"><use href="#i-share"/></svg></b><span>Share</span></button><button type="button" data-reel-action="save" aria-label="Save Reel"><b><svg class="std-icon"><use href="#i-bookmark"/></svg></b><span>Save</span></button></div><div class="reel-bottom"><div style="font-size:12px;font-weight:800">◉ @TravelWithBrian</div><h3>Beautiful views, bigger dreams.</h3><p>Exploring Kenya one journey at a time. #Travel #Explore</p></div></div>
+     <div class="row-card"><div class="thumb">＋</div><div class="grow"><h4>Create a Reel</h4><p>Choose a video to preview it before publishing.</p></div><input type="file" id="reelVideoInput" accept="video/*" hidden><button class="mini-btn" id="createReelButton" type="button">Create</button></div><p class="subtle" id="reelCreateStatus" aria-live="polite">Videos stay on this device until publishing is connected.</p>
     </section>
     <section class="screen" data-screen="3">
      <div class="chips"><span class="chip on">Topics</span><span class="chip">My Communities</span><span class="chip">Requests</span></div>
@@ -266,7 +273,7 @@ document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=
 let sx=0,sy=0;viewport.addEventListener('touchstart',e=>{sx=e.changedTouches[0].clientX;sy=e.changedTouches[0].clientY},{passive:true});viewport.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.2)go(current+(dx<0?1:-1))},{passive:true});
 document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')go(current+1);if(e.key==='ArrowLeft')go(current-1)});
 let timer;document.querySelectorAll('[data-toast]').forEach(b=>b.addEventListener('click',()=>{const t=document.getElementById('toast');t.textContent=b.dataset.toast;t.classList.add('show');clearTimeout(timer);timer=setTimeout(()=>t.classList.remove('show'),1600)}));
-function toggleTheme(){document.body.classList.toggle('dark');document.getElementById('appearanceSummary').textContent=document.body.classList.contains('dark')?'Dark theme · tap to change':'Light theme · tap to change';document.getElementById('profileMenu').classList.remove('open')}
+function toggleTheme(){document.body.classList.toggle('dark');try{localStorage.setItem('mjadala-ui-theme',document.body.classList.contains('dark')?'dark':'light')}catch(e){}document.getElementById('appearanceSummary').textContent=document.body.classList.contains('dark')?'Dark theme · tap to change':'Light theme · tap to change';document.getElementById('profileMenu').classList.remove('open')}
 document.getElementById('appearanceRow').addEventListener('click',toggleTheme);
 document.getElementById('appearanceRow').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleTheme()}});
 const menu=document.getElementById('profileMenu');
@@ -306,7 +313,8 @@ businessInput.addEventListener('change',()=>{const files=[...businessInput.files
 ['dragleave','drop'].forEach(ev=>businessDrop.addEventListener(ev,e=>{e.preventDefault();businessDrop.classList.remove('dragover')}));
 businessDrop.addEventListener('drop',e=>{const files=[...e.dataTransfer.files];document.getElementById('businessFileName').textContent=files.length?files.map(f=>f.name).join(', '):'No files dropped';});
 
-document.getElementById('resetBtn')?.addEventListener('click',()=>{document.body.classList.remove('dark');go(0)});
+document.getElementById('resetBtn')?.addEventListener('click',()=>{document.body.classList.remove('dark');try{localStorage.setItem('mjadala-ui-theme','light')}catch(e){}go(0)});
+try{if(localStorage.getItem('mjadala-ui-theme')==='dark')document.body.classList.add('dark')}catch(e){}
 updateHeaderActions();
 </script>
 <script>
@@ -329,4 +337,5 @@ updateHeaderActions();
 })();
 </script>
 <script src="business-integration.js"></script>
+<script src="interaction-layer.js"></script>
 </body></html>

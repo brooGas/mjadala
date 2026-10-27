@@ -7,6 +7,7 @@
   const AUTH_DOMAIN = 'mjadala.app';
   if (!window.supabase?.createClient) { console.error('Supabase SDK failed to load'); return; }
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  window.mjadalaAuth = { getSession: () => sb.auth.getSession(), signOut: () => sb.auth.signOut(), getUser: () => sb.auth.getUser() };
   const $ = id => document.getElementById(id);
   let session = null, activeProduct = null, selectedImages = [], poolId = null;
   const money = n => 'KSh ' + Number(n || 0).toLocaleString('en-KE');
@@ -52,8 +53,8 @@
     const discount = Math.min(90, Math.max(0, Number($('poolDiscount').value) || 0));
     return {
       seller_id: session.user.id, product_name:name, description, price, currency:'KES', image_urls:[],
-      standard_delivery_fee: Math.max(0, Number($('sellerStandardDeliveryFee')?.value ?? 150) || 0),
-      express_delivery_fee: Math.max(0, Number($('sellerExpressDeliveryFee')?.value ?? 300) || 0),
+      standard_delivery_fee: Math.max(0, Number($('sellerDeliveryFee').value) || 0),
+      express_delivery_fee: Math.max(0, Number($('sellerExpressFee').value) || 0),
       pickup_available: $('sellerPickup').value !== 'delivery',
       warranty_available: $('sellerWarranty').value !== 'No warranty offered',
       warranty_period: $('sellerWarranty').value, warranty_terms: $('sellerWarranty').value,

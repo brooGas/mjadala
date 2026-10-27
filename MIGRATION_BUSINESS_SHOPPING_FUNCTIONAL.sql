@@ -60,12 +60,12 @@ declare
   v_delivery numeric;
   v_total numeric;
   v_order_id uuid;
-  v_status text := 'pending';
 begin
   if v_user is null then raise exception 'Sign in before checkout'; end if;
   if p_quantity is null or p_quantity < 1 or p_quantity > 100 then raise exception 'Quantity must be between 1 and 100'; end if;
   if coalesce(trim(p_customer_name),'') = '' or coalesce(trim(p_customer_phone),'') = '' then raise exception 'Customer name and phone are required'; end if;
-  if p_delivery_method not in ('standard','express','pickup') then raise exception 'Invalid delivery method'; end if;
+  if p_delivery_method is null or p_delivery_method not in ('standard','express','pickup') then raise exception 'Invalid delivery method'; end if;
+  if p_delivery_method <> 'pickup' and coalesce(trim(p_delivery_address),'') = '' then raise exception 'Delivery address is required'; end if;
 
   select * into v_product from public.business_products
    where id = p_product_id and published = true for update;
