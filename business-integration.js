@@ -50,7 +50,16 @@
       $('businessOwnerLabel').textContent = 'Owner: ' + owner;
     } catch (e) { console.warn('Could not load business profile:', errorText(e)); }
   }
-  $('openMyBusiness')?.addEventListener('click',()=>{ $('ownerPanel')?.scrollIntoView({behavior:'smooth',block:'start'}); $('sellerBusinessName')?.focus(); });
+  $('openMyBusiness')?.addEventListener('click',()=>{
+    if (!requireSession()) return;
+    const panel = $('ownerPanel');
+    if (panel) {
+      const opening = getComputedStyle(panel).display === 'none';
+      panel.style.display = opening ? 'block' : 'none';
+      $('openMyBusiness').textContent = opening ? 'Close' : 'Open';
+      if (opening) { panel.scrollIntoView({behavior:'smooth',block:'start'}); $('sellerBusinessName')?.focus({preventScroll:true}); }
+    }
+  });
 
   function requireSession() {
     if (session?.user) return true;
@@ -103,7 +112,12 @@
     $('customerReturns').textContent = p.return_terms || 'No additional return policy provided.';
     $('customerTerms').textContent = p.additional_terms || 'No additional terms provided.';
     const thumb = document.querySelector('.product-thumb');
-    if (thumb && p.image_urls?.[0]) { thumb.innerHTML = `<img alt="${escapeHTML(p.product_name)}" src="${p.image_urls[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:12px">`; }
+    if (thumb) {
+      const image = Array.isArray(p.image_urls) ? p.image_urls.find(url => typeof url === 'string' && url.trim()) : null;
+      thumb.innerHTML = image
+        ? `<img alt="${escapeHTML(p.product_name)}" src="${escapeHTML(image)}" style="width:100%;height:100%;object-fit:cover;border-radius:12px">`
+        : `<span class="product-image-fallback">${escapeHTML((p.product_name || 'P').trim().slice(0,2).toUpperCase())}</span>`;
+    }
     const standard = Number(p.standard_delivery_fee || 0), express = Number(p.express_delivery_fee || 0);
     const delivery = $('deliveryMethod');
     delivery.innerHTML = `<option value="standard">Standard delivery · ${money(standard)}</option><option value="express">Express delivery · ${money(express)}</option>${p.pickup_available ? '<option value="pickup">Collect from seller · Free</option>' : ''}`;
@@ -132,8 +146,12 @@
       return;
     }
     host.innerHTML = '<div class="market-grid">' + catalogProducts.map(p => {
-      const image = Array.isArray(p.image_urls) ? p.image_urls[0] : null;
-      return `<article class="market-item">${image ? `<img loading="lazy" src="${escapeHTML(image)}" alt="${escapeHTML(p.product_name)}">` : '<div style="height:112px;border-radius:10px;background:linear-gradient(145deg,#dce8d7,#fff1cc);display:grid;place-items:center;color:#174d35;font-weight:900">MV</div>'}<h4>${escapeHTML(p.product_name)}</h4><p>${escapeHTML(p.description || 'Details available from the seller')}</p><strong>${money(p.price)}</strong><p>Standard delivery ${money(p.standard_delivery_fee || 0)} · Express ${money(p.express_delivery_fee || 0)}</p><button type="button" data-open-product="${escapeHTML(p.id)}">View product</button></article>`;
+      const image = Array.isArray(p.image_urls) ? p.image_urls.find(url => typeof url === 'string' && url.trim()) : null;
+      const isOwner = !!session?.user?.id && String(p.seller_id) === String(session.user.id);
+      const imageMarkup = image
+        ? `<img loading="lazy" src="${escapeHTML(image)}" alt="${escapeHTML(p.product_name)}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="market-image-fallback" hidden>${escapeHTML((p.product_name || 'P').trim().slice(0,2).toUpperCase())}</div>`
+        : `<div class="market-image-fallback">${escapeHTML((p.product_name || 'P').trim().slice(0,2).toUpperCase())}</div>`;
+      return `<article class="market-item">${imageMarkup}<h4>${escapeHTML(p.product_name)}</h4><p>${escapeHTML(p.description || 'Details available from the seller')}</p><strong>${money(p.price)}</strong><p>Standard delivery ${money(p.standard_delivery_fee || 0)} · Express ${money(p.express_delivery_fee || 0)}</p><button type="button" data-open-product="${escapeHTML(p.id)}">View product</button>${isOwner ? `<button type="button" class="market-remove" data-remove-product="${escapeHTML(p.id)}">Remove my product</button>` : ''}</article>`;
     }).join('') + '</div>';
   }
   function escapeHTML(s) { return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -250,9 +268,37 @@
       toast('Group-buy pool selected. Complete checkout to join.');
     } catch(e) { toast('Could not open pool: '+errorText(e)); }
   }
-  document.addEventListener('click', e => {
+  document.addEventListener('click', async e => {
+    const removeButton = e.target.closest('[data-remove-product]');
+    if (removeButton) {
+      e.preventDefault(); e.stopImmediatePropagation();
+      if (!session?.user?.id) { toast('Sign in as the product owner first.'); return; }
+      const product = catalogProducts.find(p => String(p.id) === String(removeButton.dataset.removeProduct));
+      if (!product || String(product.seller_id) !== String(session.user.id)) { toast('You can remove only products belonging to your account.'); return; }
+      if (!confirm(`Remove “${product.product_name}” from the marketplace? This cannot be undone from here.`)) return;
+      removeButton.disabled = true; removeButton.textContent = 'Removing…';
+      try {
+        const { error } = await sb.from('business_products').delete().eq('id', product.id).eq('seller_id', session.user.id);
+        if (error) throw error;
+        if (activeProduct?.id === product.id) activeProduct = null;
+        await loadProduct(); toast('Product removed from the marketplace.');
+      } catch (err) {
+        toast('Could not remove this product. Database permissions may not allow owner deletion yet. ' + errorText(err));
+        removeButton.disabled = false; removeButton.textContent = 'Remove my product';
+      }
+      return;
+    }
     const productButton = e.target.closest('[data-open-product]');
-    if (productButton) { const selected = catalogProducts.find(p => String(p.id) === String(productButton.dataset.openProduct)); if (selected) { renderProduct(selected); $('customerProductName').scrollIntoView({behavior:'smooth',block:'center'}); } return; }
+    if (productButton) {
+      e.preventDefault();
+      const selected = catalogProducts.find(p => String(p.id) === String(productButton.dataset.openProduct));
+      if (selected) {
+        renderProduct(selected);
+        const detailCard = document.querySelector('.product-card');
+        detailCard?.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+      return;
+    }
     const publishButton = e.target.closest('#publishProduct');
     if (publishButton) { e.preventDefault(); e.stopImmediatePropagation(); publish(); return; }
     const checkoutButton = e.target.closest('#stkButton');
@@ -262,6 +308,7 @@
   }, true);
   const photoInput = $('productPhotos');
   photoInput.addEventListener('change',()=>{ selectedImages=[...(photoInput.files||[])]; });
+  $('resetProductForm')?.addEventListener('click',()=>{ selectedImages=[]; if(photoInput) photoInput.value=''; if($('productPhotoNames')) $('productPhotoNames').textContent='No product photos selected'; });
   const drop = $('productPhotoDrop');
   drop.addEventListener('drop',e=>{ selectedImages=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/')); });
   $('deliveryMethod').addEventListener('change',updateCartUI);
