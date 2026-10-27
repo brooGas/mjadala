@@ -6,9 +6,11 @@
   const SUPABASE_ANON_KEY = 'sb_publishable_Ay8LXBjvNhXQJDKQMF_Etw_SMb6_z4M';
   const AUTH_DOMAIN = 'mjadala.app';
   if (!window.supabase?.createClient) { console.error('Supabase SDK failed to load'); return; }
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const sb = window.mjadalaSupabaseClient || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  window.mjadalaSupabaseClient = sb;
+  window.mjadalaAuth = { getSession: () => sb.auth.getSession(), signOut: () => sb.auth.signOut(), getUser: () => sb.auth.getUser() };
   const $ = id => document.getElementById(id);
-  let session = null, activeProduct = null, selectedImages = [], poolId = null;
+  let session = null, activeProduct = null, selectedImages = [], poolId = null, catalogProducts = [];
   const money = n => 'KSh ' + Number(n || 0).toLocaleString('en-KE');
   const toast = msg => { if (typeof window.showToast === 'function') window.showToast(msg); else alert(msg); };
   const errorText = e => e?.message || String(e || 'Unknown error');
@@ -36,6 +38,20 @@
       finally { $('bizSignIn').disabled = false; }
     });
   }
+  async function loadBusinessProfile() {
+    if (!session?.user) return;
+    try {
+      const { data, error } = await sb.from('business_profiles').select('business_name,user_id').eq('user_id', session.user.id).maybeSingle();
+      if (error) throw error;
+      if (data?.business_name) { $('sellerBusinessName').value = data.business_name; $('myBusinessTitle').textContent = 'My Business · ' + data.business_name; $('businessProfileStatus').textContent = 'Your business profile is saved. Published products appear in the live marketplace.'; }
+      const { data: profile } = await sb.from('profiles').select('nickname').eq('id', session.user.id).maybeSingle();
+      const owner = profile?.nickname || session.user.email?.split('@')[0] || 'Account owner';
+      $('myBusinessOwner').textContent = data?.business_name ? 'Owner: ' + owner : 'Create your business profile and manage your products.';
+      $('businessOwnerLabel').textContent = 'Owner: ' + owner;
+    } catch (e) { console.warn('Could not load business profile:', errorText(e)); }
+  }
+  $('openMyBusiness')?.addEventListener('click',()=>{ $('ownerPanel')?.scrollIntoView({behavior:'smooth',block:'start'}); $('sellerBusinessName')?.focus(); });
+
   function requireSession() {
     if (session?.user) return true;
     addAuthUI(); $('businessAuthPanel').style.display = 'block'; $('bizAuthStatus').textContent = 'Sign in first to save products or place orders.';
@@ -52,8 +68,8 @@
     const discount = Math.min(90, Math.max(0, Number($('poolDiscount').value) || 0));
     return {
       seller_id: session.user.id, product_name:name, description, price, currency:'KES', image_urls:[],
-      standard_delivery_fee: Math.max(0, Number($('sellerStandardDeliveryFee')?.value ?? 150) || 0),
-      express_delivery_fee: Math.max(0, Number($('sellerExpressDeliveryFee')?.value ?? 300) || 0),
+      standard_delivery_fee: Math.max(0, Number($('sellerDeliveryFee').value) || 0),
+      express_delivery_fee: Math.max(0, Number($('sellerExpressFee').value) || 0),
       pickup_available: $('sellerPickup').value !== 'delivery',
       warranty_available: $('sellerWarranty').value !== 'No warranty offered',
       warranty_period: $('sellerWarranty').value, warranty_terms: $('sellerWarranty').value,
@@ -79,6 +95,7 @@
   }
   function renderProduct(p) {
     activeProduct = p;
+    const productCard = document.querySelector('.product-card'); if (productCard) productCard.style.display = '';
     $('customerProductName').textContent = p.product_name;
     $('customerProductDescription').textContent = p.description || '';
     $('customerProductPrice').textContent = money(p.price);
@@ -106,6 +123,19 @@
       $('poolDeliveryExplanation').textContent = 'Seller-set pool delivery fee per customer: ' + money(p.pool_delivery_fee || 0) + '. Final discount eligibility is checked by the server when you order.';
     }
   }
+  function renderCatalog(products) {
+    catalogProducts = products || [];
+    const host = $('businessProductCatalog'); if (!host) return;
+    if (!catalogProducts.length) {
+      host.innerHTML = '<p class="live-empty">No products have been published yet. Sellers can publish the first real listing below.</p>';
+      const card = document.querySelector('.product-card'); if (card) card.style.display = 'none';
+      return;
+    }
+    host.innerHTML = '<div class="market-grid">' + catalogProducts.map(p => {
+      const image = Array.isArray(p.image_urls) ? p.image_urls[0] : null;
+      return `<article class="market-item">${image ? `<img loading="lazy" src="${escapeHTML(image)}" alt="${escapeHTML(p.product_name)}">` : '<div style="height:112px;border-radius:10px;background:linear-gradient(145deg,#dce8d7,#fff1cc);display:grid;place-items:center;color:#174d35;font-weight:900">MV</div>'}<h4>${escapeHTML(p.product_name)}</h4><p>${escapeHTML(p.description || 'Details available from the seller')}</p><strong>${money(p.price)}</strong><p>Standard delivery ${money(p.standard_delivery_fee || 0)} · Express ${money(p.express_delivery_fee || 0)}</p><button type="button" data-open-product="${escapeHTML(p.id)}">View product</button></article>`;
+    }).join('') + '</div>';
+  }
   function escapeHTML(s) { return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function updateCartUI() {
     if (!activeProduct) return;
@@ -121,23 +151,32 @@
     const status = $('publishStatus'); status.textContent = 'Saving product and uploading images…';
     try {
       const payload = readProductForm();
-      const businessName = prompt('Business name for your seller profile:');
-      if (!businessName?.trim()) throw new Error('Business name is required to publish.');
-      const { error: profileError } = await sb.from('business_profiles').upsert({user_id:session.user.id,business_name:businessName.trim(),updated_at:new Date().toISOString()},{onConflict:'user_id'});
+      const businessName = $('sellerBusinessName').value.trim();
+      if (!businessName) throw new Error('Enter your business name before publishing.');
+      const { error: profileError } = await sb.from('business_profiles').upsert({user_id:session.user.id,business_name:businessName,updated_at:new Date().toISOString()},{onConflict:'user_id'});
       if (profileError) throw profileError;
+      $('myBusinessTitle').textContent = 'My Business · ' + businessName; $('businessProfileStatus').textContent = 'Your business profile is saved. Published products appear in the live marketplace.';
+      const { data: ownerProfile } = await sb.from('profiles').select('nickname').eq('id',session.user.id).maybeSingle(); const ownerName=ownerProfile?.nickname||session.user.email?.split('@')[0]||'Account owner'; $('myBusinessOwner').textContent='Owner: '+ownerName; $('businessOwnerLabel').textContent='Owner: '+ownerName;
       const files = selectedImages.length ? selectedImages : [...($('productPhotos').files || [])];
       payload.image_urls = await uploadPhotos(files);
       const { data, error } = await sb.from('business_products').insert(payload).select('*').single();
       if (error) throw error;
-      renderProduct(data); status.textContent = 'Published and saved to Supabase.'; toast('Product published');
+      renderProduct(data); await loadProduct(); status.textContent = 'Published and saved to Supabase.'; toast('Product published');
     } catch (e) { status.textContent = 'Could not publish: ' + errorText(e); }
   }
   async function loadProduct() {
     try {
-      const {data,error} = await sb.from('business_products').select('*').eq('published',true).order('created_at',{ascending:false}).limit(1).maybeSingle();
+      const {data,error} = await sb.from('business_products').select('*').eq('published',true).order('created_at',{ascending:false}).limit(24);
       if (error) throw error;
-      if (data) renderProduct(data);
-    } catch (e) { console.warn('Could not load shop listing:',errorText(e)); }
+      renderCatalog(data || []);
+      if (data?.length) {
+        const keep = activeProduct && data.find(p => p.id === activeProduct.id);
+        renderProduct(keep || data[0]);
+      } else activeProduct = null;
+    } catch (e) {
+      const host = $('businessProductCatalog'); if (host) host.innerHTML = '<p class="live-empty">Could not load live listings: ' + escapeHTML(errorText(e)) + '</p>';
+      console.warn('Could not load shop listing:',errorText(e));
+    }
   }
   async function checkout() {
     if (!requireSession()) return;
@@ -153,13 +192,50 @@
       const {data,error} = await sb.rpc('place_business_order',{p_product_id:activeProduct.id,p_quantity:quantity,p_delivery_method:method,p_customer_name:name,p_customer_phone:phone,p_delivery_address:address || 'Seller pickup',p_pool_id:poolId});
       if (error) throw error;
       const result = Array.isArray(data) ? data[0] : data;
-      showOrderResult(result);
-      toast('Order created. M-Pesa payment is not yet connected.');
+      try {
+        button.textContent = 'Requesting M-Pesa prompt…';
+        const { data: payment, error: paymentError } = await sb.functions.invoke('daraja-stk-push', { body: { order_id: result.order_id, phone } });
+        if (paymentError) throw paymentError;
+        if (!payment?.ok) throw new Error(payment?.error || 'The M-Pesa prompt was not confirmed.');
+        result.payment_status = 'pending';
+        result.payment_message = payment.customer_message || 'Check your phone for the Safaricom prompt.';
+        result.payment_started = true;
+        showOrderResult(result);
+        watchOrderStatus(result.order_id);
+        toast('M-Pesa request accepted. Check your phone; never share your PIN with Mjadala.');
+      } catch (paymentErr) {
+        result.payment_started = false;
+        result.payment_message = 'Order created, but the M-Pesa prompt could not be started: ' + errorText(paymentErr) + '. Your order remains unpaid; do not pay manually until you confirm its status.';
+        showOrderResult(result);
+        toast('Order saved; payment initiation needs setup.');
+      }
     } catch(e) { toast('Order failed: ' + errorText(e)); }
     finally { button.disabled = false; button.innerHTML = '<svg class="std-icon"><use href="#i-credit"/></svg> Pay with M-Pesa · STK Push'; }
   }
+  function watchOrderStatus(orderId) {
+    if (!orderId || !sb.channel) return;
+    const channel = sb.channel('mjadala-order-' + orderId)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'business_orders', filter: 'id=eq.' + orderId }, payload => {
+        const row = payload.new || {};
+        const status = String(row.payment_status || '').toLowerCase();
+        const buttons = [...document.querySelectorAll('#accountPanelContent .account-action-btn')];
+        const paymentRow = buttons.find(b => (b.textContent || '').includes('Payment status'));
+        const nextRow = buttons.find(b => (b.textContent || '').includes('Next step'));
+        const small = paymentRow?.querySelector('small');
+        if (status === 'paid') {
+          if (small) small.textContent = 'Paid · Safaricom receipt ' + (row.mpesa_receipt_number || 'confirmed');
+          if (nextRow?.querySelector('small')) nextRow.querySelector('small').textContent = 'Payment confirmed by Safaricom. Keep the receipt for your records.';
+          toast('Payment confirmed by Safaricom.'); sb.removeChannel(channel);
+        } else if (status === 'failed') {
+          if (small) small.textContent = 'Failed or cancelled · no payment confirmed';
+          if (nextRow?.querySelector('small')) nextRow.querySelector('small').textContent = 'Check your M-Pesa messages before retrying. Do not pay twice.';
+          toast('M-Pesa payment was not completed.'); sb.removeChannel(channel);
+        }
+      }).subscribe();
+    setTimeout(() => { try { sb.removeChannel(channel); } catch (_) {} }, 120000);
+  }
   function showOrderResult(r) {
-    if (typeof window.showAccountPanel === 'function') window.showAccountPanel('Order created',[{icon:'✓',label:'Order reference',detail:r?.order_id || r?.id || 'Created'},{icon:'▣',label:'Amount due',detail:money(r?.total_amount)},{icon:'▦',label:'Payment status',detail:'Pending — M-Pesa gateway not connected yet.'}]);
+    if (typeof window.showAccountPanel === 'function') window.showAccountPanel('Order created',[{icon:'✓',label:'Order reference',detail:r?.order_id || r?.id || 'Created'},{icon:'▣',label:'Amount due',detail:money(r?.total_amount)},{icon:'▦',label:'Payment status',detail:r?.payment_started?'STK request accepted · awaiting Safaricom callback':'Unpaid · M-Pesa request not started'},{icon:'ℹ',label:'Next step',detail:r?.payment_message || 'Check the payment status before retrying.'}]);
     $('qtyValue').textContent='0'; updateCartUI();
   }
   async function handleJoinPool() {
@@ -175,6 +251,8 @@
     } catch(e) { toast('Could not open pool: '+errorText(e)); }
   }
   document.addEventListener('click', e => {
+    const productButton = e.target.closest('[data-open-product]');
+    if (productButton) { const selected = catalogProducts.find(p => String(p.id) === String(productButton.dataset.openProduct)); if (selected) { renderProduct(selected); $('customerProductName').scrollIntoView({behavior:'smooth',block:'center'}); } return; }
     const publishButton = e.target.closest('#publishProduct');
     if (publishButton) { e.preventDefault(); e.stopImmediatePropagation(); publish(); return; }
     const checkoutButton = e.target.closest('#stkButton');
@@ -189,6 +267,8 @@
   $('deliveryMethod').addEventListener('change',updateCartUI);
   $('qtyPlus').addEventListener('click',()=>setTimeout(updateCartUI,0));
   $('qtyMinus').addEventListener('click',()=>setTimeout(updateCartUI,0));
-  sb.auth.getSession().then(({data})=>{ session=data.session; if (!session) addAuthUI(); else loadProduct(); });
-  sb.auth.onAuthStateChange((_event,newSession)=>{session=newSession;if(session){if($('businessAuthPanel'))$('businessAuthPanel').style.display='none';loadProduct();}else addAuthUI();});
+  let marketplaceChannel = null;
+  function startMarketplaceRealtime(){ if(marketplaceChannel)sb.removeChannel(marketplaceChannel); marketplaceChannel=sb.channel('mjadala-marketplace').on('postgres_changes',{event:'*',schema:'public',table:'business_products'},()=>loadProduct()).subscribe(); }
+  sb.auth.getSession().then(({data})=>{ session=data.session; if (!session) addAuthUI(); else if($('businessAuthPanel'))$('businessAuthPanel').style.display='none'; if(session)loadBusinessProfile(); loadProduct(); startMarketplaceRealtime(); });
+  sb.auth.onAuthStateChange((_event,newSession)=>{session=newSession;if(session){if($('businessAuthPanel'))$('businessAuthPanel').style.display='none';loadBusinessProfile();}else{addAuthUI();$('myBusinessTitle').textContent='My Business';$('myBusinessOwner').textContent='Sign in to manage your business.';}loadProduct();});
 })();
