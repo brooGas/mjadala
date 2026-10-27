@@ -1,9 +1,9 @@
-Mjadala v8 functionality pass
-- Current preview layout retained; no rollback to the older design.
-- Reels sound, menu, like, comment, share, save, local video preview, and safe local-preview deletion added.
-- Standard SVG icons used for action controls.
-- Local optimistic interactions persist in this browser.
-- Search overlay added.
-- Seller delivery fields now feed the actual Supabase product payload.
-- Sign-out calls Supabase auth when a session/client is available.
-- Read FUNCTIONALITY-TEST-REPORT.md for tested items and limits.
+mjadala live upgrade
+- Mobile-first customer-facing app shell; forest-green/ivory palette retained.
+- MV monogram directly to the left of mjadala; fixed mock clock removed in favor of signed-in online status.
+- Real Supabase social layer: feed, comments/replies, likes, saves, trending, search, follow discovery, communities and join requests.
+- Profile edit and cropped profile-photo upload.
+- Existing Shorts backend adapter for playback, comments, likes, saves, reports, delete and duration-checked uploads.
+- Multi-product marketplace backed by published Supabase products; persistent My Business profile and owner display.
+- Daraja STK Push and callback functions supplied, with payment tracking. Not active until deployed and sandbox-tested.
+- See FUNCTIONALITY-TEST-REPORT.md and LIVE-SOCIAL-README.md for exact verification limits and required setup.

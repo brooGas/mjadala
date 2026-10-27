@@ -1,30 +1,30 @@
-# Mjadala v8 — functionality and code review
+# mjadala live-upgrade test report
 
-## Changes made while preserving the current approved preview design
-- Kept the current five-screen layout, forest-green/ivory styling, bottom navigation, and existing business workspace.
-- Added Android-friendly SVG controls for Reel sound, more options, like, comment, share, save, report, and delete.
-- Added local Reel video selection and preview; sound toggle controls the selected local video, and deleting removes only that local preview.
-- Added optimistic local likes/saves/follows/community membership and browser persistence for those UI states.
-- Added a working in-app search overlay over currently loaded content.
-- Made account panel rows accessible buttons; sign-out calls the Supabase auth client when available.
-- Corrected business publishing so the standard and express delivery prices saved to Supabase come from the visible seller inputs, rather than separate duplicate inputs.
-- Kept the business checkout on the server-side RPC so browser totals are not trusted. Updated SQL validation for delivery method/address.
+## Local checks performed
+- `node --check` passed for `business-integration.js`, `interaction-layer.js`, `live-social.js`, `live-reels.js`, and `sw.js`.
+- Both inline JavaScript blocks in `index.html` passed Node syntax checks.
+- TypeScript syntax/type checks passed for both Daraja Edge Function files after stubbing only the Deno runtime and remote Supabase import for local analysis.
+- HTML parsing found 5 navigation screens, 5 bottom-navigation buttons, 168 DOM IDs, no duplicate DOM IDs, and no missing local script/image/link assets.
+- `manifest.json` and `vercel.json` parsed as valid JSON.
+- Source audit confirmed the fixed mock clock and sample social post/person cards were removed; the brand uses the MV monogram beside `mjadala`.
 
-## Checks run
-- JavaScript syntax checks passed for `business-integration.js` and `interaction-layer.js`.
-- JavaScript syntax checks passed for both inline scripts in `index.html`.
-- HTML structure checks confirmed five screen sections and five navigation buttons; no duplicate IDs remain in the runtime navigation markup (the initial header buttons are replaced by the header renderer at startup).
-- ZIP integrity is checked when packaging.
+## What is wired in code
+- Supabase live feed, paginated posts, comments/replies, likes/saves, trending counts, realtime refresh and live search.
+- Community discovery, creation, public joining, private join requests, request review, and community discussions.
+- Profile editing, photo crop/zoom/position controls, cropped-image upload and signed-in online heartbeat.
+- Existing Shorts schema adapter for live Reel playback, likes, comments, saves, reports, owner-only delete, and 15-second upload validation.
+- Multi-product marketplace from published business listings, saved My Business profile and seller-defined delivery fees.
+- Daraja STK initiation/callback Edge Function source, payment tracking and realtime order-status UI.
 
-## Important boundaries — not falsely marked as tested
-- This environment could not complete a real Chromium browser session, and no authenticated Supabase session was available for end-to-end server testing.
-- Reel preview, likes/saves/follows/community membership, comments drafted from the sample Reel, and sample post actions are local optimistic UI actions. They do not claim to have been saved to the server.
-- Product publishing, image upload, and order creation require the Supabase project to have the expected table columns, RLS policies, storage bucket, and the included SQL migration applied. M-Pesa/STK payment is **not** integrated; checkout creates a pending order only.
-- Account deletion and admin deletion of sample users/content are deliberately not simulated from the browser. Those require a secure server-side admin workflow and explicit admin authorization.
-- The currently displayed Home/Explore/Reels/Communities entries remain sample content until connected to live feed and community queries. The backup legacy app is retained as `index-legacy-backup.html`; it is not used as the active design.
+## Not certified in this environment
+- Headless Chromium could not complete a browser session in this environment, so a full visual/browser interaction run was not possible.
+- No authenticated test session or administrative access to the target Supabase project was available. The new SQL migrations have not been executed against the live database, and live RLS/storage/realtime behavior is not certified.
+- Daraja functions have not been deployed and no Safaricom sandbox transaction was run. Payment prompts and callbacks are therefore **not yet live**.
 
-## Deployment
-1. Keep the existing Supabase URL and publishable key in the app; never put a service-role key in browser code.
-2. Apply `MIGRATION_BUSINESS_SHOPPING_FUNCTIONAL.sql` in Supabase SQL Editor after verifying the five business tables and their columns match this migration.
-3. Deploy the contents of `mjadala-main/` as the app root.
-4. After deployment, test sign-in, product publication with an image, delivery choices, order creation, pool joining, and sign-out using a real test account before taking orders.
+## Must be completed before public launch
+1. Run and verify `MIGRATION_LIVE_SOCIAL.sql` in Supabase.
+2. Verify the existing business and Shorts tables, RLS policies, storage buckets and profile policies.
+3. Apply `MIGRATION_DARAJA.sql` only after checking the existing `business_orders` schema.
+4. Deploy both Daraja Edge Functions and configure server-side secrets.
+5. Test with at least two real test accounts and a second browser/device; then test Daraja sandbox success, cancellation, timeout, duplicate callback, wrong amount and phone mismatch.
+6. Do not accept real customer payments until those tests pass and production credentials are approved.

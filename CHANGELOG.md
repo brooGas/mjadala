@@ -26,3 +26,12 @@
 - Added creator-only group deletion and group-admin assignment controls.
 - Group admins can invite members and remove regular members; only creators can appoint admins or delete groups.
 - Added additive Supabase migration: `MIGRATION_GROUP_ADMIN_TOOLS.sql`.
+
+## Live upgrade — October 2026
+- Reframed the app as a customer-facing, mobile-first app rather than a design-review mockup.
+- Applied the MV monogram immediately to the left of `mjadala`; replaced the fixed status-bar clock with a Supabase-backed signed-in/online indicator.
+- Added a Supabase live social foundation: paginated public posts, comment/reply threads, optimistic likes and saves with rollback, real trending counts, realtime refresh, community discovery, membership, private-community join requests, community discussions, profile editing, and adjustable profile-photo crop/upload.
+- Connected Reels to the existing `shorts` schema for playback, likes, comments, saves, reporting, owner-only deletion, and upload with a 15-second duration check. This depends on the existing Shorts schema/storage policies.
+- Added a multi-product marketplace catalogue backed by published Supabase listings and a saved My Business profile with owner display.
+- Added Daraja STK Push and callback Edge Function source plus payment-tracking migration. It stays inactive until functions are deployed, secrets configured, and sandbox callback tests pass.
+- Added release and test instructions. Local syntax checks do not constitute a live Supabase or Safaricom certification.
