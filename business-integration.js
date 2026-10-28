@@ -112,10 +112,15 @@
     activeProduct = p; productDetailOpen = true; poolOfferOpen = false;
     const productCard = document.querySelector('.product-card'); if (productCard) productCard.style.display = '';
     if ($('customerTermsPanel')) $('customerTermsPanel').style.display = '';
+    if ($('customerTermsContent')) $('customerTermsContent').style.display = 'none';
+    if ($('toggleWarrantyDetails')) $('toggleWarrantyDetails').setAttribute('aria-expanded','false');
+    if ($('toggleCheckoutPanel')) { $('toggleCheckoutPanel').setAttribute('aria-expanded','false'); $('toggleCheckoutPanel').style.display = 'flex'; }
+    if ($('businessCartPanel')) $('businessCartPanel').style.display = 'none';
     if ($('poolPanel')) $('poolPanel').style.display = 'none';
-    if ($('viewPoolOfferButton')) { $('viewPoolOfferButton').style.display = p.pooling_enabled ? 'inline-flex' : 'none'; $('viewPoolOfferButton').textContent = 'View Pool Offer'; $('viewPoolOfferButton').setAttribute('aria-expanded','false'); }
+    if ($('viewPoolOfferButton')) { $('viewPoolOfferButton').style.display = p.pooling_enabled ? 'inline-flex' : 'none'; $('viewPoolOfferButton').innerHTML = 'Pool Offer <span aria-hidden="true">⌄</span>'; $('viewPoolOfferButton').setAttribute('aria-expanded','false'); }
     const isOwnProduct = !!session?.user?.id && String(p.seller_id) === String(session.user.id);
-    if ($('businessCartPanel')) $('businessCartPanel').style.display = isOwnProduct ? 'none' : '';
+    if ($('businessCartPanel')) $('businessCartPanel').style.display = 'none';
+    if ($('toggleCheckoutPanel')) $('toggleCheckoutPanel').style.display = isOwnProduct ? 'none' : 'flex';
     const qtyControls = document.querySelector('.product-card .qty-controls'); if (qtyControls) qtyControls.style.display = isOwnProduct ? 'none' : '';
     if (isOwnProduct) toast('This is your product. You can manage it, but cannot purchase it through customer checkout.');
     $('customerProductName').textContent = p.product_name;
@@ -378,10 +383,13 @@
       e.preventDefault(); productDetailOpen = false; activeProduct = null; poolId = null; poolOfferOpen = false;
       const detailCard = document.querySelector('.product-card'); if (detailCard) detailCard.style.display = 'none';
       if ($('customerTermsPanel')) $('customerTermsPanel').style.display = 'none';
+      if ($('customerTermsContent')) $('customerTermsContent').style.display = 'none';
+      if ($('toggleWarrantyDetails')) $('toggleWarrantyDetails').setAttribute('aria-expanded','false');
+      if ($('toggleCheckoutPanel')) { $('toggleCheckoutPanel').style.display = 'none'; $('toggleCheckoutPanel').setAttribute('aria-expanded','false'); }
       if ($('poolPanel')) $('poolPanel').style.display = 'none';
       if ($('poolSectionHeading')) $('poolSectionHeading').style.display = 'none';
       if ($('viewPoolOfferButton')) { $('viewPoolOfferButton').style.display = 'none'; $('viewPoolOfferButton').textContent = 'View Pool Offer'; $('viewPoolOfferButton').setAttribute('aria-expanded','false'); }
-      if ($('businessCartPanel')) $('businessCartPanel').style.display = '';
+      if ($('businessCartPanel')) $('businessCartPanel').style.display = 'none';
       const qtyControls = document.querySelector('.product-card .qty-controls'); if (qtyControls) qtyControls.style.display = '';
       const catalog = $('businessProductCatalog'); catalog?.scrollIntoView({behavior:'smooth',block:'start'});
       return;
@@ -394,8 +402,24 @@
       $('poolSectionHeading').style.display = poolOfferOpen ? '' : 'none';
       $('poolPanel').style.display = poolOfferOpen ? '' : 'none';
       poolOfferButton.setAttribute('aria-expanded', poolOfferOpen ? 'true' : 'false');
-      poolOfferButton.textContent = poolOfferOpen ? 'Hide Pool Offer' : 'View Pool Offer';
+      poolOfferButton.innerHTML = poolOfferOpen ? 'Pool Offer <span aria-hidden="true">⌃</span>' : 'Pool Offer <span aria-hidden="true">⌄</span>'; 
       if (poolOfferOpen) $('poolPanel')?.scrollIntoView({behavior:'smooth',block:'start'});
+      return;
+    }
+    const warrantyToggle = e.target.closest('#toggleWarrantyDetails');
+    if (warrantyToggle) {
+      e.preventDefault();
+      const expanded = warrantyToggle.getAttribute('aria-expanded') !== 'true';
+      warrantyToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      if ($('customerTermsContent')) $('customerTermsContent').style.display = expanded ? 'block' : 'none';
+      return;
+    }
+    const checkoutToggle = e.target.closest('#toggleCheckoutPanel');
+    if (checkoutToggle) {
+      e.preventDefault();
+      const expanded = checkoutToggle.getAttribute('aria-expanded') !== 'true';
+      checkoutToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      if ($('businessCartPanel')) $('businessCartPanel').style.display = expanded ? 'block' : 'none';
       return;
     }
     const productButton = e.target.closest('[data-open-product]');
@@ -426,10 +450,13 @@
     productDetailOpen = false; activeProduct = null; poolId = null; poolOfferOpen = false;
     const detailCard = document.querySelector('.product-card'); if (detailCard) detailCard.style.display = 'none';
     if ($('customerTermsPanel')) $('customerTermsPanel').style.display = 'none';
+    if ($('customerTermsContent')) $('customerTermsContent').style.display = 'none';
+    if ($('toggleWarrantyDetails')) $('toggleWarrantyDetails').setAttribute('aria-expanded','false');
+    if ($('toggleCheckoutPanel')) { $('toggleCheckoutPanel').style.display = 'none'; $('toggleCheckoutPanel').setAttribute('aria-expanded','false'); }
     if ($('poolPanel')) $('poolPanel').style.display = 'none';
     if ($('poolSectionHeading')) $('poolSectionHeading').style.display = 'none';
-    if ($('viewPoolOfferButton')) { $('viewPoolOfferButton').style.display = 'none'; $('viewPoolOfferButton').textContent = 'View Pool Offer'; $('viewPoolOfferButton').setAttribute('aria-expanded','false'); }
-    if ($('businessCartPanel')) $('businessCartPanel').style.display = '';
+    if ($('viewPoolOfferButton')) { $('viewPoolOfferButton').style.display = 'none'; $('viewPoolOfferButton').innerHTML = 'Pool Offer <span aria-hidden="true">⌄</span>'; $('viewPoolOfferButton').setAttribute('aria-expanded','false'); }
+    if ($('businessCartPanel')) $('businessCartPanel').style.display = 'none';
     const qtyControls = document.querySelector('.product-card .qty-controls'); if (qtyControls) qtyControls.style.display = '';
     $('businessProductCatalog')?.scrollIntoView({behavior:'smooth',block:'start'});
   });
