@@ -10,7 +10,7 @@
   window.mjadalaSupabaseClient = sb;
   window.mjadalaAuth = { getSession: () => sb.auth.getSession(), signOut: () => sb.auth.signOut(), getUser: () => sb.auth.getUser() };
   const $ = id => document.getElementById(id);
-  let session = null, activeProduct = null, selectedImages = [], poolId = null, catalogProducts = [];
+  let session = null, activeProduct = null, selectedImages = [], poolId = null, catalogProducts = [], productDetailOpen = false;
   const money = n => 'KSh ' + Number(n || 0).toLocaleString('en-KE');
   const toast = msg => { if (typeof window.showToast === 'function') window.showToast(msg); else alert(msg); };
   const errorText = e => e?.message || String(e || 'Unknown error');
@@ -57,6 +57,9 @@
       const opening = getComputedStyle(panel).display === 'none';
       panel.style.display = opening ? 'block' : 'none';
       $('openMyBusiness').textContent = opening ? 'Close' : 'Open';
+      const poolToggle = $('sellerPoolEnabled'); if (poolToggle) poolToggle.closest('.field').style.display = opening ? '' : 'none';
+      if (!opening) { $('sellerPoolSettings').style.display = 'none'; }
+      if (opening) { const poolToggle = $('sellerPoolEnabled'); if (poolToggle) poolToggle.closest('.field').style.display = ''; }
       if (opening) { loadOwnerInventory(); panel.scrollIntoView({behavior:'smooth',block:'start'}); $('sellerBusinessName')?.focus({preventScroll:true}); }
     }
   });
@@ -106,8 +109,10 @@
   }
   function renderProduct(p) {
     if (activeProduct?.id && String(activeProduct.id) !== String(p.id)) poolId = null;
-    activeProduct = p;
+    activeProduct = p; productDetailOpen = true;
     const productCard = document.querySelector('.product-card'); if (productCard) productCard.style.display = '';
+    if ($('customerTermsPanel')) $('customerTermsPanel').style.display = '';
+    if ($('poolPanel')) $('poolPanel').style.display = p.pooling_enabled ? '' : 'none';
     $('customerProductName').textContent = p.product_name;
     $('customerProductDescription').textContent = p.description || '';
     $('customerProductPrice').textContent = money(p.price);
@@ -129,7 +134,7 @@
     document.dispatchEvent(new CustomEvent('mjadala:product-loaded',{detail:p}));
     updateCartUI();
     $('poolSectionHeading').style.display = p.pooling_enabled ? '' : 'none';
-    $('poolPanel').style.display = p.pooling_enabled ? '' : 'none';
+    $('poolPanel').style.display = p.pooling_enabled && productDetailOpen ? '' : 'none';
     if (p.pooling_enabled) {
       $('poolMinimum').value = p.pool_min_members || 2; $('poolCapacity').value = p.pool_max_members || 5;
       $('poolDiscount').value = p.pool_discount_percent || 0; $('sellerPoolDeliveryFee').value = p.pool_delivery_fee || 0;
@@ -155,7 +160,7 @@
       const imageMarkup = image
         ? `<div class="market-image-wrap"><img loading="lazy" src="${escapeHTML(image)}" alt="${escapeHTML(p.product_name)}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="market-image-fallback" hidden>${initials}</div></div>`
         : `<div class="market-image-fallback">${initials}</div>`;
-      return `<article class="market-item">${imageMarkup}<h4>${escapeHTML(p.product_name)}</h4><p>${escapeHTML(p.description || 'Details available from the seller')}</p><strong>${money(p.price)}</strong><p>Standard delivery ${money(p.standard_delivery_fee || 0)} · Express ${money(p.express_delivery_fee || 0)}</p><button type="button" data-open-product="${escapeHTML(p.id)}">View product</button>${isOwner ? `<button type="button" class="market-remove" data-unpublish-product="${escapeHTML(p.id)}">Remove from marketplace</button>` : ''}</article>`;
+      return `<article class="market-item">${imageMarkup}<h4>${escapeHTML(p.product_name)}</h4><strong>${money(p.price)}</strong><p class="subtle">Available quantity: ${Number.isFinite(Number(p.stock_quantity)) ? Number(p.stock_quantity) : 'Check with seller'}</p><p>Standard delivery ${money(p.standard_delivery_fee || 0)} · Express ${money(p.express_delivery_fee || 0)}</p><button type="button" data-open-product="${escapeHTML(p.id)}">View product</button>${isOwner ? `<button type="button" class="market-remove" data-unpublish-product="${escapeHTML(p.id)}">Remove from marketplace</button>` : ''}</article>`;
     }).join('') + '</div>';
   }
   async function loadOwnerInventory() {
@@ -362,6 +367,16 @@
       }
       return;
     }
+    const backButton = e.target.closest('#backToMarketplace');
+    if (backButton) {
+      e.preventDefault(); productDetailOpen = false; activeProduct = null; poolId = null;
+      const detailCard = document.querySelector('.product-card'); if (detailCard) detailCard.style.display = 'none';
+      if ($('customerTermsPanel')) $('customerTermsPanel').style.display = 'none';
+      if ($('poolPanel')) $('poolPanel').style.display = 'none';
+      if ($('poolSectionHeading')) $('poolSectionHeading').style.display = 'none';
+      const catalog = $('businessProductCatalog'); catalog?.scrollIntoView({behavior:'smooth',block:'start'});
+      return;
+    }
     const productButton = e.target.closest('[data-open-product]');
     if (productButton) {
       e.preventDefault();
@@ -380,6 +395,20 @@
     const joinButton = e.target.closest('#joinPoolButton');
     if (joinButton) { e.preventDefault(); e.stopImmediatePropagation(); handleJoinPool(); return; }
   }, true);
+  $('sellerPoolEnabled')?.addEventListener('change', () => {
+    const enabled = $('sellerPoolEnabled').checked;
+    if ($('sellerPoolSettings')) $('sellerPoolSettings').style.display = enabled ? 'block' : 'none';
+    if ($('poolStatus')) $('poolStatus').textContent = enabled ? 'Group buying is enabled for this product. Publish/save the product to apply it.' : 'Group buying is disabled for this product.';
+    if (!enabled && $('poolPanel')) $('poolPanel').style.display = 'none';
+  });
+  $('backToMarketplace')?.addEventListener('click', () => {
+    productDetailOpen = false; activeProduct = null; poolId = null;
+    const detailCard = document.querySelector('.product-card'); if (detailCard) detailCard.style.display = 'none';
+    if ($('customerTermsPanel')) $('customerTermsPanel').style.display = 'none';
+    if ($('poolPanel')) $('poolPanel').style.display = 'none';
+    if ($('poolSectionHeading')) $('poolSectionHeading').style.display = 'none';
+    $('businessProductCatalog')?.scrollIntoView({behavior:'smooth',block:'start'});
+  });
   const photoInput = $('productPhotos');
   photoInput.addEventListener('change',()=>{ selectedImages=[...(photoInput.files||[])]; });
   $('resetProductForm')?.addEventListener('click',()=>{ selectedImages=[]; if(photoInput) photoInput.value=''; if($('productPhotoNames')) $('productPhotoNames').textContent='No product photos selected'; });
