@@ -36,37 +36,6 @@ for delete to authenticated using (
   bucket_id = 'product-images' and (storage.foldername(name))[1] = auth.uid()::text
 );
 
--- Inventory is tracked per product. NULL means legacy/untracked stock; new products should set a quantity.
-alter table public.business_products add column if not exists stock_quantity integer;
-update public.business_products set stock_quantity = null where stock_quantity < 0;
-alter table public.business_orders add column if not exists stock_released boolean not null default false;
-
--- Seller-only pool controls. Each pool is tied to one product.
-create or replace function public.set_product_pool_status(p_product_id uuid, p_status text)
-returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
-declare v_user uuid := auth.uid(); v_pool_id uuid;
-begin
-  if v_user is null then raise exception 'Sign in first'; end if;
-  if p_status not in ('open','closed') then raise exception 'Invalid pool status'; end if;
-  if not exists(select 1 from public.business_products where id=p_product_id and seller_id=v_user and pooling_enabled=true) then
-    raise exception 'Only the product owner can manage a pool, and pooling must be enabled';
-  end if;
-  if p_status='open' then
-    if exists(select 1 from public.product_pools where product_id=p_product_id and pool_status='open') then
-      select id into v_pool_id from public.product_pools where product_id=p_product_id and pool_status='open' order by created_at desc limit 1;
-    else
-      insert into public.product_pools(product_id,created_by,pool_name,pool_status)
-      select id,v_user,product_name||' group buy','open' from public.business_products where id=p_product_id
-      returning id into v_pool_id;
-    end if;
-  else
-    update public.product_pools set pool_status='closed' where product_id=p_product_id and pool_status='open';
-  end if;
-  return jsonb_build_object('pool_id',v_pool_id,'pool_status',p_status);
-end; $$;
-revoke all on function public.set_product_pool_status(uuid,text) from public,anon;
-grant execute on function public.set_product_pool_status(uuid,text) to authenticated;
-
 -- Server-calculated checkout. Browser-supplied totals/prices are never trusted.
 create or replace function public.place_business_order(
   p_product_id uuid,
@@ -101,7 +70,6 @@ begin
   select * into v_product from public.business_products
    where id = p_product_id and published = true for update;
   if not found then raise exception 'Product is unavailable'; end if;
-  if v_product.stock_quantity is not null and v_product.stock_quantity < p_quantity then raise exception 'Insufficient stock. Available quantity: %', v_product.stock_quantity; end if;
 
   if p_delivery_method = 'pickup' then
     if not v_product.pickup_available then raise exception 'Pickup is not available for this product'; end if;
@@ -130,12 +98,6 @@ begin
   end if;
 
   v_total := round(v_unit * p_quantity + v_delivery, 2);
-  -- Reserve stock atomically while the product row is locked, preventing overselling.
-  if v_product.stock_quantity is not null then
-    update public.business_products set stock_quantity=stock_quantity-p_quantity where id=v_product.id and stock_quantity>=p_quantity;
-    if not found then raise exception 'Insufficient stock. Please refresh the product and try again.'; end if;
-  end if;
-
   insert into public.business_orders(
     product_id,seller_id,buyer_id,quantity,unit_price,discount_amount,
     delivery_method,delivery_fee,total_amount,customer_name,customer_phone,
@@ -164,26 +126,3 @@ revoke insert on table public.business_orders from anon, authenticated;
 grant select on table public.business_orders to authenticated;
 
 -- The app reads published listings and sellers manage their own records. Existing table policies remain in place.
-
-
--- Return reserved stock exactly once when Safaricom confirms an order failed/cancelled.
-create or replace function public.restore_failed_business_order_stock()
-returns trigger language plpgsql security definer set search_path=public,pg_temp as $$
-begin
-  if new.payment_status='failed' and old.payment_status is distinct from new.payment_status and not coalesce(new.stock_released,false) then
-    update public.business_products set stock_quantity=stock_quantity+new.quantity
-      where id=new.product_id and stock_quantity is not null;
-    new.stock_released := true;
-  end if;
-  return new;
-end; $$;
-drop trigger if exists trg_restore_failed_business_order_stock on public.business_orders;
-create trigger trg_restore_failed_business_order_stock before update of payment_status on public.business_orders
-for each row execute function public.restore_failed_business_order_stock();
-
--- Enforce valid inventory values for tracked stock.
-do $$ begin
-  if not exists(select 1 from pg_constraint where conname='business_products_stock_nonnegative') then
-    alter table public.business_products add constraint business_products_stock_nonnegative check (stock_quantity is null or stock_quantity >= 0);
-  end if;
-end $$;
