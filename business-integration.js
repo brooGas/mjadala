@@ -10,7 +10,7 @@
   window.mjadalaSupabaseClient = sb;
   window.mjadalaAuth = { getSession: () => sb.auth.getSession(), signOut: () => sb.auth.signOut(), getUser: () => sb.auth.getUser() };
   const $ = id => document.getElementById(id);
-  let session = null, activeProduct = null, selectedImages = [], poolId = null, catalogProducts = [];
+  let session = null, activeProduct = null, selectedImages = [], poolId = null, openPoolId = null, catalogProducts = [];
   const money = n => 'KSh ' + Number(n || 0).toLocaleString('en-KE');
   const toast = msg => { if (typeof window.showToast === 'function') window.showToast(msg); else alert(msg); };
   const errorText = e => e?.message || String(e || 'Unknown error');
@@ -77,6 +77,7 @@
     const discount = Math.min(90, Math.max(0, Number($('poolDiscount').value) || 0));
     return {
       seller_id: session.user.id, product_name:name, description, price, currency:'KES', image_urls:[],
+      stock_quantity: Math.max(0, Math.floor(Number($('sellerStockQuantity')?.value) || 0)),
       standard_delivery_fee: Math.max(0, Number($('sellerDeliveryFee').value) || 0),
       express_delivery_fee: Math.max(0, Number($('sellerExpressFee').value) || 0),
       pickup_available: $('sellerPickup').value !== 'delivery',
@@ -107,7 +108,10 @@
     const productCard = document.querySelector('.product-card'); if (productCard) productCard.style.display = '';
     $('customerProductName').textContent = p.product_name;
     $('customerProductDescription').textContent = p.description || '';
-    $('customerProductPrice').textContent = money(p.price);
+    $('customerProductPrice').textContent = money(p.price) + (p.stock_quantity === 0 ? ' · OUT OF STOCK' : (p.stock_quantity != null ? ' · Stock: ' + p.stock_quantity : ''));
+    const plus = $('qtyPlus'); if (plus) plus.disabled = p.stock_quantity === 0;
+    if (p.stock_quantity === 0) $('qtyValue').textContent = '0';
+    poolId = null;
     $('customerWarranty').textContent = p.warranty_period || 'No warranty offered';
     $('customerReturns').textContent = p.return_terms || 'No additional return policy provided.';
     $('customerTerms').textContent = p.additional_terms || 'No additional terms provided.';
@@ -135,7 +139,8 @@
       $('poolDiscountPrice').textContent = money(Math.round(Number(p.price) * (1 - Number(p.pool_discount_percent || 0)/100)));
       $('poolDeliveryDisplay').textContent = money(p.pool_delivery_fee || 0);
       $('poolDeliveryExplanation').textContent = 'Seller-set pool delivery fee per customer: ' + money(p.pool_delivery_fee || 0) + '. Final discount eligibility is checked by the server when you order.';
-    }
+      loadPoolsForProduct(p);
+    } else { $('poolMembers').innerHTML = '<p class="subtle">Pooling is disabled for this product.</p>'; $('poolStatus').textContent = 'This product has no group-buy pool.'; }
   }
   function renderCatalog(products) {
     catalogProducts = products || [];
@@ -179,6 +184,9 @@
   function updateCartUI() {
     if (!activeProduct) return;
     const q = Math.max(0, Number($('qtyValue').textContent) || 0);
+    const out = activeProduct.stock_quantity === 0;
+    $('qtyPlus').disabled = out || (activeProduct.stock_quantity != null && q >= Number(activeProduct.stock_quantity));
+    $('stkButton').disabled = out || q < 1;
     const method = $('deliveryMethod').value;
     const fee = method === 'pickup' ? 0 : method === 'express' ? Number(activeProduct.express_delivery_fee || 0) : Number(activeProduct.standard_delivery_fee || 0);
     $('cartCount').textContent = q; $('cartSubtotal').textContent = money(q * Number(activeProduct.price));
@@ -233,6 +241,7 @@
     if (!requireSession()) return;
     const quantity = Math.max(0, Number($('qtyValue').textContent) || 0);
     if (!quantity) { toast('Add at least one item first'); return; }
+    if (activeProduct.stock_quantity === 0 || (activeProduct.stock_quantity != null && quantity > Number(activeProduct.stock_quantity))) { toast('Insufficient stock. Reduce the quantity or choose another product.'); return; }
     if (!activeProduct?.id) { toast('Publish or load a product first'); return; }
     const name = $('checkoutCustomerName').value.trim(), phone = $('checkoutCustomerPhone').value.trim();
     const method = $('deliveryMethod').value, address = $('deliveryAddress').value.trim();
@@ -305,17 +314,69 @@
     if (typeof window.showAccountPanel === 'function') window.showAccountPanel('Order created',[{icon:'✓',label:'Order reference',detail:r?.order_id || r?.id || 'Created'},{icon:'▣',label:'Amount due',detail:money(r?.total_amount)},{icon:'▦',label:'Payment status',detail:r?.payment_started?'STK request accepted · awaiting Safaricom callback':'Unpaid · M-Pesa request not started'},{icon:'ℹ',label:'Next step',detail:r?.payment_message || 'Check the payment status before retrying.'}]);
     $('qtyValue').textContent='0'; updateCartUI();
   }
+  async function loadPoolsForProduct(product) {
+    const host = $('poolMembers'); if (!host || !product?.id) return;
+    try {
+      const {data,error} = await sb.from('product_pools').select('id,pool_name,pool_status,created_by,created_at').eq('product_id',product.id).eq('pool_status','open').order('created_at',{ascending:false}).limit(1);
+      if (error) throw error;
+      const pool = data?.[0];
+      const owner = !!session?.user?.id && String(product.seller_id) === String(session.user.id);
+      const actions = $('joinPoolButton');
+      if (pool) {
+        openPoolId = pool.id;
+        const {data:members,error:memberError} = await sb.from('product_pool_members').select('buyer_id,created_at').eq('pool_id',pool.id);
+        if (memberError) throw memberError;
+        $('poolMemberCount').textContent = String(members?.length || 0);
+        $('poolProgressFill').style.width = Math.min(100,((members?.length||0)/Math.max(2,Number(product.pool_min_members)||2))*100)+'%';
+        $('poolProgressText').textContent = `${members?.length||0} confirmed order(s) in this pool.`;
+        host.innerHTML = `<div class="pool-member"><span class="member-avatar">●</span><span><b>${escapeHTML(pool.pool_name||product.product_name+' group buy')}</b><small>Pool is open · joins are confirmed when an order is placed</small></span><span class="member-status">Open</span></div>` + ((members||[]).map((m,i)=>`<div class="pool-member"><span class="member-avatar">${i+1}</span><span><b>${String(m.buyer_id)===String(session?.user?.id)?'You':'Participant '+(i+1)}</b><small>Order placed · individual checkout</small></span><span class="member-status">Joined</span></div>`).join('') || '<p class="subtle">No orders have joined this pool yet.</p>');
+        $('poolStatus').textContent = owner ? 'Your product has an open pool. Close it when you no longer want new participants.' : 'Open pool found for this product. Select Join, then complete checkout to become a participant.';
+      } else {
+        openPoolId = null; poolId = null; $('poolMemberCount').textContent='0'; $('poolProgressFill').style.width='0%'; $('poolProgressText').textContent='No open pool for this product yet.';
+        host.innerHTML = '<p class="subtle">No open pool exists for this product yet.</p>';
+        $('poolStatus').textContent = owner ? 'Open a pool for this product using the seller control below.' : 'The seller has not opened a pool for this product.';
+      }
+      let manage = $('managePoolButton');
+      if (owner) {
+        if (!manage) { manage=document.createElement('button'); manage.type='button'; manage.id='managePoolButton'; manage.className='secondary'; $('joinPoolButton').parentElement.appendChild(manage); manage.addEventListener('click', manageProductPool); }
+        manage.textContent = pool ? 'Close my pool' : 'Open a pool'; manage.dataset.poolOpen = pool ? 'true' : 'false'; manage.hidden=false;
+      } else if (manage) manage.hidden=true;
+      $('joinPoolButton').disabled = !pool || owner;
+      $('leavePoolButton').disabled = !poolId;
+    } catch (e) { host.innerHTML='<p class="subtle">Pool details could not load: '+escapeHTML(errorText(e))+'</p>'; }
+  }
+  async function manageProductPool() {
+    if (!requireSession() || !activeProduct?.id) return;
+    const button=$('managePoolButton'); const open=button?.dataset.poolOpen !== 'true';
+    try {
+      const {data,error}=await sb.rpc('set_product_pool_status',{p_product_id:activeProduct.id,p_status:open?'open':'closed'});
+      if(error) throw error;
+      poolId = open ? (data?.pool_id || data?.id || null) : null;
+      await loadPoolsForProduct(activeProduct);
+      toast(open?'Pool opened for this product.':'Pool closed. New participants can no longer join.');
+    } catch(e) { toast('Could not change pool status: '+errorText(e)+'. Apply the supplied SQL migration in Supabase first.'); }
+  }
   async function handleJoinPool() {
     if (!requireSession()) return;
     if (!activeProduct?.id || !activeProduct.pooling_enabled) { toast('This product does not have pooling enabled.'); return; }
-    try {
-      if (!poolId) {
-        const {data,error} = await sb.from('product_pools').insert({product_id:activeProduct.id,created_by:session.user.id,pool_name:activeProduct.product_name+' group buy',pool_status:'open'}).select('id').single();
-        if (error) throw error; poolId=data.id;
-      }
-      $('poolStatus').textContent='Pool selected. Place your order to become a confirmed participant.';
-      toast('Group-buy pool selected. Complete checkout to join.');
-    } catch(e) { toast('Could not open pool: '+errorText(e)); }
+    if (!openPoolId) { toast('There is no open pool for this product.'); return; }
+    poolId = openPoolId;
+    $('poolStatus').textContent='Pool selected. Complete checkout to record your participation.';
+    $('poolDetails')?.setAttribute('open','');
+    toast('Pool selected. Your participation is recorded when your order is created.');
+  }
+  async function handleLeavePool() {
+    poolId = null;
+    $('poolStatus').textContent='Pool deselected. You have not placed a pool order.';
+    $('leavePoolButton').disabled=true;
+    toast('You left the selection before checkout. No order was created.');
+  }
+  async function handleInvitePool() {
+    const invitePoolId = poolId || openPoolId; if (!invitePoolId || !activeProduct?.id) { toast('Open or select a pool first.'); return; }
+    const inviteUrl = new URL(window.location.href); inviteUrl.searchParams.set('product',activeProduct.id); inviteUrl.searchParams.set('pool',invitePoolId);
+    const text = `Join my Mjadala group buy for ${activeProduct.product_name}: ${inviteUrl.toString()}`;
+    try { if (navigator.share) await navigator.share({title:'Mjadala group buy',text,url:inviteUrl.toString()}); else if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(text); toast('Pool invite link copied.'); } else { window.prompt('Copy this pool invite link',text); } }
+    catch(e) { if (e?.name !== 'AbortError') toast('Could not share invite: '+errorText(e)); }
   }
   document.addEventListener('click', async e => {
     const unpublishButton = e.target.closest('[data-unpublish-product]');
@@ -364,6 +425,8 @@
     if (checkoutButton) { e.preventDefault(); e.stopImmediatePropagation(); checkout(); return; }
     const joinButton = e.target.closest('#joinPoolButton');
     if (joinButton) { e.preventDefault(); e.stopImmediatePropagation(); handleJoinPool(); return; }
+    if (e.target.closest('#leavePoolButton')) { e.preventDefault(); e.stopImmediatePropagation(); handleLeavePool(); return; }
+    if (e.target.closest('#invitePoolButton')) { e.preventDefault(); e.stopImmediatePropagation(); handleInvitePool(); return; }
   }, true);
   const photoInput = $('productPhotos');
   photoInput.addEventListener('change',()=>{ selectedImages=[...(photoInput.files||[])]; });
