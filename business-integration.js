@@ -50,7 +50,16 @@
       $('businessOwnerLabel').textContent = 'Owner: ' + owner;
     } catch (e) { console.warn('Could not load business profile:', errorText(e)); }
   }
-  $('openMyBusiness')?.addEventListener('click',()=>{ $('ownerPanel')?.scrollIntoView({behavior:'smooth',block:'start'}); $('sellerBusinessName')?.focus(); });
+  $('openMyBusiness')?.addEventListener('click',()=>{
+    if (!requireSession()) return;
+    const panel = $('ownerPanel');
+    if (panel) {
+      const opening = getComputedStyle(panel).display === 'none';
+      panel.style.display = opening ? 'block' : 'none';
+      $('openMyBusiness').textContent = opening ? 'Close' : 'Open';
+      if (opening) { loadOwnerInventory(); panel.scrollIntoView({behavior:'smooth',block:'start'}); $('sellerBusinessName')?.focus({preventScroll:true}); }
+    }
+  });
 
   function requireSession() {
     if (session?.user) return true;
@@ -103,7 +112,12 @@
     $('customerReturns').textContent = p.return_terms || 'No additional return policy provided.';
     $('customerTerms').textContent = p.additional_terms || 'No additional terms provided.';
     const thumb = document.querySelector('.product-thumb');
-    if (thumb && p.image_urls?.[0]) { thumb.innerHTML = `<img alt="${escapeHTML(p.product_name)}" src="${p.image_urls[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:12px">`; }
+    if (thumb) {
+      const image = Array.isArray(p.image_urls) ? p.image_urls.find(url => typeof url === 'string' && url.trim()) : null;
+      thumb.innerHTML = image
+        ? `<img alt="${escapeHTML(p.product_name)}" src="${escapeHTML(image)}" style="width:100%;height:100%;object-fit:cover;border-radius:12px">`
+        : `<span class="product-image-fallback">${escapeHTML((p.product_name || 'P').trim().slice(0,2).toUpperCase())}</span>`;
+    }
     const standard = Number(p.standard_delivery_fee || 0), express = Number(p.express_delivery_fee || 0);
     const delivery = $('deliveryMethod');
     delivery.innerHTML = `<option value="standard">Standard delivery · ${money(standard)}</option><option value="express">Express delivery · ${money(express)}</option>${p.pickup_available ? '<option value="pickup">Collect from seller · Free</option>' : ''}`;
@@ -132,9 +146,34 @@
       return;
     }
     host.innerHTML = '<div class="market-grid">' + catalogProducts.map(p => {
-      const image = Array.isArray(p.image_urls) ? p.image_urls[0] : null;
-      return `<article class="market-item">${image ? `<img loading="lazy" src="${escapeHTML(image)}" alt="${escapeHTML(p.product_name)}">` : '<div style="height:112px;border-radius:10px;background:linear-gradient(145deg,#dce8d7,#fff1cc);display:grid;place-items:center;color:#174d35;font-weight:900">MV</div>'}<h4>${escapeHTML(p.product_name)}</h4><p>${escapeHTML(p.description || 'Details available from the seller')}</p><strong>${money(p.price)}</strong><p>Standard delivery ${money(p.standard_delivery_fee || 0)} · Express ${money(p.express_delivery_fee || 0)}</p><button type="button" data-open-product="${escapeHTML(p.id)}">View product</button></article>`;
+      const image = Array.isArray(p.image_urls) ? p.image_urls.find(url => typeof url === 'string' && url.trim()) : null;
+      const isOwner = !!session?.user?.id && String(p.seller_id) === String(session.user.id);
+      const initials = escapeHTML((p.product_name || 'P').trim().slice(0,2).toUpperCase());
+      const imageMarkup = image
+        ? `<div class="market-image-wrap"><img loading="lazy" src="${escapeHTML(image)}" alt="${escapeHTML(p.product_name)}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="market-image-fallback" hidden>${initials}</div></div>`
+        : `<div class="market-image-fallback">${initials}</div>`;
+      return `<article class="market-item">${imageMarkup}<h4>${escapeHTML(p.product_name)}</h4><p>${escapeHTML(p.description || 'Details available from the seller')}</p><strong>${money(p.price)}</strong><p>Standard delivery ${money(p.standard_delivery_fee || 0)} · Express ${money(p.express_delivery_fee || 0)}</p><button type="button" data-open-product="${escapeHTML(p.id)}">View product</button>${isOwner ? `<button type="button" class="market-remove" data-unpublish-product="${escapeHTML(p.id)}">Remove from marketplace</button>` : ''}</article>`;
     }).join('') + '</div>';
+  }
+  async function loadOwnerInventory() {
+    if (!session?.user?.id) return;
+    const panel = $('ownerPanel'); if (!panel) return;
+    let inventory = panel.querySelector('#ownerProductInventory');
+    if (!inventory) {
+      inventory = document.createElement('div');
+      inventory.id = 'ownerProductInventory'; inventory.className = 'owner-inventory';
+      inventory.innerHTML = '<h4>My Products</h4><p class="subtle">Manage your existing listings without deleting order history.</p><div class="owner-product-list">Loading your products…</div>';
+      panel.insertBefore(inventory, panel.firstChild);
+    }
+    const list = inventory.querySelector('.owner-product-list');
+    try {
+      const {data,error} = await sb.from('business_products').select('id,product_name,price,published,created_at,seller_id').eq('seller_id',session.user.id).order('created_at',{ascending:false});
+      if (error) throw error;
+      if (!data?.length) { list.innerHTML = '<p class="subtle">You have no products yet.</p>'; return; }
+      list.innerHTML = data.map(p => `<div class="owner-product-row"><div class="owner-product-info"><strong>${escapeHTML(p.product_name || 'Untitled product')}</strong><small>${money(p.price)} · ${p.published ? 'Published' : 'Not published'}</small></div><button type="button" class="owner-product-action" ${p.published ? `data-unpublish-product="${escapeHTML(p.id)}"` : `data-publish-product="${escapeHTML(p.id)}"`}>${p.published ? 'Remove' : 'Publish'}</button></div>`).join('');
+    } catch (err) {
+      list.innerHTML = '<p class="subtle">Could not load your inventory: ' + escapeHTML(errorText(err)) + '</p>';
+    }
   }
   function escapeHTML(s) { return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function updateCartUI() {
@@ -161,7 +200,19 @@
       payload.image_urls = await uploadPhotos(files);
       const { data, error } = await sb.from('business_products').insert(payload).select('*').single();
       if (error) throw error;
-      renderProduct(data); await loadProduct(); status.textContent = 'Published and saved to Supabase.'; toast('Product published');
+      renderProduct(data);
+      await loadProduct();
+      await loadOwnerInventory();
+      // Clear the creation fields after a successful save so the same details/photos
+      // are not accidentally submitted as another listing.
+      $('sellerProductName').value = '';
+      $('sellerProductDescription').value = '';
+      $('sellerProductPrice').value = '';
+      selectedImages = [];
+      $('productPhotos').value = '';
+      $('productPhotoNames').textContent = 'No product photos selected';
+      status.textContent = 'Published and saved to Supabase. The form is ready for another product.';
+      toast('Product published');
     } catch (e) { status.textContent = 'Could not publish: ' + errorText(e); }
   }
   async function loadProduct() {
@@ -216,7 +267,6 @@
     if (!orderId) return;
     let channel = null;
     let finished = false;
-
     const applyStatus = (row, notify = false) => {
       if (!row || finished) return;
       const status = String(row.payment_status || '').toLowerCase();
@@ -224,7 +274,6 @@
       const paymentRow = buttons.find(b => (b.textContent || '').includes('Payment status'));
       const nextRow = buttons.find(b => (b.textContent || '').includes('Next step'));
       const small = paymentRow?.querySelector('small');
-
       if (status === 'paid') {
         if (small) small.textContent = 'Paid · Safaricom receipt ' + (row.mpesa_receipt_number || 'confirmed');
         if (nextRow?.querySelector('small')) nextRow.querySelector('small').textContent = 'Payment confirmed by Safaricom. Keep the receipt for your records.';
@@ -239,32 +288,18 @@
         if (channel && sb.removeChannel) sb.removeChannel(channel);
       }
     };
-
-    // Listen for future updates, then fetch the current database status too.
-    // This prevents missing a callback that arrived before this listener started.
+    // Subscribe first, then fetch current status so an early callback isn't missed.
     if (sb.channel) {
       channel = sb.channel('mjadala-order-' + orderId)
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'business_orders', filter: 'id=eq.' + orderId }, payload => {
-          applyStatus(payload.new, true);
-        })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'business_orders', filter: 'id=eq.' + orderId }, payload => applyStatus(payload.new, true))
         .subscribe();
     }
-
-    sb.from('business_orders')
-      .select('payment_status,mpesa_receipt_number')
-      .eq('id', orderId)
-      .maybeSingle()
+    sb.from('business_orders').select('payment_status,mpesa_receipt_number').eq('id', orderId).maybeSingle()
       .then(({ data, error }) => {
-        if (error) {
-          console.warn('Could not refresh payment status:', error.message);
-          return;
-        }
+        if (error) { console.warn('Could not refresh payment status:', error.message); return; }
         applyStatus(data, false);
       });
-
-    setTimeout(() => {
-      try { if (channel && sb.removeChannel) sb.removeChannel(channel); } catch (_) {}
-    }, 120000);
+    setTimeout(() => { try { if (channel && sb.removeChannel) sb.removeChannel(channel); } catch (_) {} }, 120000);
   }
   function showOrderResult(r) {
     if (typeof window.showAccountPanel === 'function') window.showAccountPanel('Order created',[{icon:'✓',label:'Order reference',detail:r?.order_id || r?.id || 'Created'},{icon:'▣',label:'Amount due',detail:money(r?.total_amount)},{icon:'▦',label:'Payment status',detail:r?.payment_started?'STK request accepted · awaiting Safaricom callback':'Unpaid · M-Pesa request not started'},{icon:'ℹ',label:'Next step',detail:r?.payment_message || 'Check the payment status before retrying.'}]);
@@ -282,9 +317,47 @@
       toast('Group-buy pool selected. Complete checkout to join.');
     } catch(e) { toast('Could not open pool: '+errorText(e)); }
   }
-  document.addEventListener('click', e => {
+  document.addEventListener('click', async e => {
+    const unpublishButton = e.target.closest('[data-unpublish-product]');
+    const publishAgainButton = e.target.closest('[data-publish-product]');
+    if (unpublishButton || publishAgainButton) {
+      e.preventDefault(); e.stopImmediatePropagation();
+      if (!session?.user?.id) { toast('Sign in as the product owner first.'); return; }
+      const button = unpublishButton || publishAgainButton;
+      const productId = button.dataset.unpublishProduct || button.dataset.publishProduct;
+      const product = catalogProducts.find(p => String(p.id) === String(productId));
+      const inventoryRow = button.closest('.owner-product-row');
+      // Inventory may include unpublished products not present in the public catalogue;
+      // seller_id is enforced in the database update filter as well.
+      if (product && String(product.seller_id) !== String(session.user.id)) { toast('You can manage only products belonging to your account.'); return; }
+      const shouldPublish = !!publishAgainButton;
+      const name = product?.product_name || inventoryRow?.querySelector('strong')?.textContent || 'this product';
+      if (!confirm(shouldPublish ? `Publish “${name}” to the marketplace?` : `Remove “${name}” from the marketplace? Its order history will be preserved.`)) return;
+      button.disabled = true; button.textContent = shouldPublish ? 'Publishing…' : 'Removing…';
+      try {
+        const { data, error } = await sb.from('business_products').update({published: shouldPublish}).eq('id', productId).eq('seller_id', session.user.id).select('id');
+        if (error) throw error;
+        if (!data?.length) throw new Error('No product was updated. Check that you are signed in as its owner.');
+        if (!shouldPublish && activeProduct?.id === productId) activeProduct = null;
+        await loadProduct(); await loadOwnerInventory();
+        toast(shouldPublish ? 'Product published.' : 'Product removed from the marketplace. Order history is preserved.');
+      } catch (err) {
+        toast('Could not update this product. Your database may restrict owner updates. ' + errorText(err));
+        button.disabled = false; button.textContent = shouldPublish ? 'Publish' : 'Remove';
+      }
+      return;
+    }
     const productButton = e.target.closest('[data-open-product]');
-    if (productButton) { const selected = catalogProducts.find(p => String(p.id) === String(productButton.dataset.openProduct)); if (selected) { renderProduct(selected); $('customerProductName').scrollIntoView({behavior:'smooth',block:'center'}); } return; }
+    if (productButton) {
+      e.preventDefault();
+      const selected = catalogProducts.find(p => String(p.id) === String(productButton.dataset.openProduct));
+      if (selected) {
+        renderProduct(selected);
+        const detailCard = document.querySelector('.product-card');
+        detailCard?.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+      return;
+    }
     const publishButton = e.target.closest('#publishProduct');
     if (publishButton) { e.preventDefault(); e.stopImmediatePropagation(); publish(); return; }
     const checkoutButton = e.target.closest('#stkButton');
@@ -294,6 +367,7 @@
   }, true);
   const photoInput = $('productPhotos');
   photoInput.addEventListener('change',()=>{ selectedImages=[...(photoInput.files||[])]; });
+  $('resetProductForm')?.addEventListener('click',()=>{ selectedImages=[]; if(photoInput) photoInput.value=''; if($('productPhotoNames')) $('productPhotoNames').textContent='No product photos selected'; });
   const drop = $('productPhotoDrop');
   drop.addEventListener('drop',e=>{ selectedImages=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/')); });
   $('deliveryMethod').addEventListener('change',updateCartUI);
@@ -301,6 +375,6 @@
   $('qtyMinus').addEventListener('click',()=>setTimeout(updateCartUI,0));
   let marketplaceChannel = null;
   function startMarketplaceRealtime(){ if(marketplaceChannel)sb.removeChannel(marketplaceChannel); marketplaceChannel=sb.channel('mjadala-marketplace').on('postgres_changes',{event:'*',schema:'public',table:'business_products'},()=>loadProduct()).subscribe(); }
-  sb.auth.getSession().then(({data})=>{ session=data.session; if (!session) addAuthUI(); else if($('businessAuthPanel'))$('businessAuthPanel').style.display='none'; if(session)loadBusinessProfile(); loadProduct(); startMarketplaceRealtime(); });
-  sb.auth.onAuthStateChange((_event,newSession)=>{session=newSession;if(session){if($('businessAuthPanel'))$('businessAuthPanel').style.display='none';loadBusinessProfile();}else{addAuthUI();$('myBusinessTitle').textContent='My Business';$('myBusinessOwner').textContent='Sign in to manage your business.';}loadProduct();});
+  sb.auth.getSession().then(({data})=>{ session=data.session; if (!session) addAuthUI(); else if($('businessAuthPanel'))$('businessAuthPanel').style.display='none'; if(session){loadBusinessProfile(); if($('ownerPanel') && getComputedStyle($('ownerPanel')).display!=='none') loadOwnerInventory();} loadProduct(); startMarketplaceRealtime(); });
+  sb.auth.onAuthStateChange((_event,newSession)=>{session=newSession;if(session){if($('businessAuthPanel'))$('businessAuthPanel').style.display='none';loadBusinessProfile(); if($('ownerPanel') && getComputedStyle($('ownerPanel')).display!=='none') loadOwnerInventory();}else{addAuthUI();$('myBusinessTitle').textContent='My Business';$('myBusinessOwner').textContent='Sign in to manage your business.';}loadProduct();});
 })();
