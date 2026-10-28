@@ -10,7 +10,7 @@
   window.mjadalaSupabaseClient = sb;
   window.mjadalaAuth = { getSession: () => sb.auth.getSession(), signOut: () => sb.auth.signOut(), getUser: () => sb.auth.getUser() };
   const $ = id => document.getElementById(id);
-  let session = null, activeProduct = null, selectedImages = [], poolId = null, catalogProducts = [], productDetailOpen = false;
+  let session = null, activeProduct = null, selectedImages = [], poolId = null, catalogProducts = [], productDetailOpen = false, poolOfferOpen = false;
   const money = n => 'KSh ' + Number(n || 0).toLocaleString('en-KE');
   const toast = msg => { if (typeof window.showToast === 'function') window.showToast(msg); else alert(msg); };
   const errorText = e => e?.message || String(e || 'Unknown error');
@@ -109,10 +109,15 @@
   }
   function renderProduct(p) {
     if (activeProduct?.id && String(activeProduct.id) !== String(p.id)) poolId = null;
-    activeProduct = p; productDetailOpen = true;
+    activeProduct = p; productDetailOpen = true; poolOfferOpen = false;
     const productCard = document.querySelector('.product-card'); if (productCard) productCard.style.display = '';
     if ($('customerTermsPanel')) $('customerTermsPanel').style.display = '';
-    if ($('poolPanel')) $('poolPanel').style.display = p.pooling_enabled ? '' : 'none';
+    if ($('poolPanel')) $('poolPanel').style.display = 'none';
+    if ($('viewPoolOfferButton')) { $('viewPoolOfferButton').style.display = p.pooling_enabled ? 'inline-flex' : 'none'; $('viewPoolOfferButton').textContent = 'View Pool Offer'; $('viewPoolOfferButton').setAttribute('aria-expanded','false'); }
+    const isOwnProduct = !!session?.user?.id && String(p.seller_id) === String(session.user.id);
+    if ($('businessCartPanel')) $('businessCartPanel').style.display = isOwnProduct ? 'none' : '';
+    const qtyControls = document.querySelector('.product-card .qty-controls'); if (qtyControls) qtyControls.style.display = isOwnProduct ? 'none' : '';
+    if (isOwnProduct) toast('This is your product. You can manage it, but cannot purchase it through customer checkout.');
     $('customerProductName').textContent = p.product_name;
     $('customerProductDescription').textContent = p.description || '';
     $('customerProductPrice').textContent = money(p.price);
@@ -133,8 +138,8 @@
     if (typeof window.updateCart === 'function') { /* legacy functions are scoped; event below refreshes totals */ }
     document.dispatchEvent(new CustomEvent('mjadala:product-loaded',{detail:p}));
     updateCartUI();
-    $('poolSectionHeading').style.display = p.pooling_enabled ? '' : 'none';
-    $('poolPanel').style.display = p.pooling_enabled && productDetailOpen ? '' : 'none';
+    $('poolSectionHeading').style.display = 'none';
+    $('poolPanel').style.display = 'none';
     if (p.pooling_enabled) {
       $('poolMinimum').value = p.pool_min_members || 2; $('poolCapacity').value = p.pool_max_members || 5;
       $('poolDiscount').value = p.pool_discount_percent || 0; $('sellerPoolDeliveryFee').value = p.pool_delivery_fee || 0;
@@ -160,7 +165,7 @@
       const imageMarkup = image
         ? `<div class="market-image-wrap"><img loading="lazy" src="${escapeHTML(image)}" alt="${escapeHTML(p.product_name)}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="market-image-fallback" hidden>${initials}</div></div>`
         : `<div class="market-image-fallback">${initials}</div>`;
-      return `<article class="market-item">${imageMarkup}<h4>${escapeHTML(p.product_name)}</h4><strong>${money(p.price)}</strong><p class="subtle">Available quantity: ${Number.isFinite(Number(p.stock_quantity)) ? Number(p.stock_quantity) : 'Check with seller'}</p><p>Standard delivery ${money(p.standard_delivery_fee || 0)} · Express ${money(p.express_delivery_fee || 0)}</p><button type="button" data-open-product="${escapeHTML(p.id)}">View product</button>${isOwner ? `<button type="button" class="market-remove" data-unpublish-product="${escapeHTML(p.id)}">Remove from marketplace</button>` : ''}</article>`;
+      return `<article class="market-item">${imageMarkup}<h4>${escapeHTML(p.product_name)}</h4><strong>${money(p.price)}</strong><p class="subtle">Available quantity: ${Number.isFinite(Number(p.stock_quantity)) ? Number(p.stock_quantity) : 'Check with seller'}</p><p>Standard delivery ${money(p.standard_delivery_fee || 0)} · Express ${money(p.express_delivery_fee || 0)}</p><button type="button" data-open-product="${escapeHTML(p.id)}">View Product</button>${isOwner ? `<button type="button" class="market-remove" data-unpublish-product="${escapeHTML(p.id)}">Remove from marketplace</button>` : ''}</article>`;
     }).join('') + '</div>';
   }
   async function loadOwnerInventory() {
@@ -243,7 +248,8 @@
     if (!requireSession()) return;
     const quantity = Math.max(0, Number($('qtyValue').textContent) || 0);
     if (!quantity) { toast('Add at least one item first'); return; }
-    if (!activeProduct?.id) { toast('Publish or load a product first'); return; }
+    if (!activeProduct?.id) { toast('Open a product first'); return; }
+    if (session?.user?.id && String(activeProduct.seller_id) === String(session.user.id)) { toast('You cannot purchase your own product through customer checkout.'); return; }
     const available = Number(activeProduct.stock_quantity);
     if (Number.isFinite(available) && available >= 0 && quantity > available) { toast('Only ' + available + ' item(s) are currently available.'); return; }
     if (Number.isFinite(available) && available === 0) { toast('This product is out of stock.'); return; }
@@ -369,12 +375,27 @@
     }
     const backButton = e.target.closest('#backToMarketplace');
     if (backButton) {
-      e.preventDefault(); productDetailOpen = false; activeProduct = null; poolId = null;
+      e.preventDefault(); productDetailOpen = false; activeProduct = null; poolId = null; poolOfferOpen = false;
       const detailCard = document.querySelector('.product-card'); if (detailCard) detailCard.style.display = 'none';
       if ($('customerTermsPanel')) $('customerTermsPanel').style.display = 'none';
       if ($('poolPanel')) $('poolPanel').style.display = 'none';
       if ($('poolSectionHeading')) $('poolSectionHeading').style.display = 'none';
+      if ($('viewPoolOfferButton')) { $('viewPoolOfferButton').style.display = 'none'; $('viewPoolOfferButton').textContent = 'View Pool Offer'; $('viewPoolOfferButton').setAttribute('aria-expanded','false'); }
+      if ($('businessCartPanel')) $('businessCartPanel').style.display = '';
+      const qtyControls = document.querySelector('.product-card .qty-controls'); if (qtyControls) qtyControls.style.display = '';
       const catalog = $('businessProductCatalog'); catalog?.scrollIntoView({behavior:'smooth',block:'start'});
+      return;
+    }
+    const poolOfferButton = e.target.closest('#viewPoolOfferButton');
+    if (poolOfferButton) {
+      e.preventDefault();
+      if (!activeProduct?.pooling_enabled) return;
+      poolOfferOpen = !poolOfferOpen;
+      $('poolSectionHeading').style.display = poolOfferOpen ? '' : 'none';
+      $('poolPanel').style.display = poolOfferOpen ? '' : 'none';
+      poolOfferButton.setAttribute('aria-expanded', poolOfferOpen ? 'true' : 'false');
+      poolOfferButton.textContent = poolOfferOpen ? 'Hide Pool Offer' : 'View Pool Offer';
+      if (poolOfferOpen) $('poolPanel')?.scrollIntoView({behavior:'smooth',block:'start'});
       return;
     }
     const productButton = e.target.closest('[data-open-product]');
@@ -402,11 +423,14 @@
     if (!enabled && $('poolPanel')) $('poolPanel').style.display = 'none';
   });
   $('backToMarketplace')?.addEventListener('click', () => {
-    productDetailOpen = false; activeProduct = null; poolId = null;
+    productDetailOpen = false; activeProduct = null; poolId = null; poolOfferOpen = false;
     const detailCard = document.querySelector('.product-card'); if (detailCard) detailCard.style.display = 'none';
     if ($('customerTermsPanel')) $('customerTermsPanel').style.display = 'none';
     if ($('poolPanel')) $('poolPanel').style.display = 'none';
     if ($('poolSectionHeading')) $('poolSectionHeading').style.display = 'none';
+    if ($('viewPoolOfferButton')) { $('viewPoolOfferButton').style.display = 'none'; $('viewPoolOfferButton').textContent = 'View Pool Offer'; $('viewPoolOfferButton').setAttribute('aria-expanded','false'); }
+    if ($('businessCartPanel')) $('businessCartPanel').style.display = '';
+    const qtyControls = document.querySelector('.product-card .qty-controls'); if (qtyControls) qtyControls.style.display = '';
     $('businessProductCatalog')?.scrollIntoView({behavior:'smooth',block:'start'});
   });
   const photoInput = $('productPhotos');

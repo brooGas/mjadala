@@ -251,8 +251,8 @@ button,input{font:inherit}button{cursor:pointer}
      </div>
      <div class="section-title"><svg class="std-icon"><use href="#i-cart"/></svg> Mjadala marketplace <span class="subtle">Live listings</span></div><div id="businessProductCatalog"><p class="live-empty">Loading published products…</p></div>
      <div class="row-card product-card" style="display:none;flex-wrap:wrap">
-      <button type="button" id="backToMarketplace" class="mini-btn" aria-label="Back to marketplace">← Back to products</button>
-      <div class="thumb product-thumb">▧</div>
+      <button type="button" id="backToMarketplace" class="mini-btn" aria-label="Back to marketplace">←</button>
+      <button type="button" id="viewPoolOfferButton" class="mini-btn" style="display:none" aria-expanded="false">View Pool Offer</button><div class="thumb product-thumb">▧</div>
       <div class="grow"><h4 id="customerProductName">No product selected</h4><p id="customerProductDescription">Published product details appear here.</p><p class="product-price" id="customerProductPrice">KSh 0</p></div>
       <div class="qty-controls"><button class="qty-btn" id="qtyMinus" aria-label="Remove one">−</button><strong id="qtyValue">0</strong><button class="qty-btn" id="qtyPlus" aria-label="Add one">+</button></div>
      </div>
@@ -262,7 +262,7 @@ button,input{font:inherit}button{cursor:pointer}
       <p id="customerReturns" class="cart-note">Contact the seller within 7 days if the item arrives damaged, defective, or not as described. Unused items may be eligible for exchange after inspection. Any applicable legal rights remain unaffected.</p>
       <p id="customerTerms" class="cart-note">Please check product details before ordering. Delivery timing depends on location and availability. The seller will communicate if an item is unavailable or a delay occurs. The final price and delivery fee are shown before payment.</p>
      </div>
-     <div class="cart-panel">
+     <div class="cart-panel" id="businessCartPanel">
       <div class="cart-line"><span>Items in cart</span><strong id="cartCount">0</strong></div>
       <div class="cart-line"><span>Subtotal</span><strong id="cartSubtotal">KSh 0</strong></div>
       <div class="delivery-choice"><label for="deliveryMethod"><svg class="std-icon"><use href="#i-truck"/></svg> Choose delivery option</label><select class="delivery-select" id="deliveryMethod"><option value="standard">Standard delivery · KSh 0</option><option value="express">Express delivery · KSh 0</option><option value="pickup">Collect from seller · Free</option></select></div>
