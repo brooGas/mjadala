@@ -176,6 +176,68 @@ button,input{font:inherit}button{cursor:pointer}
    Product photos are handled in the seller's Create/Edit Product form above. */
 #businessDrop{display:none!important}
 </style>
+
+<style id="mjadala-reels-v2">
+/* Isolated Reels experience: immersive dark video canvas; the rest of Mjadala is unchanged. */
+.reels-screen{position:relative!important;padding:0!important;overflow:hidden!important;background:#080a09!important;color:#fff!important;isolation:isolate}
+.reels-screen .instagram-reel-stage{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;margin:0!important;padding:12px!important;border-radius:0!important;background:#080a09!important;z-index:0}
+.reels-screen .instagram-reel-stage:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#050605b8 0%,#05060524 22%,transparent 42%,#05060524 62%,#050605e8 100%)!important;pointer-events:none}
+.reels-screen .instagram-reel-stage [data-live-reel-video]{border-radius:0!important}
+.reels-topbar{position:absolute;z-index:6;top:5px;left:10px;right:10px;display:flex;flex-direction:column;gap:7px;padding-top:env(safe-area-inset-top,0px)}
+.reels-brandline{display:flex;align-items:center;justify-content:space-between;min-height:38px;color:#fff;text-shadow:0 1px 5px #000}
+.reels-brandline>strong{font-family:Georgia,serif;font-size:23px;letter-spacing:-.4px}
+.reels-brand-actions{display:flex;align-items:center;gap:8px}
+.reels-brand-actions>button:not(.reels-create-trigger){width:34px;height:34px;border:0;background:#10101075;color:#fff;border-radius:50%;font-size:23px;line-height:1}
+.reels-screen .reels-category-chips{width:100%}
+.reels-screen .reels-category-chips{flex:1;min-width:0;padding:6px 0 8px;gap:7px}
+.reels-screen .reels-category-chips .chip{color:#fff;background:#171a18b8;border:1px solid #ffffff45;box-shadow:none;backdrop-filter:blur(12px);padding:9px 12px;font-size:11px}
+.reels-screen .reels-category-chips .chip.on{background:#f3eee4;color:#171a18;border-color:#f3eee4}
+.reels-screen .reel-chip-icon{display:none}
+.reels-create-trigger{width:38px;height:38px;flex:0 0 38px;border:1px solid #ffffff60;border-radius:50%;background:#171a18c9;color:#fff;font-size:26px;line-height:1;display:grid;place-items:center;backdrop-filter:blur(12px);box-shadow:0 3px 14px #0003}
+.reels-screen .instagram-reel-stage .reel-top{margin-top:82px}
+.reels-screen .instagram-reel-stage .reel-top b{font-size:12px;color:#fff}
+.reels-screen .instagram-reel-stage .reel-actions{right:9px;top:34%;bottom:auto;gap:11px}
+.reels-screen .instagram-reel-stage .reel-actions button b{width:42px;height:42px;background:transparent;border:0;color:#fff;box-shadow:none}.reels-screen .instagram-reel-stage .reel-actions button svg{width:31px;height:31px;fill:currentColor;stroke:currentColor}.reels-screen .instagram-reel-stage .reel-actions button span{font-size:11px;color:#fff;text-shadow:0 1px 4px #000}.reels-screen .instagram-reel-stage .reel-actions button[aria-pressed="true"] b{color:#e9e0d0}
+.reels-screen .instagram-reel-stage .reel-actions button[aria-pressed="true"] b{background:#f3eee4;color:#171a18;outline-color:#f3eee4}
+.reels-screen .instagram-reel-stage .reel-bottom{left:2px;bottom:8px;max-width:calc(100% - 76px);padding:12px 0 10px}
+.reels-screen .instagram-reel-stage .reel-bottom h3{font-size:15px;line-height:1.35;margin:6px 0}
+.reels-screen .instagram-reel-stage .reel-bottom p{font-size:11px}
+.reels-screen .instagram-reel-stage .reel-top-actions .reel-icon-btn{width:35px;height:35px}
+.reel-composer-panel{position:absolute;z-index:12;inset:58px 10px 12px;overflow-y:auto;padding:14px;border:1px solid #ffffff24;border-radius:22px;background:#111613f5;color:#f6f3ec;box-shadow:0 20px 55px #0009;backdrop-filter:blur(18px)}
+.reel-composer-panel[hidden]{display:none!important}
+.reel-composer-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.reel-composer-head strong{font-size:18px}
+.reel-composer-head p{font-size:12px;color:#c6c8c1;margin:4px 0 0}
+.reel-composer-head button{width:34px;height:34px;border-radius:50%;border:1px solid #ffffff40;background:#ffffff12;color:#fff;font-size:17px}
+.reel-composer-panel .row-card,.reel-composer-panel .field{background:#1b211d!important;color:#f6f3ec!important;border-color:#3a443d!important}
+.reel-composer-panel .field label,.reel-composer-panel .subtle{color:#c6c8c1!important}
+.reel-composer-panel input:not([type="range"]),.reel-composer-panel select{background:#101411!important;color:#fff!important;border-color:#465047!important}
+.reel-composer-panel .pill-btn{width:100%;margin:10px 0;background:#e9e0d0!important;color:#1a201b!important;border:0!important}
+.reel-composer-panel .reel-trim-panel{background:#171d19!important;border-color:#39433c!important}
+.reel-composer-panel .reel-trim-panel p{color:#c6c8c1!important}
+@media(max-width:480px){.reels-topbar{left:9px;right:9px;top:5px}.reels-brandline>strong{font-size:22px}.reels-screen .instagram-reel-stage .reel-actions{top:34%;gap:9px}.reels-screen .instagram-reel-stage .reel-actions button b{width:38px;height:38px}.reels-screen .instagram-reel-stage .reel-actions button svg{width:28px;height:28px}.reels-screen .instagram-reel-stage .reel-bottom{max-width:calc(100% - 68px)}.reel-composer-panel{inset:56px 8px 8px;padding:12px}}
+
+.reels-screen .instagram-reel-stage .reel-top{margin-top:86px}
+.reels-screen .instagram-reel-stage .reel-top>b{font-size:0}
+.reels-screen .instagram-reel-stage .shorts-action-rail{top:33%;bottom:auto;right:9px;gap:10px}
+.reels-screen .instagram-reel-stage .shorts-action-rail button{min-width:42px;gap:3px}
+.reels-screen .instagram-reel-stage .shorts-action-rail button b{width:40px;height:36px;background:transparent;border:0;color:#fff;box-shadow:none}
+.reels-screen .instagram-reel-stage .shorts-action-rail button svg{width:30px;height:30px;display:block}
+.reels-screen .instagram-reel-stage .shorts-action-rail button span{font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 4px #000}
+.reels-screen .instagram-reel-stage .shorts-action-rail button[aria-pressed="true"] b{color:#e9e0d0}
+.reels-screen .instagram-reel-stage .shorts-reel-details{left:2px;bottom:9px;max-width:calc(100% - 76px);padding:10px 0 8px}
+.reel-creator-line{display:flex;align-items:center;gap:8px;min-width:0;margin-bottom:8px}
+.reel-creator-line .reel-creator-avatar{flex:0 0 38px;width:38px;height:38px;padding:0;border:2px solid #fff;border-radius:50%;overflow:hidden;background:#324239;color:#fff;display:grid;place-items:center}
+.reel-creator-line .reel-creator-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.reel-creator-line>strong{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 4px #000}
+.reel-follow-button{border:1px solid #ffffffb0;border-radius:999px;padding:5px 10px;background:#1118;color:#fff;font-size:11px;font-weight:800;flex:0 0 auto}
+.reel-audio-line{display:flex;align-items:center;gap:7px;color:#fff;font-size:12px;margin-top:8px;text-shadow:0 1px 4px #000}
+.reels-screen .instagram-reel-stage .shorts-reel-details h3{font-size:14px;line-height:1.3;margin:4px 0;max-width:100%}
+.reels-screen .instagram-reel-stage .shorts-reel-details p{font-size:11px;margin:3px 0;color:#fff}
+@media(max-width:480px){.reels-screen .instagram-reel-stage .shorts-action-rail{top:32%;right:6px;gap:8px}.reels-screen .instagram-reel-stage .shorts-action-rail button b{width:36px;height:34px}.reels-screen .instagram-reel-stage .shorts-action-rail button svg{width:27px;height:27px}.reels-screen .instagram-reel-stage .shorts-reel-details{max-width:calc(100% - 67px);bottom:8px}.reel-creator-line .reel-creator-avatar{flex-basis:34px;width:34px;height:34px}}
+
+</style>
+
 </head>
 <body>
 
@@ -317,10 +379,10 @@ button,input{font:inherit}button{cursor:pointer}
       <button id="chooseBusinessFiles">Choose files</button><div class="file-name" id="businessFileName">No files selected</div>
      </div>
     </section>
-    <section class="screen" data-screen="2">
-     <div class="reels-category-chips" id="reelsCategoryChips" role="tablist" aria-label="Filter Reels"><button class="chip on" type="button" data-reel-filter="all" role="tab" aria-selected="true">For You</button><button class="chip" type="button" data-reel-filter="following" role="tab" aria-selected="false">Following</button></div>
+    <section class="screen reels-screen" data-screen="2" aria-label="Reels feed">
+     <div class="reels-topbar"><div class="reels-brandline"><strong>Mjadala</strong><div class="reels-brand-actions"><button type="button" aria-label="Search" title="Search" data-go="0">⌕</button><button type="button" aria-label="Notifications" title="Notifications" data-go="4">♧</button><button class="reels-create-trigger" id="openReelComposerButton" type="button" aria-label="Create a Reel" title="Create a Reel">＋</button></div></div><div class="reels-category-chips" id="reelsCategoryChips" role="tablist" aria-label="Filter Reels"><button class="chip on" type="button" data-reel-filter="all" role="tab" aria-selected="true">For You</button><button class="chip" type="button" data-reel-filter="following" role="tab" aria-selected="false">Following</button></div></div>
      <div class="reel-stage instagram-reel-stage" id="sampleReel"><p class="live-empty" style="margin:auto;position:relative;z-index:2">Connecting to live Reels…</p></div>
-     <div class="row-card"><div class="thumb">＋</div><div class="grow"><h4>Create a Reel</h4><p>Choose a video; trim it to any 16-second section before publishing.</p></div><input type="file" id="reelVideoInput" accept="video/*" hidden><button class="mini-btn" id="createReelButton" type="button">Choose</button></div><div id="reelTrimPanel" class="reel-trim-panel" hidden><video id="reelTrimPreview" playsinline controls></video><p id="reelTrimInfo">Choose a clip up to 16 seconds.</p><label for="reelTrimStart">Start time <span id="reelTrimStartLabel">0.0 s</span></label><input id="reelTrimStart" type="range" min="0" max="0" step="0.1" value="0"><label for="reelTrimEnd">End time <span id="reelTrimEndLabel">16.0 s</span></label><input id="reelTrimEnd" type="range" min="0" max="16" step="0.1" value="16"><p class="subtle">Select a start and end. The selected clip must be 16 seconds or shorter.</p></div><div class="field"><label for="reelTitleInput">Caption</label><input id="reelTitleInput" maxlength="180" placeholder="What is this Reel about?"></div><div class="field"><label for="reelCategoryInput">Category</label><select id="reelCategoryInput"><option value="">Loading categories…</option></select></div><button class="pill-btn" id="publishReelButton" type="button">Publish Reel</button><p class="subtle" id="reelCreateStatus" aria-live="polite">Choose a video, trim a section up to 16 seconds, add a caption, and publish it to Supabase.</p>
+     <div id="reelComposerPanel" class="reel-composer-panel" hidden><div class="reel-composer-head"><div><strong>Create a Reel</strong><p>Choose a video, trim up to 16 seconds, and publish.</p></div><button id="closeReelComposerButton" type="button" aria-label="Close Reel creator">✕</button></div><div class="row-card"><div class="thumb">＋</div><div class="grow"><h4>Choose your video</h4><p>Upload a short vertical clip.</p></div><input type="file" id="reelVideoInput" accept="video/*" hidden><button class="mini-btn" id="createReelButton" type="button">Choose</button></div><div id="reelTrimPanel" class="reel-trim-panel" hidden><video id="reelTrimPreview" playsinline controls></video><p id="reelTrimInfo">Choose a clip up to 16 seconds.</p><label for="reelTrimStart">Start time <span id="reelTrimStartLabel">0.0 s</span></label><input id="reelTrimStart" type="range" min="0" max="0" step="0.1" value="0"><label for="reelTrimEnd">End time <span id="reelTrimEndLabel">16.0 s</span></label><input id="reelTrimEnd" type="range" min="0" max="16" step="0.1" value="16"><p class="subtle">Select a start and end. The selected clip must be 16 seconds or shorter.</p></div><div class="field"><label for="reelTitleInput">Caption</label><input id="reelTitleInput" maxlength="180" placeholder="What is this Reel about?"></div><div class="field"><label for="reelCategoryInput">Category</label><select id="reelCategoryInput"><option value="">Loading categories…</option></select></div><button class="pill-btn" id="publishReelButton" type="button">Publish Reel</button><p class="subtle" id="reelCreateStatus" aria-live="polite">Choose a video, trim a section up to 16 seconds, add a caption, and publish it to Supabase.</p></div>
     </section>
     <section class="screen" data-screen="3">
      <div class="chips" role="tablist" aria-label="Community views"><button class="chip on" id="communityTabTopics" type="button" role="tab" aria-selected="true">Topics</button><button class="chip" id="communityTabMine" type="button" role="tab" aria-selected="false">My Communities</button><button class="chip" id="communityTabRequests" type="button" role="tab" aria-selected="false">Requests</button></div><div id="liveJoinRequests" hidden></div>
@@ -392,7 +454,7 @@ const names=[
  {title:"Profile",sub:"Your identity on Mjadala",kicker:"05 / 05 · PROFILE",side:"Profile with settings entry",desc:"Profile details and account controls are grouped. The top-right two-dot menu opens settings and profile actions; light/dark switching lives under Appearance.",list:["Profile photo and stats at the top.","Two-dot menu for settings and account actions.","Light/dark control lives inside Appearance settings."]}
 ];
 let current=0;const track=document.getElementById('track'), viewport=document.getElementById('viewport');
-function go(i){current=Math.max(0,Math.min(4,i));track.style.transform=`translateX(-${current*100}%)`;document.querySelectorAll('.nav-item').forEach((b,j)=>b.classList.toggle('active',j===current));const n=names[current];document.getElementById('pageTitle').textContent=n.title;document.getElementById('pageSubtitle').textContent=n.sub;document.getElementById('sideKicker').textContent=n.kicker;document.getElementById('sideTitle').textContent=n.side;document.getElementById('sideDesc').textContent=n.desc;document.getElementById('sideList').innerHTML=n.list.map(x=>`<li>${x}</li>`).join('');document.querySelectorAll('.step-indicator i').forEach((x,j)=>x.classList.toggle('on',j===current));document.querySelectorAll('.screen').forEach((s,j)=>{if(j===current)s.scrollTop=0});updateHeaderActions()}
+function go(i){current=Math.max(0,Math.min(4,i));track.style.transform=`translateX(-${current*100}%)`;document.querySelectorAll('.nav-item').forEach((b,j)=>b.classList.toggle('active',j===current));const n=names[current];document.getElementById('pageTitle').textContent=n.title;document.getElementById('pageSubtitle').textContent=n.sub;document.getElementById('sideKicker').textContent=n.kicker;document.getElementById('sideTitle').textContent=n.side;document.getElementById('sideDesc').textContent=n.desc;document.getElementById('sideList').innerHTML=n.list.map(x=>`<li>${x}</li>`).join('');document.querySelectorAll('.step-indicator i').forEach((x,j)=>x.classList.toggle('on',j===current));document.querySelectorAll('.screen').forEach((s,j)=>{if(j===current)s.scrollTop=0});const reelVideo=document.querySelector('#sampleReel video');if(reelVideo){if(current===2)reelVideo.play().catch(()=>{});else reelVideo.pause()}updateHeaderActions()}
 document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>go(+b.dataset.index)));
 document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(+b.dataset.go)));
 let sx=0,sy=0;viewport.addEventListener('touchstart',e=>{sx=e.changedTouches[0].clientX;sy=e.changedTouches[0].clientY},{passive:true});viewport.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.2)go(current+(dx<0?1:-1))},{passive:true});
