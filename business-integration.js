@@ -323,7 +323,16 @@
         if (error) { console.warn('Could not refresh payment status:', error.message); return; }
         applyStatus(data, false);
       });
-    setTimeout(() => { try { if (channel && sb.removeChannel) sb.removeChannel(channel); } catch (_) {} }, 120000);
+    // Fallback: realtime can miss an update (RLS, publication, sleeping phone), so also poll every 4s for 3 minutes.
+    let polls = 0;
+    const poller = setInterval(() => {
+      if (finished || ++polls > 45) { clearInterval(poller); return; }
+      // Backup: from ~16s, every ~12s ask Safaricom directly (settles the order if the callback never arrived).
+      if (polls >= 4 && polls % 3 === 1 && sb.functions) { sb.functions.invoke('daraja-stk-query', { body: { order_id: orderId } }).catch(() => {}); }
+      sb.from('business_orders').select('payment_status,mpesa_receipt_number').eq('id', orderId).maybeSingle()
+        .then(({ data }) => { if (data) applyStatus(data, true); });
+    }, 4000);
+    setTimeout(() => { try { if (channel && sb.removeChannel) sb.removeChannel(channel); } catch (_) {} }, 180000);
   }
   function showOrderResult(r) {
     if (typeof window.showAccountPanel === 'function') window.showAccountPanel('Order created',[{icon:'✓',label:'Order reference',detail:r?.order_id || r?.id || 'Created'},{icon:'▣',label:'Amount due',detail:money(r?.total_amount)},{icon:'▦',label:'Payment status',detail:r?.payment_started?'STK request accepted · awaiting Safaricom callback':'Unpaid · M-Pesa request not started'},{icon:'ℹ',label:'Next step',detail:r?.payment_message || 'Check the payment status before retrying.'}]);
