@@ -107,7 +107,7 @@
     }
     return urls;
   }
-  function renderProduct(p) {
+  function renderProduct(p, announceOwn = false) {
     if (activeProduct?.id && String(activeProduct.id) !== String(p.id)) poolId = null;
     activeProduct = p; productDetailOpen = true; poolOfferOpen = false;
     const productCard = document.querySelector('.product-card'); if (productCard) productCard.style.display = '';
@@ -122,7 +122,7 @@
     if ($('businessCartPanel')) $('businessCartPanel').style.display = 'none';
     if ($('toggleCheckoutPanel')) $('toggleCheckoutPanel').style.display = isOwnProduct ? 'none' : 'flex';
     const qtyControls = document.querySelector('.product-card .qty-controls'); if (qtyControls) qtyControls.style.display = isOwnProduct ? 'none' : '';
-    if (isOwnProduct) toast('This is your product. You can manage it, but cannot purchase it through customer checkout.');
+    if (isOwnProduct && announceOwn) toast('This is your product. You can manage it, but cannot purchase it through customer checkout.');
     $('customerProductName').textContent = p.product_name;
     $('customerProductDescription').textContent = p.description || '';
     $('customerProductPrice').textContent = money(p.price);
@@ -188,7 +188,7 @@
       const {data,error} = await sb.from('business_products').select('id,product_name,price,published,created_at,seller_id').eq('seller_id',session.user.id).order('created_at',{ascending:false});
       if (error) throw error;
       if (!data?.length) { list.innerHTML = '<p class="subtle">You have no products yet.</p>'; return; }
-      list.innerHTML = data.map(p => `<div class="owner-product-row"><div class="owner-product-info"><strong>${escapeHTML(p.product_name || 'Untitled product')}</strong><small>${money(p.price)} · ${p.published ? 'Published' : 'Not published'}</small></div><button type="button" class="owner-product-action" ${p.published ? `data-unpublish-product="${escapeHTML(p.id)}"` : `data-publish-product="${escapeHTML(p.id)}"`}>${p.published ? 'Remove' : 'Publish'}</button></div>`).join('');
+      list.innerHTML = data.map(p => `<div class="owner-product-row"><div class="owner-product-info"><strong>${escapeHTML(p.product_name || 'Untitled product')}</strong><small>${money(p.price)} · ${p.published ? 'Published' : 'Not published'}</small></div><button type="button" class="owner-product-action" ${p.published ? `data-unpublish-product="${escapeHTML(p.id)}"` : `data-publish-product="${escapeHTML(p.id)}"`}>${p.published ? 'Remove' : 'Publish'}</button>${p.published ? '' : `<button type="button" class="owner-product-action" data-delete-product="${escapeHTML(p.id)}" style="color:#a33!important;min-width:70px!important">Delete</button>`}</div>`).join('');
     } catch (err) {
       list.innerHTML = '<p class="subtle">Could not load your inventory: ' + escapeHTML(errorText(err)) + '</p>';
     }
@@ -360,6 +360,25 @@
   document.addEventListener('click', async e => {
     const unpublishButton = e.target.closest('[data-unpublish-product]');
     const publishAgainButton = e.target.closest('[data-publish-product]');
+    const deleteButton = e.target.closest('[data-delete-product]');
+    if (deleteButton) {
+      e.preventDefault(); e.stopImmediatePropagation();
+      if (!session?.user?.id) { toast('Sign in as the product owner first.'); return; }
+      const deleteId = deleteButton.dataset.deleteProduct;
+      const deleteName = deleteButton.closest('.owner-product-row')?.querySelector('strong')?.textContent || 'this product';
+      if (!confirm(`Delete “${deleteName}” permanently? This cannot be undone. Products that already have orders cannot be deleted.`)) return;
+      deleteButton.disabled = true; deleteButton.textContent = 'Deleting…';
+      try {
+        const { error } = await sb.rpc('delete_business_product', { p_product_id: deleteId });
+        if (error) throw error;
+        await loadProduct(); await loadOwnerInventory();
+        toast('Product deleted permanently.');
+      } catch (err) {
+        toast(errorText(err));
+        deleteButton.disabled = false; deleteButton.textContent = 'Delete';
+      }
+      return;
+    }
     if (unpublishButton || publishAgainButton) {
       e.preventDefault(); e.stopImmediatePropagation();
       if (!session?.user?.id) { toast('Sign in as the product owner first.'); return; }
@@ -446,7 +465,7 @@
       e.preventDefault();
       const selected = catalogProducts.find(p => String(p.id) === String(productButton.dataset.openProduct));
       if (selected) {
-        renderProduct(selected);
+        renderProduct(selected, true);
         const detailCard = document.querySelector('.product-card');
         detailCard?.scrollIntoView({behavior:'smooth',block:'start'});
       }
