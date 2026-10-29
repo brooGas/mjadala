@@ -372,10 +372,20 @@
       if (product && String(product.seller_id) !== String(session.user.id)) { toast('You can manage only products belonging to your account.'); return; }
       const shouldPublish = !!publishAgainButton;
       const name = product?.product_name || inventoryRow?.querySelector('strong')?.textContent || 'this product';
-      if (!confirm(shouldPublish ? `Publish “${name}” to the marketplace?` : `Remove “${name}” from the marketplace? Its order history will be preserved.`)) return;
+      // Republishing asks for the quantity available now, because stock changes between listings.
+      let newStock = null;
+      if (shouldPublish) {
+        const entered = prompt(`How many units of “${name}” are available now? (whole number, 1 or more)`, '');
+        if (entered === null) return;
+        newStock = Number(String(entered).trim());
+        if (!Number.isInteger(newStock) || newStock < 1) { toast('Enter a whole-number quantity of 1 or more to publish.'); return; }
+      } else if (!confirm(`Remove “${name}” from the marketplace? Its order history will be preserved.`)) return;
       button.disabled = true; button.textContent = shouldPublish ? 'Publishing…' : 'Removing…';
       try {
-        const { data, error } = await sb.from('business_products').update({published: shouldPublish}).eq('id', productId).eq('seller_id', session.user.id).select('id');
+        // Republish goes through the database function (checks owner + quantity); removing just hides the product.
+        const { data, error } = shouldPublish
+          ? await sb.rpc('republish_business_product', { p_product_id: productId, p_quantity: newStock }).then(r => ({ data: r.error ? null : [r.data], error: r.error }))
+          : await sb.from('business_products').update({published: false}).eq('id', productId).eq('seller_id', session.user.id).select('id');
         if (error) throw error;
         if (!data?.length) throw new Error('No product was updated. Check that you are signed in as its owner.');
         if (!shouldPublish && activeProduct?.id === productId) activeProduct = null;
