@@ -257,8 +257,8 @@ button,input{font:inherit}button{cursor:pointer}
  <div class="layout">
   <main class="phone" aria-label="Mjadala social app">
    <div class="status"><span id="liveStatus" aria-live="polite">Offline</span><span id="liveStatusDetail" aria-hidden="true"></span></div>
-   <header class="app-head" id="appHead"><div class="head-title"><div class="leaf mv-mark" aria-label="MV">MV</div><div><h2 id="pageTitle">mjadala</h2><small id="pageSubtitle">Real people. Real conversations.</small></div></div><div class="head-actions" id="headActions"><button class="icon-btn" id="mjadalaInstallButton" type="button" aria-label="Install Mjadala" title="Install Mjadala" style="font-size:12px;width:auto;padding:0 10px;font-weight:800">Install</button><button class="icon-btn" aria-label="Search" id="searchBtn"><svg class="std-icon"><use href="#i-search"/></svg></button><button class="icon-btn" aria-label="Notifications" id="notifBtn"><svg class="std-icon"><use href="#i-bell"/></svg></button></div><button class="icon-btn live-auth-btn" id="liveAuthBtn" type="button" aria-label="Your profile" title="Your profile"><span class="account-avatar-fallback">ME</span></button></header>
-   <div class="overflow-menu" id="profileMenu"><button data-settings="account"><svg class="std-icon"><use href="#i-user"/></svg> &nbsp; Account options</button><button data-settings="logout"><svg class="std-icon"><use href="#i-logout"/></svg> &nbsp; Log out</button><button data-settings="delete"><svg class="std-icon"><use href="#i-close"/></svg> &nbsp; Delete account</button></div>
+   <header class="app-head" id="appHead"><div class="head-title"><div class="leaf mv-mark" aria-label="MV">MV</div><div><h2 id="pageTitle">mjadala</h2><small id="pageSubtitle">Real people. Real conversations.</small></div></div><div class="head-actions" id="headActions"><button class="icon-btn" aria-label="Search" id="searchBtn"><svg class="std-icon"><use href="#i-search"/></svg></button><button class="icon-btn" aria-label="Notifications" id="notifBtn"><svg class="std-icon"><use href="#i-bell"/></svg></button></div><button class="icon-btn live-auth-btn" id="liveAuthBtn" type="button" aria-label="Your profile" title="Your profile"><span class="account-avatar-fallback">ME</span></button></header>
+   <div class="overflow-menu" id="profileMenu"><button type="button" onclick="window.location.href='/auth.html'"><svg class="std-icon"><use href="#i-user"/></svg> &nbsp; Create account / Sign in</button><button data-settings="account"><svg class="std-icon"><use href="#i-user"/></svg> &nbsp; Account options</button><button data-settings="logout"><svg class="std-icon"><use href="#i-logout"/></svg> &nbsp; Log out</button><button data-settings="delete"><svg class="std-icon"><use href="#i-close"/></svg> &nbsp; Delete account</button></div>
    <div class="screen-viewport" id="viewport"><div class="screen-track" id="track">
     <section class="screen" data-screen="0">
      <div class="search"><svg class="std-icon"><use href="#i-search"/></svg> &nbsp; Search Mjadala…</div>
@@ -396,22 +396,7 @@ button,input{font:inherit}button{cursor:pointer}
  </div>
 </div>
 
-<style>
-.auth-backdrop{position:fixed;inset:0;z-index:10000;background:#10251ddd;display:grid;place-items:center;padding:18px}.auth-backdrop[hidden]{display:none!important}.auth-card{width:min(100%,390px);max-height:92vh;overflow-y:auto;background:#fffdf7;color:#20352b;border-radius:22px;padding:22px;box-shadow:0 20px 60px #0005}.auth-card h3{margin:0 0 6px}.auth-card p{color:#66736a;font-size:13px}.auth-card label{display:block;font-size:13px;font-weight:700;margin:12px 0 5px}.auth-card input{box-sizing:border-box;width:100%;padding:12px;border:1px solid #d8dfd8;border-radius:10px;background:white;color:#20352b}.auth-card button{padding:11px 14px;border:0;border-radius:11px;font-weight:750;cursor:pointer}.auth-primary{width:100%;margin-top:15px;background:#174e3a;color:white}.auth-secondary{background:#eaf0e9;color:#174e3a}.auth-row{display:flex;gap:8px;margin-top:10px}.auth-row button{flex:1}.auth-status{min-height:18px;font-size:12px!important;color:#8a3428!important}.auth-consent{display:flex!important;align-items:flex-start;gap:8px;font-weight:500!important;line-height:1.4}.auth-consent input{width:auto!important;margin-top:3px;flex:0 0 auto}.auth-consent a{color:#174e3a;text-decoration:underline}
-</style>
-<div id="mjadalaAuthBackdrop" class="auth-backdrop" hidden>
- <section class="auth-card" role="dialog" aria-modal="true" aria-labelledby="mjadalaAuthTitle">
-  <h3 id="mjadalaAuthTitle">Welcome to Mjadala</h3><p id="mjadalaAuthHint">Sign in to your account or create one.</p>
-  <form id="mjadalaAuthForm"><label for="mjadalaAuthName" id="mjadalaAuthNameLabel" hidden>Nickname</label><input id="mjadalaAuthName" autocomplete="nickname" placeholder="How others will see you" hidden>
-  <label for="mjadalaAuthEmail" id="mjadalaAuthEmailLabel">Email address</label><input id="mjadalaAuthEmail" type="email" autocomplete="email" required placeholder="you@example.com">
-  <label for="mjadalaAuthPassword" id="mjadalaAuthPasswordLabel">Password</label><input id="mjadalaAuthPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="At least 6 characters">
-  <label class="auth-consent" id="mjadalaConsentWrap" hidden><input id="mjadalaConsent" type="checkbox"><span>I agree to the <a href="terms.html" target="_blank" rel="noopener">Terms of Service</a> and <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
-  <label for="mjadalaAuthCode" id="mjadalaAuthCodeLabel" hidden>Verification code</label><input id="mjadalaAuthCode" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="6-digit code from your email" hidden>
-  <button class="auth-primary" id="mjadalaAuthSubmit" type="submit">Sign in</button></form>
-  <div class="auth-row" id="mjadalaAuthFooter"><button class="auth-secondary" id="mjadalaAuthToggle" type="button">Create account</button><button class="auth-secondary" id="mjadalaAuthClose" type="button">Cancel</button></div>
-  <p class="auth-status" id="mjadalaAuthStatus" aria-live="polite"></p>
- </section>
-</div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -504,47 +489,25 @@ updateHeaderActions();
 #reelComposerPanel .reel-trim-panel video{touch-action:pan-y;pointer-events:auto}
 </style>
 
-<script id="mjadala-pwa-wiring">
+
+
+<script id="mjadala-auth-page-entry">
+(()=>{const b=document.getElementById('liveAuthBtn');if(b)b.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();window.location.href='/auth.html';},true);})();
+</script>
+
+<script id="mjadala-auth-route-guard">
 (()=>{
-  'use strict';
-  let installPrompt=null;
-  const installButton=document.getElementById('mjadalaInstallButton');
-  const isStandalone=()=>window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
-  if(installButton){
-    // Keep the install control visible on every non-installed visit. The browser's
-    // native prompt is used when available; otherwise the button gives clear steps.
-    installButton.hidden=isStandalone();
-    window.addEventListener('beforeinstallprompt',event=>{
-      event.preventDefault(); installPrompt=event; installButton.hidden=isStandalone();
-    });
-    installButton.addEventListener('click',async()=>{
-      if(isStandalone()) { installButton.hidden=true; return; }
-      if(!installPrompt){
-        const isAndroid=/android/i.test(navigator.userAgent);
-        if(/iphone|ipad|ipod/i.test(navigator.userAgent)) {
-          alert('To install Mjadala on iPhone: tap the Share button in Safari, then choose “Add to Home Screen”.');
-        } else if(isAndroid) {
-          alert('To install Mjadala: open your browser menu (⋮) and choose “Install app” or “Add to Home screen”. If that option is missing, the browser has not marked the site installable yet.');
-        } else {
-          alert('To install Mjadala, use your browser menu and choose “Install Mjadala” or “Install app”.');
-        }
-        return;
-      }
-      const promptEvent=installPrompt;
-      installPrompt=null;
-      try {
-        await promptEvent.prompt();
-        const choice=await promptEvent.userChoice;
-        if(choice && choice.outcome==='accepted') installButton.hidden=true;
-      } catch(err) {
-        console.warn('Mjadala install prompt failed:',err);
-      }
-    });
-    window.addEventListener('appinstalled',()=>{installPrompt=null;installButton.hidden=true;});
-  }
-  if('serviceWorker' in navigator){
-    window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').then(reg=>reg.update()).catch(err=>console.warn('Mjadala offline support could not start:',err)));
-  }
+  // Preserve the existing app and its stored sessions. Only send signed-out
+  // visitors to the dedicated welcome/auth page after Supabase has initialized.
+  window.addEventListener('load', async () => {
+    if (location.pathname === '/auth.html') return;
+    const client = window.mjadalaSupabaseClient;
+    if (!client?.auth?.getSession) return;
+    try {
+      const { data, error } = await client.auth.getSession();
+      if (!error && !data?.session) location.replace('/auth.html');
+    } catch (error) { console.warn('Mjadala session check deferred:', error); }
+  }, { once: true });
 })();
 </script>
 </body></html>

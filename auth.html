@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#174d35">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<title>Welcome to Mjadala</title>
+<style>
+:root{--green:#174d35;--green2:#0f6247;--ivory:#fff1cc;--paper:#fffdf7;--ink:#28332d;--muted:#6e7771;--line:#e5e8df;--soft:#f3f5ee;--gold:#e4c18a}
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:linear-gradient(145deg,#e9eee8,#fff8e8);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:grid;place-items:center;padding:20px}
+.auth-shell{width:min(100%,430px)}.brand{display:flex;align-items:center;gap:11px;justify-content:center;margin:0 auto 24px;color:var(--green);font-weight:900;font-size:27px;letter-spacing:-.7px}.mark{width:44px;height:44px;border-radius:15px;background:var(--green);color:var(--ivory);display:grid;place-items:center;font-size:23px;box-shadow:0 6px 18px #174d3525}.card{background:var(--paper);border:1px solid #e8e6d9;border-radius:25px;padding:25px;box-shadow:0 20px 55px #203b2918}.card h1{font-size:23px;line-height:1.15;margin:0 0 7px;text-align:center}.intro{text-align:center;color:var(--muted);font-size:13px;margin:0 0 22px}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;background:var(--soft);padding:5px;border-radius:13px;margin-bottom:18px}.tabs button{border:0;background:transparent;color:var(--muted);border-radius:10px;padding:10px;font-weight:800}.tabs button.active{background:white;color:var(--green);box-shadow:0 2px 7px #0000000c}label{display:block;font-size:12px;font-weight:750;margin:12px 0 5px}input{width:100%;border:1px solid var(--line);background:white;color:var(--ink);border-radius:11px;padding:13px;font:inherit;outline-color:var(--green)}.primary,.install{width:100%;border:0;border-radius:12px;padding:13px;font-weight:850;margin-top:15px}.primary{background:var(--green);color:white}.install{margin-top:9px;background:var(--ivory);color:var(--green);border:1px solid #ead9b3}.status{min-height:38px;margin:12px 0 0;color:var(--muted);font-size:12px;text-align:center}.legal{text-align:center;color:var(--muted);font-size:11px;margin:15px 0 0}.legal a{color:var(--green)}.back{text-align:center;margin-top:16px}.back a{color:var(--green);font-size:13px;font-weight:750;text-decoration:none}.hidden{display:none!important}
+</style>
+</head>
+<body>
+<main class="auth-shell">
+  <div class="brand"><span class="mark">MV</span><span>mjadala</span></div>
+  <section class="card" aria-labelledby="title">
+    <h1 id="title">Welcome to Mjadala</h1>
+    <p class="intro">Real people. Real conversations. Bigger ideas.</p>
+    <div class="tabs" role="tablist" aria-label="Account access">
+      <button id="signInTab" class="active" type="button" role="tab" aria-selected="true">Sign in</button>
+      <button id="signUpTab" type="button" role="tab" aria-selected="false">Create account</button>
+    </div>
+    <form id="authForm" novalidate>
+      <div id="nicknameWrap" class="hidden"><label for="nickname">Nickname</label><input id="nickname" autocomplete="nickname" maxlength="24" placeholder="How people will find you"></div>
+      <label for="login">Email address or nickname</label><input id="login" autocomplete="username" required placeholder="Email or Mjadala nickname">
+      <label for="password">Password</label><input id="password" type="password" autocomplete="current-password" minlength="8" required placeholder="At least 8 characters">
+      <div id="consentWrap" class="hidden"><label style="display:flex;align-items:flex-start;gap:8px;font-weight:500"><input id="consent" type="checkbox" style="width:auto;margin-top:3px"> <span>I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span></label></div>
+      <button id="submit" class="primary" type="submit">Sign in</button>
+    </form>
+    <button id="installButton" class="install" type="button">Install Mjadala</button>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+    <p class="legal">Your account stays yours. Your conversations remain in Mjadala.</p>
+  </section>
+  <div class="back"><a href="/">← Back to Mjadala</a></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/auth.js" defer></script>
+</body>
+</html>
