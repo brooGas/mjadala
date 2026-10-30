@@ -2,6 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="theme-color" content="#174d35">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>#mjadalaInstallButton[hidden]{display:none!important}</style>
 <title>Mjadala</title>
 <style>
 :root{--green:#174d35;--green2:#0f6247;--ivory:#fff1cc;--paper:#fffdf7;--ink:#282f2b;--muted:#6e7771;--line:#e7e8df;--soft:#f4f5ee;--gold:#e4c18a;--shadow:0 10px 28px #163a2714}
@@ -250,7 +257,7 @@ button,input{font:inherit}button{cursor:pointer}
  <div class="layout">
   <main class="phone" aria-label="Mjadala social app">
    <div class="status"><span id="liveStatus" aria-live="polite">Offline</span><span id="liveStatusDetail" aria-hidden="true"></span></div>
-   <header class="app-head" id="appHead"><div class="head-title"><div class="leaf mv-mark" aria-label="MV">MV</div><div><h2 id="pageTitle">mjadala</h2><small id="pageSubtitle">Real people. Real conversations.</small></div></div><div class="head-actions" id="headActions"><button class="icon-btn" aria-label="Search" id="searchBtn"><svg class="std-icon"><use href="#i-search"/></svg></button><button class="icon-btn" aria-label="Notifications" id="notifBtn"><svg class="std-icon"><use href="#i-bell"/></svg></button></div><button class="icon-btn live-auth-btn" id="liveAuthBtn" type="button" aria-label="Your profile" title="Your profile"><span class="account-avatar-fallback">ME</span></button></header>
+   <header class="app-head" id="appHead"><div class="head-title"><div class="leaf mv-mark" aria-label="MV">MV</div><div><h2 id="pageTitle">mjadala</h2><small id="pageSubtitle">Real people. Real conversations.</small></div></div><div class="head-actions" id="headActions"><button class="icon-btn" id="mjadalaInstallButton" type="button" aria-label="Install Mjadala" title="Install Mjadala" hidden style="font-size:12px;width:auto;padding:0 10px;font-weight:800">Install</button><button class="icon-btn" aria-label="Search" id="searchBtn"><svg class="std-icon"><use href="#i-search"/></svg></button><button class="icon-btn" aria-label="Notifications" id="notifBtn"><svg class="std-icon"><use href="#i-bell"/></svg></button></div><button class="icon-btn live-auth-btn" id="liveAuthBtn" type="button" aria-label="Your profile" title="Your profile"><span class="account-avatar-fallback">ME</span></button></header>
    <div class="overflow-menu" id="profileMenu"><button data-settings="account"><svg class="std-icon"><use href="#i-user"/></svg> &nbsp; Account options</button><button data-settings="logout"><svg class="std-icon"><use href="#i-logout"/></svg> &nbsp; Log out</button><button data-settings="delete"><svg class="std-icon"><use href="#i-close"/></svg> &nbsp; Delete account</button></div>
    <div class="screen-viewport" id="viewport"><div class="screen-track" id="track">
     <section class="screen" data-screen="0">
@@ -496,6 +503,35 @@ updateHeaderActions();
 #reelComposerPanel .reel-trim-panel input[type="range"]:disabled{opacity:.55;cursor:wait}
 #reelComposerPanel .reel-trim-panel video{touch-action:pan-y;pointer-events:auto}
 </style>
+
+<script id="mjadala-pwa-wiring">
+(()=>{
+  'use strict';
+  let installPrompt=null;
+  const installButton=document.getElementById('mjadalaInstallButton');
+  const isStandalone=()=>window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
+  if(installButton){
+    if(isStandalone()) installButton.hidden=true;
+    window.addEventListener('beforeinstallprompt',event=>{
+      event.preventDefault(); installPrompt=event; installButton.hidden=false;
+    });
+    installButton.addEventListener('click',async()=>{
+      if(!installPrompt){
+        if(/iphone|ipad|ipod/i.test(navigator.userAgent)) alert('To install Mjadala on iPhone: tap Share, then “Add to Home Screen”.');
+        else alert('Mjadala is not ready to install in this browser yet. Please use the browser menu and choose Install app or Add to Home screen.');
+        return;
+      }
+      installPrompt.prompt();
+      try{await installPrompt.userChoice;}catch(_){}
+      installPrompt=null; installButton.hidden=true;
+    });
+    window.addEventListener('appinstalled',()=>{installPrompt=null;installButton.hidden=true;});
+  }
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').then(reg=>reg.update()).catch(err=>console.warn('Mjadala offline support could not start:',err)));
+  }
+})();
+</script>
 </body></html>
 <style>
 .live-auth-btn{width:42px!important;height:42px!important;flex:0 0 42px!important;padding:0!important;overflow:hidden;border-radius:50%!important;background:#fff!important;border:2px solid #fff!important;box-shadow:0 0 0 1px var(--line)}.live-auth-btn img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}.account-avatar-fallback{display:grid;place-items:center;width:100%;height:100%;font-size:12px;font-weight:900;color:var(--green);background:var(--ivory);border-radius:50%}.reel-trim-panel{border:1px solid var(--line);border-radius:14px;padding:10px;margin:8px 0;background:var(--soft)}.reel-trim-panel[hidden]{display:none}.reel-trim-panel video{width:100%;height:210px;max-height:34dvh;min-height:150px;object-fit:contain;background:#111;border-radius:10px;display:block;visibility:visible;opacity:1}.reel-trim-panel label{display:flex;justify-content:space-between;font-size:12px;font-weight:750;margin-top:8px}.reel-trim-panel input[type=range]{width:100%;accent-color:var(--green)}.reel-trim-panel p{font-size:11px;margin:6px 0;color:var(--muted)}
