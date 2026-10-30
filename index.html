@@ -468,6 +468,12 @@ updateHeaderActions();
 <script src="interaction-layer.js"></script>
 <script src="live-social.js" defer></script>
 <script src="live-reels.js" defer></script>
+
+<style id="mjadala-reel-trim-touch-fix">
+#reelComposerPanel .reel-trim-panel input[type="range"]{display:block;position:relative;z-index:3;width:100%;min-height:32px;margin:5px 0 10px;padding:0;touch-action:pan-x;pointer-events:auto;accent-color:var(--green);cursor:pointer}
+#reelComposerPanel .reel-trim-panel input[type="range"]:disabled{opacity:.55;cursor:wait}
+#reelComposerPanel .reel-trim-panel video{touch-action:pan-y;pointer-events:auto}
+</style>
 </body></html>
 <style>
 .live-auth-btn{width:42px!important;height:42px!important;flex:0 0 42px!important;padding:0!important;overflow:hidden;border-radius:50%!important;background:#fff!important;border:2px solid #fff!important;box-shadow:0 0 0 1px var(--line)}.live-auth-btn img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}.account-avatar-fallback{display:grid;place-items:center;width:100%;height:100%;font-size:12px;font-weight:900;color:var(--green);background:var(--ivory);border-radius:50%}.reel-trim-panel{border:1px solid var(--line);border-radius:14px;padding:10px;margin:8px 0;background:var(--soft)}.reel-trim-panel[hidden]{display:none}.reel-trim-panel video{width:100%;height:210px;max-height:34dvh;min-height:150px;object-fit:contain;background:#111;border-radius:10px;display:block;visibility:visible;opacity:1}.reel-trim-panel label{display:flex;justify-content:space-between;font-size:12px;font-weight:750;margin-top:8px}.reel-trim-panel input[type=range]{width:100%;accent-color:var(--green)}.reel-trim-panel p{font-size:11px;margin:6px 0;color:var(--muted)}
