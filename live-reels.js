@@ -101,7 +101,125 @@ function setupTrim(file){
 function setCreatorAudio(file){creatorAudioFile=file||null;const info=$('creatorAudioInfo');if(info)info.textContent=file?`Selected audio: ${file.name} (${(file.size/1024/1024).toFixed(1)} MB)`:'No added audio selected.';const player=$('creatorAudioPreview');if(player){if(player.dataset.objectUrl)URL.revokeObjectURL(player.dataset.objectUrl);if(file){const u=URL.createObjectURL(file);player.dataset.objectUrl=u;player.src=u;player.hidden=false;}else{player.removeAttribute('src');player.hidden=true;}}}
 async function startAudioRecording(){if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){note('Audio recording is not supported in this browser. You can upload an audio recording instead.');return;}try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});audioChunks=[];const mime=['audio/webm;codecs=opus','audio/webm','audio/mp4'].find(t=>MediaRecorder.isTypeSupported(t))||'';audioRecorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);audioRecorder.ondataavailable=e=>{if(e.data?.size)audioChunks.push(e.data);};audioRecorder.onstop=()=>{const blob=new Blob(audioChunks,{type:audioRecorder.mimeType||'audio/webm'});setCreatorAudio(new File([blob],'mjadala-original-audio.webm',{type:blob.type}));stream.getTracks().forEach(t=>t.stop());const b=$('recordCreatorAudioButton');if(b)b.textContent='Record audio';note('Your original audio is ready. Preview it before publishing.');};audioRecorder.start();const b=$('recordCreatorAudioButton');if(b)b.textContent='Stop recording';note('Recording… speak, sing, or make your sound. Tap Stop recording when finished.');}catch(e){note('Microphone access was not granted: '+e.message);}}
 
-async function reencodeVideo(file,startSec,endSec,opts){opts=opts||{};const v=$('reelTrimPreview');const capture=v.captureStream||v.mozCaptureStream;if(!capture||!window.MediaRecorder)throw new Error('This browser cannot combine audio and video for publishing. Please use a supported Chrome browser.');const sourceStream=capture.call(v);const tracks=[...sourceStream.getVideoTracks()];let audioContext=null,recordStream=null,recordAudio=null;try{if(window.AudioContext||window.webkitAudioContext){const AC=window.AudioContext||window.webkitAudioContext;audioContext=new AC();const destination=audioContext.createMediaStreamDestination();const original=sourceStream.getAudioTracks();if(original.length){const originalSource=audioContext.createMediaStreamSource(new MediaStream(original));const originalGain=audioContext.createGain();originalGain.gain.value=Number($('originalAudioVolume')?.value??0.8);originalSource.connect(originalGain).connect(destination);}if(creatorAudioFile){const bytes=await creatorAudioFile.arrayBuffer();const buffer=await audioContext.decodeAudioData(bytes.slice(0));const audioSource=audioContext.createBufferSource();const addedGain=audioContext.createGain();addedGain.gain.value=Number($('addedAudioVolume')?.value??1);audioSource.buffer=buffer;audioSource.connect(addedGain).connect(destination);recordAudio={source:audioSource,duration:Math.min(buffer.duration,endSec-startSec)};}tracks.push(...destination.stream.getAudioTracks());await audioContext.resume();}else if(creatorAudioFile)throw new Error('Audio mixing is not supported by this browser.');recordStream=new MediaStream(tracks);const mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t))||'';const recOpts=mime?{mimeType:mime}:{};if(opts.bitrate)recOpts.videoBitsPerSecond=opts.bitrate;const chunks=[];const recorder=new MediaRecorder(recordStream,recOpts);const finished=new Promise((resolve,reject)=>{recorder.ondataavailable=e=>{if(e.data?.size)chunks.push(e.data);};recorder.onerror=()=>reject(new Error('Video/audio processing failed. Please try again.'));recorder.onstop=()=>resolve(new Blob(chunks,{type:recorder.mimeType||'video/webm'}));});v.pause();v.muted=false;if(v.readyState<2)await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('Video preview is not ready yet. Please wait for it to load.')),10000);const ok=()=>{clearTimeout(timer);v.removeEventListener('loadeddata',ok);resolve();};v.addEventListener('loadeddata',ok,{once:true});});if(Math.abs(v.currentTime-startSec)>0.05)await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('Could not seek to the selected start time. Please try again.')),10000);const ok=()=>{clearTimeout(timer);v.removeEventListener('seeked',ok);resolve();};v.addEventListener('seeked',ok,{once:true});try{v.currentTime=startSec;}catch(err){clearTimeout(timer);v.removeEventListener('seeked',ok);reject(err);}});recorder.start(250);if(recordAudio)recordAudio.source.start(0,0,recordAudio.duration);await v.play();await new Promise((resolve,reject)=>{const finish=()=>{v.pause();resolve();};const check=()=>{if(v.currentTime>=endSec-0.03){finish();return;}if(v.paused){reject(new Error('Video preview stopped during processing. Please try again.'));return;}requestAnimationFrame(check);};check();});if(recorder.state!=='inactive')recorder.stop();const blob=await finished;if(!blob.size)throw new Error('Processed video was empty. Please try again.');return new File([blob],file.name.replace(/\.[^.]+$/,'')+'-mjadala.webm',{type:blob.type||'video/webm'});}finally{sourceStream.getTracks().forEach(t=>t.stop());recordStream?.getTracks().filter(t=>!tracks.includes(t)).forEach(t=>t.stop());if(audioContext)await audioContext.close().catch(()=>{});}}
+async function reencodeVideo(file,startSec,endSec,opts){
+ opts=opts||{};
+ const v=$('reelTrimPreview');
+ if(!v)throw new Error('The video preview is unavailable. Please choose the video again.');
+ if(!window.MediaRecorder)throw new Error('This browser cannot prepare video for publishing. Please use an updated Chrome browser.');
+ let audioContext=null,sourceStream=null,recordStream=null,recorder=null,recordAudio=null,recordingStarted=false;
+ const chunks=[];
+ const waitFor=(event,timeout,message)=>new Promise((resolve,reject)=>{
+  let timer=setTimeout(()=>{cleanup();reject(new Error(message));},timeout);
+  const done=()=>{cleanup();resolve();};
+  const cleanup=()=>{clearTimeout(timer);v.removeEventListener(event,done);};
+  v.addEventListener(event,done,{once:true});
+ });
+ try{
+  // Wait until the selected file is decoded before capturing it. Capturing a
+  // not-yet-ready video element can produce a stream with no usable frames.
+  if(v.readyState<2)await waitFor('loadeddata',15000,'Video preview did not finish loading. Please choose the video again.');
+  if(Math.abs(v.currentTime-startSec)>0.05){
+   const seeked=waitFor('seeked',12000,'Could not seek to the selected start time. Please try again.');
+   v.currentTime=startSec;
+   await seeked;
+  }
+  const capture=v.captureStream||v.mozCaptureStream;
+  if(!capture)throw new Error('This browser does not support video capture for trimming. Please update Chrome and try again.');
+  sourceStream=capture.call(v);
+  const videoTracks=sourceStream.getVideoTracks();
+  if(!videoTracks.length)throw new Error('The browser did not provide a video track for export. Please reopen the selected video and try again.');
+  const tracks=[...videoTracks];
+  if(window.AudioContext||window.webkitAudioContext){
+   const AC=window.AudioContext||window.webkitAudioContext;
+   audioContext=new AC();
+   const destination=audioContext.createMediaStreamDestination();
+   const original=sourceStream.getAudioTracks();
+   if(original.length){
+    const originalSource=audioContext.createMediaStreamSource(new MediaStream(original));
+    const originalGain=audioContext.createGain();
+    originalGain.gain.value=Number($('originalAudioVolume')?.value??0.8);
+    originalSource.connect(originalGain).connect(destination);
+   }
+   if(creatorAudioFile){
+    const bytes=await creatorAudioFile.arrayBuffer();
+    const buffer=await audioContext.decodeAudioData(bytes.slice(0));
+    const audioSource=audioContext.createBufferSource();
+    const addedGain=audioContext.createGain();
+    addedGain.gain.value=Number($('addedAudioVolume')?.value??1);
+    audioSource.buffer=buffer;
+    audioSource.connect(addedGain).connect(destination);
+    recordAudio={source:audioSource,duration:Math.min(buffer.duration,Math.max(0.05,endSec-startSec))};
+   }
+   tracks.push(...destination.stream.getAudioTracks());
+   await audioContext.resume();
+  }else if(creatorAudioFile){
+   throw new Error('Audio mixing is not supported by this browser. Please use an updated Chrome browser.');
+  }
+  recordStream=new MediaStream(tracks);
+  const mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t))||'';
+  const recOpts=mime?{mimeType:mime}:{};
+  if(opts.bitrate)recOpts.videoBitsPerSecond=opts.bitrate;
+  recorder=new MediaRecorder(recordStream,recOpts);
+  const finished=new Promise((resolve,reject)=>{
+   recorder.ondataavailable=e=>{if(e.data?.size)chunks.push(e.data);};
+   recorder.onerror=()=>reject(new Error('The browser encountered an error while exporting the video. Please try again.'));
+   recorder.onstop=()=>resolve(new Blob(chunks,{type:recorder.mimeType||'video/webm'}));
+  });
+  v.pause();
+  v.muted=false;
+  // Start playback before recording so mobile browsers have a live frame source.
+  await v.play();
+  recorder.start(250);
+  recordingStarted=true;
+  if(recordAudio)recordAudio.source.start(0,0,recordAudio.duration);
+  await new Promise((resolve,reject)=>{
+   let settled=false,raf=0,lastTime=v.currentTime,lastProgress=Date.now(),resumeAttempts=0;
+   const maxWait=Math.max(20000,(endSec-startSec)*4000+10000);
+   const started=Date.now();
+   const cleanup=()=>{cancelAnimationFrame(raf);v.removeEventListener('timeupdate',check);v.removeEventListener('ended',finish);v.removeEventListener('pause',onPause);};
+   const fail=err=>{if(settled)return;settled=true;cleanup();reject(err);};
+   const finish=()=>{if(settled)return;settled=true;cleanup();v.pause();resolve();};
+   const onPause=()=>{
+    if(settled||v.currentTime>=endSec-0.08)return;
+    // Android may briefly pause the preview while its decoder catches up.
+    // Resume a small number of times instead of failing on the first pause.
+    setTimeout(async()=>{
+     if(settled||!v.paused||v.currentTime>=endSec-0.08)return;
+     if(resumeAttempts>=3){fail(new Error('The video playback repeatedly paused during export. Keep Mjadala open and try again.'));return;}
+     resumeAttempts++;
+     try{await v.play();}catch(err){fail(new Error('The browser could not resume the video during export: '+(err?.message||'playback was interrupted')));}
+    },180);
+   };
+   const check=()=>{
+    if(settled)return;
+    if(v.currentTime>=endSec-0.04){finish();return;}
+    if(v.currentTime>lastTime+0.015){lastTime=v.currentTime;lastProgress=Date.now();}
+    else if(Date.now()-lastProgress>5000&& !v.paused){fail(new Error('Video playback stopped advancing during export. Please try again with Mjadala in the foreground.'));return;}
+    if(Date.now()-started>maxWait){fail(new Error('Video export took too long. Try a shorter or smaller video.'));return;}
+    raf=requestAnimationFrame(check);
+   };
+   v.addEventListener('timeupdate',check);
+   v.addEventListener('ended',finish);
+   v.addEventListener('pause',onPause);
+   check();
+  });
+  if(recorder.state!=='inactive')recorder.stop();
+  const blob=await finished;
+  if(!blob.size)throw new Error('The processed video was empty. Please try again.');
+  return new File([blob],file.name.replace(/\.[^.]+$/,'')+'-mjadala.webm',{type:blob.type||'video/webm'});
+ }catch(err){
+  if(recorder&&recorder.state!=='inactive'){
+   try{recorder.stop();}catch(_){ }
+   if(recordingStarted)await new Promise(resolve=>{if(recorder.state==='inactive')resolve();else recorder.addEventListener('stop',resolve,{once:true});setTimeout(resolve,1500);});
+  }
+  throw err;
+ }finally{
+  try{recordAudio?.source?.stop();}catch(_){ }
+  sourceStream?.getTracks().forEach(t=>t.stop());
+  recordStream?.getTracks().forEach(t=>t.stop());
+  if(audioContext)await audioContext.close().catch(()=>{});
+ }
+}
 
 async function upload(){if(!session){toast('Sign in to publish a Reel.');return;}const input=$('reelVideoInput');let file=input?.files?.[0];if(!file){note('Choose a video first.');return;}if(!file.type.startsWith('video/')){note('Choose a video file.');return;}if(file.size>300*1024*1024){note('This video is over 300 MB. Choose a smaller file to save data.');return;}const title=$('reelTitleInput').value.trim();if(!title){note('Add a caption before publishing.');return;}const button=$('publishReelButton');button.disabled=true;try{let freshDuration=selectedVideoDuration;if(!Number.isFinite(freshDuration)||freshDuration<=0){freshDuration=await getDuration(file).catch(()=>0);selectedVideoDuration=freshDuration;}const startSec=Number($('reelTrimStart')?.value||0);let endSec=Number($('reelTrimEnd')?.value||0);if(!Number.isFinite(endSec)||endSec<=startSec)endSec=freshDuration>startSec?freshDuration:startSec+0.1;if(!Number.isFinite(endSec)||endSec<=startSec)throw new Error('This video\'s length could not be read. Try a different video or trim it in Gallery first.');if(endSec-startSec>MAX_REEL_SECONDS){endSec=startSec+MAX_REEL_SECONDS;if(endSec>freshDuration){endSec=freshDuration;}}const needsTrim=startSec>0.05||endSec<freshDuration-0.1||freshDuration>MAX_REEL_SECONDS;const needsAudio=!!creatorAudioFile;const needsCompress=file.size>6*1024*1024;if(needsTrim||needsAudio||needsCompress){note(needsAudio?'Combining your original audio with the Reel…':needsTrim?'Trimming your clip…':'Preparing your video…');try{file=await reencodeVideo(file,startSec,endSec,{bitrate:needsCompress?2_000_000:4_000_000});}catch(e){throw new Error('Could not prepare this Reel: '+e.message);}}const duration=await getDuration(file).catch(()=>endSec-startSec);if(!Number.isFinite(duration)||duration>MAX_REEL_SECONDS)throw new Error('The prepared video is longer than the 15-second Mjadala limit. Please adjust the trim handles and try again.');if(!categories.length)throw new Error('Reel categories are not available. Run the existing Shorts migrations.');const cat=$('reelCategoryInput').value||categories[0].id;const ext=(file.name.split('.').pop()||'mp4').toLowerCase().replace(/[^a-z0-9]/g,'')||'mp4';const path=`${session.user.id}/${crypto.randomUUID()}.${ext}`;note('Uploading your video… keep Mjadala open until this finishes.');const{error:uploadErr}=await sb.storage.from(BUCKET).upload(path,file,{contentType:file.type,upsert:false});if(uploadErr)throw uploadErr;note('Publishing Reel metadata…');const{error:rowErr}=await sb.from('shorts').insert({user_id:session.user.id,video_path:path,title,category_id:cat,duration_seconds:Number(duration.toFixed(2)),status:'published'});if(rowErr){await sb.storage.from(BUCKET).remove([path]);throw rowErr;}input.value='';$('reelTitleInput').value='';$('reelTrimPanel').hidden=true;setCreatorAudio(null);note('Reel published and available to other members.');await load();toast('Reel published');}catch(e){note('Could not publish: '+e.message);}finally{button.disabled=false;}}
 const reelComposerPanel=$('reelComposerPanel');if(reelComposerPanel){const phone=document.querySelector('.phone');if(phone&&reelComposerPanel.parentElement!==phone)phone.appendChild(reelComposerPanel);}
