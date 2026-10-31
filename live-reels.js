@@ -83,7 +83,7 @@ function setupTrim(file){
  preview.onloadeddata=ready;
  preview.onerror=()=>fail('This video format could not be previewed on this device. Try an MP4 video.');
  preview.onabort=()=>{if(!settled)fail('Video preview was interrupted. Please choose the video again.');};
- preview.preload='auto';preview.playsInline=true;preview.muted=true;
+ preview.preload='metadata';preview.playsInline=true;preview.muted=true;
  preview.src=url;preview.load();
  const update=changed=>{
   if(!selectedVideoDuration||start.disabled||end.disabled)return;
