@@ -542,6 +542,14 @@ updateHeaderActions();
   }, { once: true });
 })();
 </script>
+
+<style id="mjadala-modal-viewport-fix">
+/* Dialogs must sit above the fixed Home/Explore/Reels/Communities/Profile bar. */
+.live-modal-backdrop{position:fixed!important;inset:0!important;z-index:12000!important;display:flex;align-items:center!important;justify-content:center!important;overflow-y:auto!important;overscroll-behavior:contain;padding:calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom))!important;box-sizing:border-box!important;background:#102117b8!important;}
+.live-modal{width:min(100%,560px)!important;max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;min-height:0!important;overflow-y:auto!important;overscroll-behavior:contain!important;flex:0 0 auto!important;box-sizing:border-box!important;margin:auto!important;padding-bottom:calc(16px + env(safe-area-inset-bottom))!important;}
+@media(max-width:650px){.live-modal-backdrop{align-items:flex-end!important;padding:calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom))!important}.live-modal{width:100%!important;max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;border-radius:20px 20px 14px 14px!important;}}
+</style>
+
 </body></html>
 <style>
 .live-auth-btn{width:42px!important;height:42px!important;flex:0 0 42px!important;padding:0!important;overflow:hidden;border-radius:50%!important;background:#fff!important;border:2px solid #fff!important;box-shadow:0 0 0 1px var(--line)}.live-auth-btn img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}.account-avatar-fallback{display:grid;place-items:center;width:100%;height:100%;font-size:12px;font-weight:900;color:var(--green);background:var(--ivory);border-radius:50%}.reel-trim-panel{border:1px solid var(--line);border-radius:14px;padding:10px;margin:8px 0;background:var(--soft)}.reel-trim-panel[hidden]{display:none}.reel-trim-panel video{width:100%;height:210px;max-height:34dvh;min-height:150px;object-fit:contain;background:#111;border-radius:10px;display:block;visibility:visible;opacity:1}.reel-trim-panel label{display:flex;justify-content:space-between;font-size:12px;font-weight:750;margin-top:8px}.reel-trim-panel input[type=range]{width:100%;accent-color:var(--green)}.reel-trim-panel p{font-size:11px;margin:6px 0;color:var(--muted)}
