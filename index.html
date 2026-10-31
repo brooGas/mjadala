@@ -206,6 +206,38 @@ button,input{font:inherit}button{cursor:pointer}
    Product photos are handled in the seller's Create/Edit Product form above. */
 #businessDrop{display:none!important}
 </style>
+
+<style id="mjadala-persistent-navigation-and-reels-compact-type">
+/* Keep the app shell and bottom navigation fixed in both browser and installed PWA. */
+@media (max-width:780px){
+  html,body{height:100%;min-height:100%;overscroll-behavior:none}
+  body{overflow:hidden;min-height:100svh;min-height:100dvh}
+  .preview-wrap{width:100%;height:100svh;height:100dvh;max-width:none;margin:0;padding:0;display:flex;flex-direction:column;overflow:hidden}
+  .preview-head{display:none!important}
+  .layout{display:flex!important;flex:1 1 auto;min-height:0;height:100%;width:100%;align-items:stretch}
+  .phone{display:flex;flex:1 1 auto;width:100%;height:100%;min-height:0;max-height:none;border:0;border-radius:0;box-shadow:none;overflow:hidden}
+  .screen-viewport{position:relative;flex:1 1 auto;min-height:0;height:0;overflow:hidden}
+  .bottom-nav{display:grid!important;position:relative!important;inset:auto!important;z-index:200!important;flex:0 0 auto!important;width:100%;min-height:calc(62px + env(safe-area-inset-bottom));padding:7px 8px calc(7px + env(safe-area-inset-bottom))!important;visibility:visible!important;opacity:1!important;transform:none!important;will-change:auto!important}
+}
+@media (display-mode:standalone),(display-mode:fullscreen){
+  html,body{height:100%;min-height:100%;overflow:hidden;overscroll-behavior:none}
+  body{min-height:100svh;min-height:100dvh}
+  .preview-wrap{height:100svh;height:100dvh;max-width:none;margin:0;padding:0;display:flex;flex-direction:column;overflow:hidden}
+  .preview-head{display:none!important}
+  .layout{display:flex!important;flex:1 1 auto;min-height:0;height:100%;width:100%;align-items:stretch}
+  .phone{display:flex;flex:1 1 auto;width:100%;height:100%;min-height:0;max-height:none;border:0;border-radius:0;box-shadow:none;overflow:hidden}
+  .screen-viewport{flex:1 1 auto;min-height:0;height:0;overflow:hidden}
+  .bottom-nav{display:grid!important;position:relative!important;inset:auto!important;z-index:200!important;flex:0 0 auto!important;width:100%;min-height:calc(62px + env(safe-area-inset-bottom));padding:7px 8px calc(7px + env(safe-area-inset-bottom))!important;visibility:visible!important;opacity:1!important;transform:none!important;will-change:auto!important}
+}
+/* Compact typography is deliberately limited to Reels. */
+.screen[data-screen="2"] .instagram-reel-stage .reel-top b{font-size:13px!important;line-height:1.2}
+.screen[data-screen="2"] .instagram-reel-stage .reel-bottom h3{font-size:13px!important;line-height:1.25!important}
+.screen[data-screen="2"] .instagram-reel-stage .reel-bottom p{font-size:11px!important;line-height:1.35!important}
+.screen[data-screen="2"] .instagram-reel-stage .reel-creator-line strong{font-size:11px!important}
+.screen[data-screen="2"] .instagram-reel-stage .reel-hashtags{font-size:10px!important;line-height:1.25}
+.screen[data-screen="2"] .instagram-reel-stage .reel-audio-line{font-size:10px!important}
+.screen[data-screen="2"] .instagram-reel-stage .reel-actions button span{font-size:10px!important}
+</style>
 </head>
 <body>
 
