@@ -16,7 +16,7 @@ $('mjadalaAuthToggle')?.addEventListener('click',()=>setAuthMode(authMode==='sig
 $('mjadalaAuthClose')?.addEventListener('click',hideAuth);
 $('mjadalaAuthBackdrop')?.addEventListener('click',e=>{if(e.target.id==='mjadalaAuthBackdrop')hideAuth();});
 $('mjadalaAuthForm')?.addEventListener('submit',async e=>{e.preventDefault();const status=$('mjadalaAuthStatus'),button=$('mjadalaAuthSubmit');button.disabled=true;try{
- if(authMode==='signin'){status.textContent='Signing in…';const email=$('mjadalaAuthEmail').value.trim(),password=$('mjadalaAuthPassword').value;const result=await sb.auth.signInWithPassword({email,password});if(result.error)throw result.error;if(!result.data.session)throw new Error('Could not start a session. Please try again.');session=result.data.session;status.textContent='Signed in successfully.';paintAccountAvatar();hideAuth();toast('Signed in successfully.');load().catch(err=>console.warn('Reels refresh after authentication failed:',err));
+ if(authMode==='signin'){status.textContent='Signing in…';const email=$('mjadalaAuthEmail').value.trim(),password=$('mjadalaAuthPassword').value;const result=await sb.auth.signInWithPassword({email,password});if(result.error)throw result.error;if(!result.data.session)throw new Error('Could not start a session. Please try again.');session=result.data.session;status.textContent='Signed in successfully. Reloading Mjadala…';paintAccountAvatar();hideAuth();location.replace('/');
  }else if(authStep==='details'){
   if(!$('mjadalaConsent').checked)throw new Error('Please accept the Terms of Service and Privacy Policy to create an account.');
   const nickname=$('mjadalaAuthName').value.trim();if(!nickname)throw new Error('Please enter a nickname.');
@@ -25,7 +25,7 @@ $('mjadalaAuthForm')?.addEventListener('submit',async e=>{e.preventDefault();con
   const result=await sb.auth.signUp({email,password,options:{data:{full_name:nickname,display_name:nickname,nickname,terms_accepted:true,privacy_policy_accepted:true,consent_version:'2026-10-27',consent_accepted_at:new Date().toISOString()}}});
   if(result.error)throw result.error;
   pendingEmail=email;pendingNickname=nickname;
-  if(result.data.session){session=result.data.session;await finishSignup(email,nickname);paintAccountAvatar();hideAuth();toast('Account created successfully. Welcome to Mjadala!');load().catch(()=>{});}
+  if(result.data.session){session=result.data.session;await finishSignup(email,nickname);location.replace('/');}
   else{authStep='code';renderAuthUI();status.textContent='Enter the 6-digit code we sent to '+email+'.';}
  }else{
   const code=$('mjadalaAuthCode').value.trim();if(!/^\d{6}$/.test(code))throw new Error('Enter the 6-digit code from your email.');
@@ -34,7 +34,7 @@ $('mjadalaAuthForm')?.addEventListener('submit',async e=>{e.preventDefault();con
   if(result.error)throw result.error;
   if(!result.data.session)throw new Error('Could not start a session. Please try again.');
   session=result.data.session;await finishSignup(pendingEmail,pendingNickname);
-  status.textContent='Account created successfully.';paintAccountAvatar();hideAuth();toast('Account created successfully. Welcome to Mjadala!');load().catch(err=>console.warn('Reels refresh after authentication failed:',err));
+  status.textContent='Account created successfully. Reloading Mjadala…';location.replace('/');
  }
 }catch(err){status.textContent=err.message||'Authentication failed. Please try again.';}finally{button.disabled=false;}});
 function paintAccountAvatar(){const b=$('liveAuthBtn');if(!b)return;b.innerHTML=myAvatarUrl?`<img src="${esc(myAvatarUrl)}" alt="Your profile photo">`:`<span class="account-avatar-fallback">${esc(myInitials)}</span>`;b.setAttribute('aria-label',session?'Open your profile':'Sign in');b.title=session?'Open your profile':'Sign in';}function note(m){const el=$('reelCreateStatus');if(el)el.textContent=m;}
