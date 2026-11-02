@@ -1,17 +1,8 @@
-MJADALA — Notifications & Community Panel Visibility Fix
+MJADALA REELS NOTIFICATION ICON FIX
 
-Built from the user's 07:27 Nairobi Mjadala-Trim-Preview-Loading-Optimization baseline.
+Replace only live-reels.js in your deployed project with the file in this package.
+No SQL changes are required. No changes to index.html, auth files, or live-social.js are required.
 
-Files included:
-- index.html: retains the 07:27 baseline and adds a modal viewport layer so notification/community dialogs appear above the bottom navigation and remain scrollable.
-- live-reels.js: retains the 07:27 Reels logic (including metadata preload and 15-second limit); adds only the Reels notification bell immediately before Sound and opens the page-aware notification panel.
-- live-social.js: retains the community management features (creator assigns/removes admins, creator deletes community, admins remove ordinary members, members leave); fixes modal placement and routes Reels notifications to the same page-aware panel.
-- MIGRATION_COMMUNITY_MANAGEMENT.sql: same migration from the community roles update; run only if you have not already run it.
+Fix: Adds the missing bell SVG to the Reels icon renderer. The button and its existing click handler were already present; the icon renderer did not define the 'bell' icon, so it rendered an empty/black button.
 
-Upload/replace these three application files together: index.html, live-reels.js, live-social.js.
-Do not replace auth.html/auth.js or any other files.
-If MIGRATION_COMMUNITY_MANAGEMENT.sql was already run successfully, do not run it again; otherwise run it in Supabase SQL Editor.
-
-The modal fix moves community/notification dialogs to the document-level overlay and gives them viewport-height scrolling with safe-area padding, so the fixed Home/Explore/Reels/Communities/Profile bar no longer covers their contents.
-
-Validation performed: JavaScript syntax checks passed for live-social.js and live-reels.js; ZIP contents reviewed. No live Supabase/Vercel/device test was performed.
+After replacing the file, redeploy the app and refresh the PWA. If the old appearance remains, fully close and reopen the app or refresh the site once to load the new JavaScript.

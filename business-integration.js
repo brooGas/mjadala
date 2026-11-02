@@ -237,7 +237,9 @@
   }
   async function loadProduct() {
     try {
-      const {data,error} = await sb.from('business_products').select('*').eq('published',true).order('created_at',{ascending:false}).limit(24);
+      let productQuery = sb.from('business_products').select('*').eq('published',true).order('created_at',{ascending:false}).limit(24);
+      if (window.mjadalaBusinessSellerFilter) productQuery = productQuery.eq('seller_id', window.mjadalaBusinessSellerFilter);
+      const {data,error} = await productQuery;
       if (error) throw error;
       renderCatalog(data || []);
       if (data?.length) {
@@ -249,6 +251,7 @@
       console.warn('Could not load shop listing:',errorText(e));
     }
   }
+  window.mjadalaBusinessReloadProducts = loadProduct;
   async function checkout() {
     if (!requireSession()) return;
     const quantity = Math.max(0, Number($('qtyValue').textContent) || 0);
