@@ -511,8 +511,8 @@ updateHeaderActions();
  if(typeof oldShow==='function'){window.showAccountPanel=function(title,rows){oldShow(title,rows);const icons={ '↪':'logout','↩':'chevron','⚠':'alert','▦':'grid','＋':'truck','▣':'credit','✓':'check','⚙':'settings','◐':'palette' };document.querySelectorAll('#accountPanelContent .micon').forEach((el,i)=>{const key=rows[i]?.icon;const n=icons[key];if(n)el.innerHTML=svg(n)})}}
 })();
 </script>
-<script src="business-integration.js"></script>
-<script src="business-directory.js" defer></script>
+<script src="business-integration.js?v=20261102-business-fix2"></script>
+<script src="business-directory.js?v=20261102-business-fix2" defer></script>
 <script src="interaction-layer.js"></script>
 <script src="live-social.js" defer></script>
 <script src="live-reels.js" defer></script>

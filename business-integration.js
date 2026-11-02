@@ -209,10 +209,18 @@
     try {
       const payload = readProductForm();
       const businessName = $('sellerBusinessName').value.trim();
-      if (!businessName) throw new Error('Enter your business name before publishing.');
-      const { error: profileError } = await sb.from('business_profiles').upsert({user_id:session.user.id,business_name:businessName,updated_at:new Date().toISOString()},{onConflict:'user_id'});
-      if (profileError) throw profileError;
-      $('myBusinessTitle').textContent = 'My Business · ' + businessName; $('businessProfileStatus').textContent = 'Your business profile is saved. Published products appear in the live marketplace.';
+      if (!businessName) throw new Error('Enter your approved business name.');
+      // Check approval + an active creator-assigned plan before uploading files or inserting anything.
+      // The database trigger remains the final enforcement layer for every insert/update.
+      const { data: canPublish, error: accessError } = await sb.rpc('mj_business_can_publish', { p_user: session.user.id });
+      if (accessError) throw accessError;
+      if (canPublish !== true) throw new Error('Your business must first be approved by Mjadala and have an active plan before you can publish. Submit the business application and wait for approval.');
+      const { data: approvedBusiness, error: businessError } = await sb.from('business_profiles').select('business_name,directory_status').eq('user_id', session.user.id).maybeSingle();
+      if (businessError) throw businessError;
+      if (!approvedBusiness || approvedBusiness.directory_status !== 'approved') throw new Error('Your business has not received approval yet.');
+      if (businessName.toLowerCase() !== String(approvedBusiness.business_name || '').toLowerCase()) throw new Error('Use the exact approved business name shown in your business profile.');
+      $('myBusinessTitle').textContent = 'My Business · ' + approvedBusiness.business_name;
+      $('businessProfileStatus').textContent = 'Your business is approved. Your active plan allows product publishing.';
       const { data: ownerProfile } = await sb.from('profiles').select('nickname').eq('id',session.user.id).maybeSingle(); const ownerName=ownerProfile?.nickname||session.user.email?.split('@')[0]||'Account owner'; $('myBusinessOwner').textContent='Owner: '+ownerName; $('businessOwnerLabel').textContent='Owner: '+ownerName;
       const files = selectedImages.length ? selectedImages : [...($('productPhotos').files || [])];
       payload.image_urls = await uploadPhotos(files);
@@ -235,23 +243,31 @@
       toast('Product published');
     } catch (e) { status.textContent = 'Could not publish: ' + errorText(e); }
   }
+  function closeProductDetail() {
+    productDetailOpen = false; activeProduct = null; poolId = null; poolOfferOpen = false;
+    const detail = document.querySelector('.product-card'); if (detail) detail.style.display = 'none';
+    ['customerTermsPanel','customerTermsContent','businessCartPanel','poolPanel','poolSectionHeading'].forEach(id => { const el=$(id); if(el) el.style.display='none'; });
+    if ($('toggleCheckoutPanel')) $('toggleCheckoutPanel').style.display='none';
+    if ($('viewPoolOfferButton')) $('viewPoolOfferButton').style.display='none';
+  }
   async function loadProduct() {
     try {
-      let productQuery = sb.from('business_products').select('*').eq('published',true).order('created_at',{ascending:false}).limit(24);
+      let productQuery = sb.from('business_products').select('*').eq('published',true).order('created_at',{ascending:false}).limit(60);
       if (window.mjadalaBusinessSellerFilter) productQuery = productQuery.eq('seller_id', window.mjadalaBusinessSellerFilter);
       const {data,error} = await productQuery;
       if (error) throw error;
       renderCatalog(data || []);
-      if (data?.length) {
-        const keep = activeProduct && data.find(p => p.id === activeProduct.id);
-        renderProduct(keep || data[0]);
-      } else activeProduct = null;
+      const keep = activeProduct && (data || []).find(p => String(p.id) === String(activeProduct.id));
+      if (keep) renderProduct(keep);
+      else closeProductDetail();
     } catch (e) {
       const host = $('businessProductCatalog'); if (host) host.innerHTML = '<p class="live-empty">Could not load live listings: ' + escapeHTML(errorText(e)) + '</p>';
       console.warn('Could not load shop listing:',errorText(e));
     }
   }
   window.mjadalaBusinessReloadProducts = loadProduct;
+  window.mjadalaBusinessShowAllProducts = () => { closeProductDetail(); window.mjadalaBusinessSellerFilter = null; loadProduct(); };
+  window.mjadalaBusinessOpenStorefront = () => { closeProductDetail(); };
   async function checkout() {
     if (!requireSession()) return;
     const quantity = Math.max(0, Number($('qtyValue').textContent) || 0);
