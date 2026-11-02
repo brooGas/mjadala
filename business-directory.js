@@ -5,7 +5,7 @@
   if (!sb) return;
   const $ = id => document.getElementById(id);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let user = null, isCreator = false, plans = [], editingPlanId = null;
+  let user = null, isCreator = false, plans = [], editingPlanId = null, selectedPlanId = null;
   const screen = document.querySelector('[data-screen="1"]');
   const catalog = $('businessProductCatalog');
   if (!screen || !catalog || $('mjadalaBusinessDirectory')) return;
@@ -22,8 +22,8 @@
     .biz-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:11px 0}.biz-metric{border:1px solid var(--line);border-radius:11px;padding:9px;background:var(--soft)}.biz-metric small{display:block;color:var(--muted);font-size:10px}.biz-metric strong{display:block;font-size:18px;margin-top:3px}
     .biz-table-wrap{width:100%;overflow-x:auto;border:1px solid var(--line);border-radius:11px;margin:7px 0 12px}.biz-table{width:100%;border-collapse:collapse;min-width:570px;font-size:11px}.biz-table th,.biz-table td{padding:9px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}.biz-table th{background:var(--soft);font-size:10px;color:var(--muted);font-weight:800}.biz-table tr:last-child td{border-bottom:0}.biz-table td button{padding:7px 9px}.biz-table input,.biz-table select{margin:0;min-width:90px;padding:7px;font-size:11px}.biz-status{display:inline-block;border-radius:99px;padding:4px 7px;background:var(--soft);font-size:10px;font-weight:800}.biz-status.approved{color:#187647;background:#e8f6ee}.biz-status.pending{color:#956300;background:#fff5d9}.biz-status.rejected,.biz-status.suspended{color:#a33;background:#fcebea}
     .biz-admin-form{border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0;background:var(--soft)}.biz-admin-form .biz-inline{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.biz-inline{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.biz-inline>*{flex:1;min-width:85px}.biz-admin-actions{display:flex;gap:7px;flex-wrap:wrap}.biz-directory button:disabled{opacity:.55}
-    .biz-public-plans{margin:10px 0 16px;border:1px solid var(--line);border-radius:13px;padding:11px;background:var(--soft)}.biz-public-plans-head strong{font-size:14px}.biz-public-table{width:100%;border-collapse:collapse;font-size:12px}.biz-public-table th,.biz-public-table td{padding:11px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.biz-public-table th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}.biz-public-table tr:last-child td{border-bottom:0}.biz-plan-price{font-size:14px;font-weight:850;color:var(--green);white-space:nowrap}.biz-plan-state{display:inline-block;border-radius:20px;padding:4px 8px;font-size:10px;font-weight:800;background:#e8f6ee;color:#187647}
-    @media(max-width:520px){.biz-public-table,.biz-public-table tbody,.biz-public-table tr,.biz-public-table td{display:block;width:100%}.biz-public-table thead{display:none}.biz-public-table tr{border:1px solid var(--line);border-radius:10px;padding:5px 9px;margin:8px 0;background:var(--paper)}.biz-public-table td{display:grid;grid-template-columns:88px minmax(0,1fr);gap:8px;padding:7px 2px;border-bottom:1px solid var(--line)}.biz-public-table td:before{content:attr(data-label);font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase}.biz-public-table td:last-child{border-bottom:0}}
+    .biz-public-plans{margin:10px 0 16px;border:1px solid #d9dfd4;border-radius:16px;padding:13px;background:#f7f5ed;color:#173c30}.biz-public-plans-head strong{font-size:16px;color:#173c30}.biz-plan-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:12px}.biz-plan-card{position:relative;border:1px solid #d7ded3;border-radius:13px;padding:12px;background:#fff;min-width:0;color:#173c30}.biz-plan-card.selected{border:2px solid #bd9b52;box-shadow:0 0 0 2px #bd9b5220}.biz-plan-card.popular:after{content:'POPULAR';position:absolute;right:8px;top:8px;border-radius:20px;background:#173c30;color:#f4e6bf;padding:4px 7px;font-size:8px;font-weight:900;letter-spacing:.08em}.biz-plan-card strong{font-size:13px}.biz-plan-card .biz-plan-price{display:block;font-size:20px;font-weight:900;color:#173c30;margin:8px 0 2px}.biz-plan-card small{display:block;color:#63746a;font-size:10px;line-height:1.4}.biz-plan-card button{width:100%;margin-top:10px;background:#173c30;color:#fff;border:0}.biz-plan-card.selected button{background:#b38b3f;color:#fff}.biz-plan-state{display:inline-block;border-radius:20px;padding:4px 8px;font-size:10px;font-weight:800;background:#e8f6ee;color:#187647}.biz-admin details{border:1px solid var(--line);border-radius:12px;margin:9px 0;background:var(--paper);overflow:hidden}.biz-admin details>summary{cursor:pointer;list-style:none;padding:12px;font-size:12px;font-weight:850;display:flex;justify-content:space-between;align-items:center;background:var(--soft)}.biz-admin details>summary::-webkit-details-marker{display:none}.biz-admin details>summary:after{content:'＋';font-size:16px}.biz-admin details[open]>summary:after{content:'−'}.biz-admin details>.biz-admin-section{padding:10px;min-width:0}.biz-admin,.biz-table-wrap,.biz-admin-section{overscroll-behavior-x:contain;touch-action:pan-y pan-x}
+    @media(max-width:520px){.biz-plan-grid{grid-template-columns:1fr 1fr;gap:7px}.biz-plan-card{padding:10px}.biz-plan-card .biz-plan-price{font-size:17px}}@media(max-width:350px){.biz-plan-grid{grid-template-columns:1fr}}
     @media(max-width:420px){.biz-metrics{gap:5px}.biz-metric{padding:7px}.biz-metric strong{font-size:16px}}
   `;
   document.head.append(style);
@@ -39,10 +39,10 @@
     <section class="biz-admin" id="bizCreatorAdmin" hidden>
       <div class="biz-admin-head"><div><h3>Creator business dashboard</h3><p class="biz-note">Review applications, manage approved sellers and control plans.</p></div><label style="display:flex;align-items:center;gap:7px;margin:0"><input type="checkbox" id="bizRegistrationSwitch" style="width:auto;margin:0"> Applications open</label></div>
       <div class="biz-metrics"><div class="biz-metric"><small>Pending applications</small><strong id="bizMetricPending">—</strong></div><div class="biz-metric"><small>Approved businesses</small><strong id="bizMetricApproved">—</strong></div><div class="biz-metric"><small>Available plans</small><strong id="bizMetricPlans">—</strong></div></div>
-      <h4>Business applications</h4><div id="bizPendingApplications"><p class="biz-note">Loading…</p></div>
-      <h4>Approved and existing businesses</h4><input id="bizExistingSearch" placeholder="Search business name…"><div id="bizExistingBusinesses"><p class="biz-note">Loading businesses…</p></div>
-      <h4>Plans and pricing</h4><div id="bizPlanEditor"></div>
-      <div class="biz-admin-form"><strong id="bizPlanFormTitle" style="font-size:12px">Add a business plan</strong><div class="biz-inline biz-admin-form-grid"><input id="bizPlanName" placeholder="Plan name"><input id="bizPlanPrice" type="number" min="0" step="1" placeholder="Price KSh"><input id="bizPlanDays" type="number" min="1" value="30" placeholder="Access days"><input id="bizPlanTrial" type="number" min="0" value="0" placeholder="Trial days"></div><input id="bizPlanDescription" placeholder="Plan benefits / description"><div class="biz-admin-actions"><button type="button" class="biz-primary" id="bizSavePlan">Add plan</button><button type="button" id="bizCancelPlanEdit" hidden>Cancel edit</button></div></div>
+      <details open><summary>Business applications <span class="biz-note" id="bizApplicationCount">Review and decide</span></summary><div class="biz-admin-section"><div id="bizPendingApplications"><p class="biz-note">Loading…</p></div></div></details>
+      <details><summary>Approved and existing businesses</summary><div class="biz-admin-section"><input id="bizExistingSearch" placeholder="Search business name…"><div id="bizExistingBusinesses"><p class="biz-note">Loading businesses…</p></div></div></details>
+      <details><summary>Plans and pricing</summary><div class="biz-admin-section"><div id="bizPlanEditor"></div>
+      <div class="biz-admin-form"><strong id="bizPlanFormTitle" style="font-size:12px">Add a business plan</strong><div class="biz-inline biz-admin-form-grid"><input id="bizPlanName" placeholder="Plan name"><input id="bizPlanPrice" type="number" min="0" step="1" placeholder="Price KSh"><input id="bizPlanDays" type="number" min="1" value="30" placeholder="Access days"><input id="bizPlanTrial" type="number" min="0" value="0" placeholder="Trial days"></div><input id="bizPlanDescription" placeholder="Plan benefits / description"><div class="biz-admin-actions"><button type="button" class="biz-primary" id="bizSavePlan">Add plan</button><button type="button" id="bizCancelPlanEdit" hidden>Cancel edit</button></div></div></details>
     </section>`;
   catalog.parentElement.insertBefore(root, catalog);
 
@@ -91,7 +91,7 @@
     else {
       const rows = (a.data || []).map(x=>`<tr><td><strong>${esc(x.business_name)}</strong><br><span class="biz-note">${esc(x.description)}</span></td><td>${esc(x.location_text)}</td><td>${esc(x.contact_phone || '—')}</td><td><select data-plan-for="${x.id}">${plans.filter(z=>z.is_active).map(z=>`<option value="${z.id}">${esc(z.plan_name)} · KSh ${Number(z.price_kes).toLocaleString('en-KE')}</option>`).join('')}</select></td><td><input data-trial-for="${x.id}" type="number" min="0" value="0" aria-label="Trial days"></td><td><div class="biz-admin-actions"><button type="button" class="biz-primary" data-review="${x.id}" data-approve="true">Approve</button><button type="button" data-review="${x.id}" data-approve="false">Reject</button></div></td></tr>`).join('');
       $('bizPendingApplications').innerHTML = table(['Business / offer','Location','Contact','Plan','Trial','Decision'], rows);
-      $('bizMetricPending').textContent = (a.data || []).length;
+      $('bizMetricPending').textContent = (a.data || []).length; $('bizApplicationCount').textContent = `${(a.data || []).length} pending`;
     }
     await searchExistingBusinesses($('bizExistingSearch').value.trim());
     renderPublicPlans();
@@ -101,7 +101,8 @@
     if (!host) return;
     const available = plans.filter(p => p.is_active);
     if (!available.length) { host.innerHTML = '<p class="biz-note">Business plans are being updated. Please check again soon.</p>'; return; }
-    host.innerHTML = `<div class="biz-table-wrap" style="margin:8px 0 0"><table class="biz-public-table"><thead><tr><th>Plan</th><th>Price</th><th>Access</th><th>Trial</th><th>Includes</th><th>Availability</th></tr></thead><tbody>${available.map(p=>`<tr><td data-label="Plan"><strong>${esc(p.plan_name)}</strong></td><td data-label="Price"><span class="biz-plan-price">${Number(p.price_kes)===0?'Free':'KSh '+Number(p.price_kes).toLocaleString('en-KE')}</span></td><td data-label="Access">${Number(p.billing_days)} days</td><td data-label="Trial">${Number(p.trial_days)>0?Number(p.trial_days)+' days':'—'}</td><td data-label="Includes">${esc(p.description || 'Business listing and product tools')}</td><td data-label="Availability"><span class="biz-plan-state">Available</span></td></tr>`).join('')}</tbody></table></div><p class="biz-note">Plan assignment and payment arrangements are confirmed during application review. Submitting an application does not charge you.</p>`;
+    if (!selectedPlanId || !available.some(p=>p.id===selectedPlanId)) selectedPlanId = available[0].id;
+    host.innerHTML = `<div class="biz-plan-grid">${available.map(p=>`<article class="biz-plan-card ${selectedPlanId===p.id?'selected':''} ${p.plan_key==='growth'?'popular':''}"><strong>${esc(p.plan_name)}</strong><span class="biz-plan-price">${Number(p.price_kes)===0?'Free':'KSh '+Number(p.price_kes).toLocaleString('en-KE')}</span><small>${Number(p.billing_days)} days access · ${Number(p.trial_days)>0?Number(p.trial_days)+'-day trial':'No trial'}</small><small>${esc(p.description || 'Business listing and product tools')}</small><button type="button" data-select-plan="${p.id}">${selectedPlanId===p.id?'Selected ✓':'Choose plan'}</button></article>`).join('')}</div><p class="biz-note" style="color:#53675c;margin-top:10px">Choose a plan to include with your application. Selecting a plan records your choice. M-Pesa payment and activation require the separate verified subscription checkout.</p>`;
   }
   async function searchExistingBusinesses(query = '') {
     const host = $('bizExistingBusinesses'); host.innerHTML = '<p class="biz-note">Loading businesses…</p>';
@@ -135,7 +136,8 @@
     if (!name) { status('Enter your business or trading name.'); return; }
     const open = await sb.rpc('mj_get_business_registration_open');
     if (open.error || !open.data) { status('Business applications are currently closed.'); return; }
-    const {error} = await sb.from('mj_business_applications').insert({user_id:user.id,business_name:name,description:$('bizApplyDescription').value.trim(),location_text:$('bizApplyLocation').value.trim(),contact_phone:$('bizApplyPhone').value.trim()});
+    if (!selectedPlanId) { status('Choose a business plan first.'); return; }
+    const {error} = await sb.from('mj_business_applications').insert({user_id:user.id,plan_id:selectedPlanId,business_name:name,description:$('bizApplyDescription').value.trim(),location_text:$('bizApplyLocation').value.trim(),contact_phone:$('bizApplyPhone').value.trim()});
     status(error ? error.message : 'Application submitted. You can publish products after creator approval and plan activation.');
     if (!error) ['bizApplyName','bizApplyDescription','bizApplyLocation','bizApplyPhone'].forEach(id=>$(id).value='');
   };
@@ -155,6 +157,8 @@
   $('bizCancelPlanEdit').onclick = resetPlanForm;
 
   document.addEventListener('click', async e => {
+    const choosePlan = e.target.closest('[data-select-plan]');
+    if (choosePlan) { selectedPlanId=choosePlan.dataset.selectPlan; renderPublicPlans(); return; }
     const store = e.target.closest('[data-storefront]');
     if (store) { storefront(store.dataset.storefront, store.dataset.businessName); return; }
     if (e.target.closest('#bizBackToAll')) { allProducts(); return; }
