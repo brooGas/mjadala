@@ -13,12 +13,12 @@
   const style = document.createElement('style');
   style.textContent = `
     .biz-directory{border:1px solid var(--line);border-radius:16px;padding:13px;margin:12px 0;background:var(--paper);color:var(--ink)}
-    .biz-dir-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.biz-admin-open{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#244b35;color:#fff;font-size:10px;font-weight:850;white-space:nowrap}.biz-dir-head strong{font-size:14px}.biz-note{font-size:11px;color:var(--muted);margin:5px 0;line-height:1.45}
+    .biz-dir-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.biz-dir-head strong{font-size:14px}.biz-note{font-size:11px;color:var(--muted);margin:5px 0;line-height:1.45}
     .biz-dir-tabs{display:flex;gap:7px;overflow:auto;margin:11px 0}.biz-dir-tabs button,.biz-directory button{border:1px solid var(--line);border-radius:10px;padding:8px 11px;background:var(--soft);color:var(--ink);font-weight:750;font-size:11px;white-space:nowrap}
     .biz-dir-tabs button.active,.biz-directory button.biz-primary{background:var(--green);border-color:var(--green);color:#fff}
     .biz-directory input,.biz-directory textarea,.biz-directory select{width:100%;min-width:0;border:1px solid var(--line);border-radius:9px;padding:9px;background:var(--paper);color:var(--ink);font:inherit;font-size:12px;margin:4px 0 8px}
     .biz-directory label{display:block;font-size:11px;font-weight:750;margin-top:6px}.biz-dir-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin-top:10px}.biz-dir-card{border:1px solid var(--line);border-radius:12px;padding:11px}.biz-dir-card strong{font-size:13px}.biz-dir-card p{font-size:11px;color:var(--muted);margin:5px 0}
-    .biz-admin{border:1px solid var(--line);border-radius:16px;margin-top:13px;padding:12px;background:var(--soft);box-shadow:0 8px 24px #173b2b0d}.biz-admin-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap}.biz-admin h3{font-size:15px;margin:0}.biz-admin h4{font-size:12px;margin:15px 0 7px}
+    .biz-admin{border-top:1px solid var(--line);margin-top:15px;padding-top:13px}.biz-admin-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap}.biz-admin h3{font-size:15px;margin:0}.biz-admin h4{font-size:12px;margin:15px 0 7px}
     .biz-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:11px 0}.biz-metric{border:1px solid var(--line);border-radius:11px;padding:9px;background:var(--soft)}.biz-metric small{display:block;color:var(--muted);font-size:10px}.biz-metric strong{display:block;font-size:18px;margin-top:3px}
     .biz-table-wrap{width:100%;overflow-x:auto;border:1px solid var(--line);border-radius:11px;margin:7px 0 12px}.biz-table{width:100%;border-collapse:collapse;min-width:570px;font-size:11px}.biz-table th,.biz-table td{padding:9px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}.biz-table th{background:var(--soft);font-size:10px;color:var(--muted);font-weight:800}.biz-table tr:last-child td{border-bottom:0}.biz-table td button{padding:7px 9px}.biz-table input,.biz-table select{margin:0;min-width:90px;padding:7px;font-size:11px}.biz-status{display:inline-block;border-radius:99px;padding:4px 7px;background:var(--soft);font-size:10px;font-weight:800}.biz-status.approved{color:#187647;background:#e8f6ee}.biz-status.pending{color:#956300;background:#fff5d9}.biz-status.rejected,.biz-status.suspended{color:#a33;background:#fcebea}
     .biz-admin-form{border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0;background:var(--soft)}.biz-admin-form .biz-inline{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.biz-inline{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.biz-inline>*{flex:1;min-width:85px}.biz-admin-actions{display:flex;gap:7px;flex-wrap:wrap}.biz-directory button:disabled{opacity:.55}
@@ -32,15 +32,14 @@
   root.className = 'biz-directory';
   root.id = 'mjadalaBusinessDirectory';
   root.innerHTML = `
-    <div class="biz-dir-head"><div><strong>Find a local business</strong><p class="biz-note">Discover approved traders and open their storefronts.</p></div><button type="button" class="biz-admin-open" id="bizAdminOpen" hidden>Admin Management</button></div>
+    <div class="biz-dir-head"><div><strong>Find a local business</strong><p class="biz-note">Discover approved traders and open their storefronts.</p></div><svg class="std-icon" viewBox="0 0 24 24"><path d="M3 10h18M5 10V6l2-3h10l2 3v4M5 10v11h14V10M9 21v-7h6v7"/></svg></div>
     <div class="biz-dir-tabs"><button type="button" id="bizDirectoryTab" class="active">Businesses</button><button type="button" id="bizAllProductsTab">All products</button><button type="button" id="bizApplyTab">Register a business</button></div>
     <div id="bizDirectoryView"><input id="bizDirectorySearch" placeholder="Search business name…" aria-label="Search business name"><div id="bizDirectoryResults" class="biz-dir-grid"><p class="biz-note">Loading businesses…</p></div></div>
     <div id="bizApplicationView" hidden><p class="biz-note" id="bizRegistrationNotice"></p><section class="biz-public-plans"><div class="biz-public-plans-head"><div><strong>Business plans</strong><p class="biz-note">Choose the level of support that fits your business. Your plan is confirmed by the Mjadala team after review.</p></div></div><div id="bizPublicPlans"><p class="biz-note">Loading available plans…</p></div></section><label for="bizApplyName">Business or trading name</label><input id="bizApplyName" maxlength="100" placeholder="e.g. Mama Amina Vegetables"><label for="bizApplyDescription">What do you sell or offer?</label><textarea id="bizApplyDescription" rows="2" maxlength="500" placeholder="Brief description"></textarea><label for="bizApplyLocation">Location (area / estate / market)</label><input id="bizApplyLocation" maxlength="140" placeholder="e.g. Gikomba, Nairobi"><label for="bizApplyPhone">Contact phone (optional)</label><input id="bizApplyPhone" maxlength="30" placeholder="Phone number"><button type="button" class="biz-primary" id="bizSubmitApplication">Submit application</button><p class="biz-note" id="bizApplicationStatus" aria-live="polite"></p></div>
     <section class="biz-admin" id="bizCreatorAdmin" hidden>
-      <div class="biz-admin-head"><div><h3>Admin Management</h3><p class="biz-note">One dashboard for adverts, business applications, sellers and plans.</p></div><button type="button" id="bizAdminClose">Close dashboard</button></div>
-      <div class="biz-admin-head" style="margin-top:10px"><strong style="font-size:12px">Business settings</strong><label style="display:flex;align-items:center;gap:7px;margin:0"><input type="checkbox" id="bizRegistrationSwitch" style="width:auto;margin:0"> Applications open</label></div>
+      <div class="biz-admin-head"><div><h3>Creator business dashboard</h3><p class="biz-note">Review applications, manage approved sellers and control plans.</p></div><label style="display:flex;align-items:center;gap:7px;margin:0"><input type="checkbox" id="bizRegistrationSwitch" style="width:auto;margin:0"> Applications open</label></div>
       <div class="biz-metrics"><div class="biz-metric"><small>Pending applications</small><strong id="bizMetricPending">—</strong></div><div class="biz-metric"><small>Approved businesses</small><strong id="bizMetricApproved">—</strong></div><div class="biz-metric"><small>Available plans</small><strong id="bizMetricPlans">—</strong></div></div>
-      <details><summary>Business applications</summary><div class="biz-admin-section"><div id="bizPendingApplications"><p class="biz-note">Loading…</p></div></div></details>
+      <details open><summary>Business applications</summary><div class="biz-admin-section"><div id="bizPendingApplications"><p class="biz-note">Loading…</p></div></div></details>
       <details><summary>Approved and existing businesses</summary><div class="biz-admin-section"><input id="bizExistingSearch" placeholder="Search business name…"><div id="bizExistingBusinesses"><p class="biz-note">Loading businesses…</p></div></div></details>
       <details><summary>Plans and pricing</summary><div class="biz-admin-section"><div id="bizPlanEditor"></div>
       <div class="biz-admin-form"><strong id="bizPlanFormTitle" style="font-size:12px">Add a business plan</strong><div class="biz-inline biz-admin-form-grid"><input id="bizPlanName" placeholder="Plan name"><input id="bizPlanPrice" type="number" min="0" step="1" placeholder="Price KSh"><input id="bizPlanDays" type="number" min="1" value="30" placeholder="Access days"><input id="bizPlanTrial" type="number" min="0" value="0" placeholder="Trial days"></div><input id="bizPlanDescription" placeholder="Plan benefits / description"><div class="biz-admin-actions"><button type="button" class="biz-primary" id="bizSavePlan">Add plan</button><button type="button" id="bizCancelPlanEdit" hidden>Cancel edit</button></div></div></div></details>
@@ -116,8 +115,7 @@
   async function init() {
     const {data} = await sb.auth.getSession(); user = data.session?.user || null;
     const r = await sb.rpc('mj_is_creator_admin'); isCreator = !r.error && r.data === true;
-    $('bizAdminOpen').hidden = !isCreator;
-    $('bizCreatorAdmin').hidden = true;
+    $('bizCreatorAdmin').hidden = !isCreator;
     if (isCreator) await loadAdmin();
     else { const publicPlans = await sb.from('mj_business_plans').select('*').eq('is_active',true).order('sort_order'); if (!publicPlans.error) { plans = publicPlans.data || []; renderPublicPlans(); } else $('bizPublicPlans').innerHTML = `<p class="biz-note">Could not load plans: ${esc(publicPlans.error.message)}</p>`; }
     const open = await sb.rpc('mj_get_business_registration_open');
@@ -126,8 +124,6 @@
     await loadDirectory();
   }
 
-  $('bizAdminOpen').onclick = () => { if (!isCreator) return; const panel=$('bizCreatorAdmin'); panel.hidden=false; panel.scrollIntoView({behavior:'smooth',block:'start'}); loadAdmin(); };
-  $('bizAdminClose').onclick = () => { $('bizCreatorAdmin').hidden=true; $('bizAdminOpen').scrollIntoView({behavior:'smooth',block:'center'}); };
   $('bizDirectoryTab').onclick = () => setTab('directory');
   $('bizAllProductsTab').onclick = allProducts;
   $('bizApplyTab').onclick = () => setTab('apply');
