@@ -13,7 +13,7 @@
   const style = document.createElement('style');
   style.textContent = `
     .biz-directory{border:1px solid var(--line);border-radius:16px;padding:13px;margin:12px 0;background:var(--paper);color:var(--ink)}
-    .biz-dir-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.biz-dir-head strong{font-size:14px}.biz-note{font-size:11px;color:var(--muted);margin:5px 0;line-height:1.45}
+    .biz-dir-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.biz-admin-open{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#244b35;color:#fff;font-size:10px;font-weight:850;white-space:nowrap}.biz-dir-head strong{font-size:14px}.biz-note{font-size:11px;color:var(--muted);margin:5px 0;line-height:1.45}
     .biz-dir-tabs{display:flex;gap:7px;overflow:auto;margin:11px 0}.biz-dir-tabs button,.biz-directory button{border:1px solid var(--line);border-radius:10px;padding:8px 11px;background:var(--soft);color:var(--ink);font-weight:750;font-size:11px;white-space:nowrap}
     .biz-dir-tabs button.active,.biz-directory button.biz-primary{background:var(--green);border-color:var(--green);color:#fff}
     .biz-directory input,.biz-directory textarea,.biz-directory select{width:100%;min-width:0;border:1px solid var(--line);border-radius:9px;padding:9px;background:var(--paper);color:var(--ink);font:inherit;font-size:12px;margin:4px 0 8px}
@@ -32,7 +32,7 @@
   root.className = 'biz-directory';
   root.id = 'mjadalaBusinessDirectory';
   root.innerHTML = `
-    <div class="biz-dir-head"><div><strong>Find a local business</strong><p class="biz-note">Discover approved traders and open their storefronts.</p></div><svg class="std-icon" viewBox="0 0 24 24"><path d="M3 10h18M5 10V6l2-3h10l2 3v4M5 10v11h14V10M9 21v-7h6v7"/></svg></div>
+    <div class="biz-dir-head"><div><strong>Find a local business</strong><p class="biz-note">Discover approved traders and open their storefronts.</p></div><button type="button" class="biz-admin-open" id="bizAdminOpen" hidden>Admin Management</button></div>
     <div class="biz-dir-tabs"><button type="button" id="bizDirectoryTab" class="active">Businesses</button><button type="button" id="bizAllProductsTab">All products</button><button type="button" id="bizApplyTab">Register a business</button></div>
     <div id="bizDirectoryView"><input id="bizDirectorySearch" placeholder="Search business name…" aria-label="Search business name"><div id="bizDirectoryResults" class="biz-dir-grid"><p class="biz-note">Loading businesses…</p></div></div>
     <div id="bizApplicationView" hidden><p class="biz-note" id="bizRegistrationNotice"></p><section class="biz-public-plans"><div class="biz-public-plans-head"><div><strong>Business plans</strong><p class="biz-note">Choose the level of support that fits your business. Your plan is confirmed by the Mjadala team after review.</p></div></div><div id="bizPublicPlans"><p class="biz-note">Loading available plans…</p></div></section><label for="bizApplyName">Business or trading name</label><input id="bizApplyName" maxlength="100" placeholder="e.g. Mama Amina Vegetables"><label for="bizApplyDescription">What do you sell or offer?</label><textarea id="bizApplyDescription" rows="2" maxlength="500" placeholder="Brief description"></textarea><label for="bizApplyLocation">Location (area / estate / market)</label><input id="bizApplyLocation" maxlength="140" placeholder="e.g. Gikomba, Nairobi"><label for="bizApplyPhone">Contact phone (optional)</label><input id="bizApplyPhone" maxlength="30" placeholder="Phone number"><button type="button" class="biz-primary" id="bizSubmitApplication">Submit application</button><p class="biz-note" id="bizApplicationStatus" aria-live="polite"></p></div>
@@ -115,7 +115,8 @@
   async function init() {
     const {data} = await sb.auth.getSession(); user = data.session?.user || null;
     const r = await sb.rpc('mj_is_creator_admin'); isCreator = !r.error && r.data === true;
-    $('bizCreatorAdmin').hidden = !isCreator;
+    $('bizAdminOpen').hidden = !isCreator;
+    $('bizCreatorAdmin').hidden = true;
     if (isCreator) await loadAdmin();
     else { const publicPlans = await sb.from('mj_business_plans').select('*').eq('is_active',true).order('sort_order'); if (!publicPlans.error) { plans = publicPlans.data || []; renderPublicPlans(); } else $('bizPublicPlans').innerHTML = `<p class="biz-note">Could not load plans: ${esc(publicPlans.error.message)}</p>`; }
     const open = await sb.rpc('mj_get_business_registration_open');
@@ -124,6 +125,7 @@
     await loadDirectory();
   }
 
+  $('bizAdminOpen').onclick = () => { if (!isCreator) return; const panel=$('bizCreatorAdmin'); panel.hidden=!panel.hidden; if (!panel.hidden) { panel.scrollIntoView({behavior:'smooth',block:'start'}); loadAdmin(); } };
   $('bizDirectoryTab').onclick = () => setTab('directory');
   $('bizAllProductsTab').onclick = allProducts;
   $('bizApplyTab').onclick = () => setTab('apply');
