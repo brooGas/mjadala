@@ -443,12 +443,14 @@ let current=0;const track=document.getElementById('track'), viewport=document.ge
 function go(i){current=Math.max(0,Math.min(4,i));document.querySelector(".phone")?.classList.toggle("reels-active",current===2);track.style.transform=`translateX(-${current*100}%)`;document.querySelectorAll('.nav-item').forEach((b,j)=>b.classList.toggle('active',j===current));const n=names[current];document.getElementById('pageTitle').textContent=n.title;document.getElementById('pageSubtitle').textContent=n.sub;document.getElementById('sideKicker').textContent=n.kicker;document.getElementById('sideTitle').textContent=n.side;document.getElementById('sideDesc').textContent=n.desc;document.getElementById('sideList').innerHTML=n.list.map(x=>`<li>${x}</li>`).join('');document.querySelectorAll('.step-indicator i').forEach((x,j)=>x.classList.toggle('on',j===current));document.querySelectorAll('.screen').forEach((s,j)=>{if(j===current)s.scrollTop=0});updateHeaderActions()}
 document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>go(+b.dataset.index)));
 document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(+b.dataset.go)));
-// Admin and business panels own their horizontal gestures; page navigation is disabled there.
+// Screen navigation is button-driven only. Vertical scrolling and horizontal
+// carousels/tables must never accidentally switch the entire app page.
+// Bottom navigation and explicit data-go controls remain available.
 const pageSwipeExcluded = '.biz-admin, .biz-table-wrap, .biz-dir-tabs, .biz-directory, #mjadalaBusinessDirectory, input, select, textarea, button, [contenteditable=\"true\"], [data-no-page-swipe]';
 let sx=0,sy=0,swipeOrigin=null;
 viewport.addEventListener('touchstart',e=>{const t=e.changedTouches[0];swipeOrigin=e.target instanceof Element?e.target.closest(pageSwipeExcluded):null;sx=t.clientX;sy=t.clientY;},{passive:true});
-viewport.addEventListener('touchend',e=>{if(swipeOrigin){swipeOrigin=null;return;}const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.2)go(current+(dx<0?1:-1));swipeOrigin=null;},{passive:true});
- document.addEventListener('keydown',e=>{if(e.target instanceof Element&&e.target.closest(pageSwipeExcluded))return;if(e.key==='ArrowRight')go(current+1);if(e.key==='ArrowLeft')go(current-1)});
+viewport.addEventListener('touchend',()=>{swipeOrigin=null;},{passive:true});
+
 let timer;document.querySelectorAll('[data-toast]').forEach(b=>b.addEventListener('click',()=>{const t=document.getElementById('toast');t.textContent=b.dataset.toast;t.classList.add('show');clearTimeout(timer);timer=setTimeout(()=>t.classList.remove('show'),1600)}));
 function toggleTheme(){document.body.classList.toggle('dark');try{localStorage.setItem('mjadala-ui-theme',document.body.classList.contains('dark')?'dark':'light')}catch(e){}document.getElementById('appearanceSummary').textContent=document.body.classList.contains('dark')?'Dark theme · tap to change':'Light theme · tap to change';document.getElementById('profileMenu').classList.remove('open')}
 document.getElementById('appearanceRow').addEventListener('click',toggleTheme);
