@@ -1,0 +1,16 @@
+Mjadala coordinated update — 3 November 2026
+
+Included affected files:
+- index.html: latest navigation/gesture update, Explore sponsored-story player mount, lighter forest-green + warm ivory palette.
+- business-directory.js: latest admin dashboard/business controls, collapsible business sections, close/open dashboard behavior and existing business-plan controls.
+- advertising.js: Explore sponsored campaign player, advertiser submission, admin review/approve/reject flow.
+- MIGRATION_MJADALA_ADVERTISING.sql: advertising tables, RLS and storage setup (run only if not already applied).
+- MIGRATION_MJADALA_AD_ADMIN_DELETE.sql: admin delete policies for campaign/media (run only if not already applied).
+
+Protected: live-reels.js was not included or modified. Existing business-integration.js, live-social.js, auth files and M-Pesa/Daraja files were not included or modified.
+
+Important limitations to verify after deployment:
+- The existing mj_is_creator_admin() RPC must return true for the intended admin account; this update does not appoint an admin.
+- Supabase policies/storage bucket must be applied and verified in the target project.
+- Admin review UI currently provides preview/approve/reject; pause/resume/delete and detailed campaign analytics are not yet fully implemented in this package.
+- This is a targeted update, not a claim that all planned sidebar/media-crop/admin features are complete. Test in a staging deployment before production.
