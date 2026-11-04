@@ -1,20 +1,16 @@
-Mjadala dashboard and Explore ad-board polish
+Mjadala coordinated update — 3 November 2026
 
-Replace the existing business-directory.js and advertising.js with these files.
-No SQL migration is required for this visual/layout update.
+Included affected files:
+- index.html: latest navigation/gesture update, Explore sponsored-story player mount, lighter forest-green + warm ivory palette.
+- business-directory.js: latest admin dashboard/business controls, collapsible business sections, close/open dashboard behavior and existing business-plan controls.
+- advertising.js: Explore sponsored campaign player, advertiser submission, admin review/approve/reject flow.
+- MIGRATION_MJADALA_ADVERTISING.sql: advertising tables, RLS and storage setup (run only if not already applied).
+- MIGRATION_MJADALA_AD_ADMIN_DELETE.sql: admin delete policies for campaign/media (run only if not already applied).
 
-Dashboard:
-- Admin Management opens as a right-side overlay drawer instead of an inline section that adds page scrolling.
-- Admin-only entry remains gated by mj_is_creator_admin().
-- Close button, backdrop click, and Escape close the drawer.
-- Drawer content scrolls independently; expanded admin sections and tables have bounded scrolling.
-- Advertising administration is docked inside the admin drawer when opened.
+Protected: live-reels.js was not included or modified. Existing business-integration.js, live-social.js, auth files and M-Pesa/Daraja files were not included or modified.
 
-Explore ad board:
-- Compact media holder, not a large hero.
-- Photo/video uses object-fit: contain so the complete media frame remains visible.
-- Headline, description, sponsored label and CTA remain in a separate readable footer area.
-- Mobile layout is compact and responsive.
-
-No changes to live-reels.js, auth, payments, checkout, plans, or subscription logic.
-Validation: node --check passed for both JavaScript files. Not tested against live Supabase or on-device Android rendering.
+Important limitations to verify after deployment:
+- The existing mj_is_creator_admin() RPC must return true for the intended admin account; this update does not appoint an admin.
+- Supabase policies/storage bucket must be applied and verified in the target project.
+- Admin review UI currently provides preview/approve/reject; pause/resume/delete and detailed campaign analytics are not yet fully implemented in this package.
+- This is a targeted update, not a claim that all planned sidebar/media-crop/admin features are complete. Test in a staging deployment before production.
