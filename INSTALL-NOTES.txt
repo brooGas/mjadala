@@ -1,0 +1,14 @@
+MJADALA ADMIN DASHBOARD + FULL AD FIT UPDATE
+
+Files in this ZIP are the only files to replace/add in the existing Mjadala project.
+
+1. Replace index.html with this version.
+2. Add/replace advertising.js in the project root.
+3. In Supabase SQL Editor, run MIGRATION_MJADALA_ADVERTISING.sql, then MIGRATION_MJADALA_AD_CAMPAIGN_MANAGEMENT.sql. The first migration creates the campaign table and storage bucket; the second adds draft and audience support.
+4. Deploy the project. Sign in with an account for which mj_is_creator_admin() returns true. The floating Admin launcher appears only for creator admins.
+
+Dashboard: advertising metrics, full uploaded media previews, approve/reject, pause/resume, delete; Business Management opens the existing creator business administration tools.
+
+Advert display: the uploaded image/video is shown as a complete media asset using contain sizing, with campaign headline, description and CTA in a separate readable content area. No text overlay is placed on top of the uploaded advert.
+
+No Reels, authentication, marketplace checkout, orders or Daraja files are changed.
