@@ -16,6 +16,7 @@
     .biz-dir-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.biz-dir-head strong{font-size:14px}.biz-note{font-size:11px;color:var(--muted);margin:5px 0;line-height:1.45}
     .biz-dir-tabs{display:flex;gap:7px;overflow:auto;margin:11px 0}.biz-dir-tabs button,.biz-directory button{border:1px solid var(--line);border-radius:10px;padding:8px 11px;background:var(--soft);color:var(--ink);font-weight:750;font-size:11px;white-space:nowrap}
     .biz-dir-tabs button.active,.biz-directory button.biz-primary{background:var(--green);border-color:var(--green);color:#fff}
+    .biz-card-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;border:0;background:none;padding:0;margin:0;font:inherit;font-size:13px;font-weight:800;color:var(--ink)}.biz-card-toggle .accordion-chevron{font-size:16px;color:var(--green);transition:transform .18s ease;flex-shrink:0}.biz-card-toggle[aria-expanded="true"] .accordion-chevron{transform:rotate(180deg)}.biz-card-body{margin-top:6px}
     .biz-directory input,.biz-directory textarea,.biz-directory select{width:100%;min-width:0;border:1px solid var(--line);border-radius:9px;padding:9px;background:var(--paper);color:var(--ink);font:inherit;font-size:12px;margin:4px 0 8px}
     .biz-directory label{display:block;font-size:11px;font-weight:750;margin-top:6px}.biz-dir-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin-top:10px}.biz-dir-card{border:1px solid var(--line);border-radius:12px;padding:11px}.biz-dir-card strong{font-size:13px}.biz-dir-card p{font-size:11px;color:var(--muted);margin:5px 0}
     .biz-admin{border-top:1px solid var(--line);margin-top:15px;padding-top:13px}.biz-admin-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap}.biz-admin h3{font-size:15px;margin:0}.biz-admin h4{font-size:12px;margin:15px 0 7px}
@@ -74,7 +75,7 @@
     const host = $('bizDirectoryResults'); host.innerHTML = '<p class="biz-note">Searching…</p>';
     const {data,error} = await sb.rpc('mj_search_business_directory', {p_search:query});
     if (error) { host.innerHTML = `<p class="biz-note">Directory unavailable: ${esc(error.message)}</p>`; return; }
-    host.innerHTML = data?.length ? data.map(b => `<article class="biz-dir-card"><strong>${esc(b.business_name)}</strong><p>${esc(b.business_description || 'Local business')}</p><p>${esc(b.business_location || 'Location not provided')}${b.business_phone ? ' · ' + esc(b.business_phone) : ''}</p><button type="button" data-storefront="${esc(b.user_id)}" data-business-name="${esc(b.business_name)}">View business</button></article>`).join('') : '<p class="biz-note">No approved businesses found yet.</p>';
+    host.innerHTML = data?.length ? data.map(b => `<article class="biz-dir-card"><button type="button" class="biz-card-toggle" data-expand-card aria-expanded="false"><span>${esc(b.business_name)}</span><span class="accordion-chevron">⌄</span></button><div class="biz-card-body" hidden><p>${esc(b.business_description || 'Local business')}</p><p>${esc(b.business_location || 'Location not provided')}${b.business_phone ? ' · ' + esc(b.business_phone) : ''}</p><button type="button" data-storefront="${esc(b.user_id)}" data-business-name="${esc(b.business_name)}">View business</button></div></article>`).join('') : '<p class="biz-note">No approved businesses found yet.</p>';
   }
   function table(headers, rows) {
     return `<div class="biz-table-wrap"><table class="biz-table"><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows || `<tr><td colspan="${headers.length}" class="biz-note">No records to show.</td></tr>`}</tbody></table></div>`;
@@ -199,6 +200,8 @@
   document.addEventListener('touchstart', e => { if (e.target.closest('.biz-table-wrap,.biz-plan-grid')) e.stopPropagation(); }, {capture:true,passive:true});
   document.addEventListener('touchmove', e => { if (e.target.closest('.biz-table-wrap')) e.stopPropagation(); }, {capture:true,passive:true});
   document.addEventListener('click', async e => {
+    const cardToggle = e.target.closest('[data-expand-card]');
+    if (cardToggle) { const expanded = cardToggle.getAttribute('aria-expanded') !== 'true'; cardToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false'); const body = cardToggle.nextElementSibling; if (body) body.hidden = !expanded; return; }
     const store = e.target.closest('[data-storefront]');
     if (store) { storefront(store.dataset.storefront, store.dataset.businessName); return; }
     if (e.target.closest('#bizBackToAll')) { allProducts(); return; }
