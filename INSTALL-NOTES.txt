@@ -1,14 +1,16 @@
-MJADALA ADMIN DASHBOARD + FULL AD FIT UPDATE
+Mjadala Creator Business Dashboard access diagnostic update
 
-Files in this ZIP are the only files to replace/add in the existing Mjadala project.
+1. Back up your currently deployed business-directory.js.
+2. Replace ONLY business-directory.js with the file in this package.
+3. Keep the existing business-integration.js and all other app files unchanged.
+4. Deploy the updated file with your normal Mjadala deployment process.
+5. Open Explore > Business while signed in to the assigned creator-admin account.
 
-1. Replace index.html with this version.
-2. Add/replace advertising.js in the project root.
-3. In Supabase SQL Editor, run MIGRATION_MJADALA_ADVERTISING.sql, then MIGRATION_MJADALA_AD_CAMPAIGN_MANAGEMENT.sql. The first migration creates the campaign table and storage bucket; the second adds draft and audience support.
-4. Deploy the project. Sign in with an account for which mj_is_creator_admin() returns true. The floating Admin launcher appears only for creator admins.
+What changed:
+- The existing Creator Business Dashboard is still the same dashboard; this does not create a new dashboard.
+- The admin permission RPC is now checked with explicit error handling.
+- If the RPC errors or returns false, a visible diagnostic message is shown instead of silently hiding the reason.
+- Auth-state refresh no longer calls getSession() from inside the auth-state callback.
+- Admin controls remain hidden unless the permission RPC explicitly grants access.
 
-Dashboard: advertising metrics, full uploaded media previews, approve/reject, pause/resume, delete; Business Management opens the existing creator business administration tools.
-
-Advert display: the uploaded image/video is shown as a complete media asset using contain sizing, with campaign headline, description and CTA in a separate readable content area. No text overlay is placed on top of the uploaded advert.
-
-No Reels, authentication, marketplace checkout, orders or Daraja files are changed.
+No SQL migration is required for this frontend diagnostic update.
