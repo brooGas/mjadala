@@ -1,16 +1,14 @@
-Mjadala Creator Business Dashboard access diagnostic update
+Mjadala Promote Your Business — Collapsible Form Update
 
-1. Back up your currently deployed business-directory.js.
-2. Replace ONLY business-directory.js with the file in this package.
-3. Keep the existing business-integration.js and all other app files unchanged.
-4. Deploy the updated file with your normal Mjadala deployment process.
-5. Open Explore > Business while signed in to the assigned creator-admin account.
+Files included:
+- index.html: restores the sponsored-stories player and loads advertising.js after business-directory.js.
+- advertising.js: restores the earlier Explore advertising module; the Promote your business form is now collapsed by default using native details/summary.
 
-What changed:
-- The existing Creator Business Dashboard is still the same dashboard; this does not create a new dashboard.
-- The admin permission RPC is now checked with explicit error handling.
-- If the RPC errors or returns false, a visible diagnostic message is shown instead of silently hiding the reason.
-- Auth-state refresh no longer calls getSession() from inside the auth-state callback.
-- Admin controls remain hidden unless the permission RPC explicitly grants access.
+Install:
+1. Back up the currently deployed project.
+2. Replace index.html and add advertising.js at the project root.
+3. Deploy the project.
 
-No SQL migration is required for this frontend diagnostic update.
+No SQL is included because the advertising SQL migrations were already provided and you said you ran them. Do not rerun them for this frontend change.
+
+The form fields and submit handler are retained from the earlier advertising module. This package does not add the central admin dashboard.
