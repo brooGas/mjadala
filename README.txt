@@ -1,8 +1,7 @@
-MJADALA REELS NOTIFICATION ICON FIX
+These are the original Promote your business-related files from the earlier Mjadala-Affected-Files-Update.zip (3 November 2026), not the later collapsible patch.
 
-Replace only live-reels.js in your deployed project with the file in this package.
-No SQL changes are required. No changes to index.html, auth files, or live-social.js are required.
+Files:
+- index.html: contains the Explore sponsored-story player mount and loads advertising.js.
+- advertising.js: contains the Promote your business form and advertising functionality.
 
-Fix: Adds the missing bell SVG to the Reels icon renderer. The button and its existing click handler were already present; the icon renderer did not define the 'bell' icon, so it rendered an empty/black button.
-
-After replacing the file, redeploy the app and refresh the PWA. If the old appearance remains, fully close and reopen the app or refresh the site once to load the new JavaScript.
+Important: index.html is the coordinated 3 November version and may contain other app changes from that release. Do not overwrite your current index.html blindly if it has newer changes. Compare/merge the sponsored-story mount and advertising.js script include instead.
