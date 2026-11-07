@@ -22,6 +22,9 @@
     .biz-finder-icon{width:42px;height:42px;flex:0 0 42px;border-radius:12px;display:grid;place-items:center;background:#e9eee3;color:#244b35}
     .biz-finder-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
     .biz-finder-head strong{font-size:15px;color:#203b2b}
+    .biz-finder-stats{display:flex;align-items:center;gap:12px;background:#fffdf5;border:1px solid #d5ddcf;border-radius:12px;padding:10px 14px;margin:12px 0 0}
+    .biz-finder-stat{flex:1;text-align:center}.biz-finder-stat strong{display:block;font-size:17px;color:#203b2b}.biz-finder-stat span{font-size:10px;color:#5c6b5e;text-transform:uppercase;letter-spacing:.03em}
+    .biz-finder-stat-divider{width:1px;align-self:stretch;background:#d5ddcf}
     .biz-finder-search{margin:12px 0 2px}
     .biz-finder-search input{width:100%;min-width:0;border:1px solid #d5ddcf;background:#fffdf5;color:#203b2b;border-radius:12px;padding:10px 12px;font:inherit;font-size:12px;box-sizing:border-box}
     .biz-dir-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin-top:11px}
@@ -46,6 +49,7 @@
   root.innerHTML = `
     <div class="biz-finder">
       <div class="biz-finder-head"><div class="biz-finder-icon"><svg viewBox="0 0 24 24"><path d="M3 10h18M5 10V6l2-3h10l2 3v4M5 10v11h14V10M9 21v-7h6v7"/></svg></div><div class="grow"><strong>Find a local business</strong><p class="biz-note">Discover approved traders and open their storefronts.</p></div></div>
+      <div class="biz-finder-stats"><div class="biz-finder-stat"><strong id="bizFinderCount">0</strong><span>Businesses</span></div><div class="biz-finder-stat-divider"></div><div class="biz-finder-stat"><strong id="bizFinderLocations">0</strong><span>Locations</span></div></div>
       <div class="biz-finder-search"><input id="bizDirectorySearch" placeholder="Search business name…" aria-label="Search business name"></div>
       <div id="bizDirectoryResults" class="biz-dir-grid"><p class="biz-note">Loading businesses…</p></div>
     </div>
@@ -95,6 +99,9 @@
     const {data,error} = await sb.rpc('mj_search_business_directory', {p_search:query});
     if (error) { host.innerHTML = `<p class="biz-note">Directory unavailable: ${esc(error.message)}</p>`; return; }
     host.innerHTML = data?.length ? data.map(b => `<article class="biz-dir-card"><button type="button" class="biz-card-toggle" data-expand-card aria-expanded="false"><span>${esc(b.business_name)}</span><span class="accordion-chevron">⌄</span></button><div class="biz-card-body" hidden><p>${esc(b.business_description || 'Local business')}</p><p>${esc(b.business_location || 'Location not provided')}${b.business_phone ? ' · ' + esc(b.business_phone) : ''}</p><button type="button" data-storefront="${esc(b.user_id)}" data-business-name="${esc(b.business_name)}">View business</button></div></article>`).join('') : '<p class="biz-note">No approved businesses found yet.</p>';
+    const countEl = $('bizFinderCount'); const localesEl = $('bizFinderLocations');
+    if (countEl) countEl.textContent = data?.length || 0;
+    if (localesEl) localesEl.textContent = new Set((data||[]).map(b=>b.business_location).filter(Boolean)).size;
   }
   function table(headers, rows) {
     return `<div class="biz-table-wrap"><table class="biz-table"><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows || `<tr><td colspan="${headers.length}" class="biz-note">No records to show.</td></tr>`}</tbody></table></div>`;
@@ -152,16 +159,14 @@
       if (user) {
         const result = await sb.rpc('mj_is_creator_admin');
         if (result.error) {
-          accessStatus.hidden = false;
-          accessStatus.textContent = `Creator admin access could not be checked (${result.error.code || 'RPC error'}): ${result.error.message}. The dashboard has been kept hidden for security.`;
+          // Admin-check failures are a developer/owner concern, not something an ordinary
+          // signed-in customer needs to see. Log it for debugging; keep the UI silent for everyone else.
+          console.error('mj_is_creator_admin check failed:', result.error);
         } else {
           isCreator = result.data === true || result.data === 'true';
           if (isCreator) {
             $('bizCreatorAdmin').hidden = false;
             await loadAdmin();
-          } else {
-            accessStatus.hidden = false;
-            accessStatus.textContent = 'You are signed in, but Supabase did not grant creator-admin access to this session. No admin controls have been exposed. Sign out and back in, then retry. If this continues, the session UUID and assigned creator UUID need to be compared.';
           }
         }
       }

@@ -12,13 +12,27 @@
 
   const style = document.createElement('style');
   style.textContent = `
-    .biz-directory{border:1px solid var(--line);border-radius:16px;padding:13px;margin:12px 0;background:var(--paper);color:var(--ink)}
-    .biz-dir-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.biz-dir-head strong{font-size:14px}.biz-note{font-size:11px;color:var(--muted);margin:5px 0;line-height:1.45}
-    .biz-dir-tabs{display:flex;gap:7px;overflow:auto;margin:11px 0}.biz-dir-tabs button,.biz-directory button{border:1px solid var(--line);border-radius:10px;padding:8px 11px;background:var(--soft);color:var(--ink);font-weight:750;font-size:11px;white-space:nowrap}
-    .biz-dir-tabs button.active,.biz-directory button.biz-primary{background:var(--green);border-color:var(--green);color:#fff}
-    .biz-card-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;border:0;background:none;padding:0;margin:0;font:inherit;font-size:13px;font-weight:800;color:var(--ink)}.biz-card-toggle .accordion-chevron{font-size:16px;color:var(--green);transition:transform .18s ease;flex-shrink:0}.biz-card-toggle[aria-expanded="true"] .accordion-chevron{transform:rotate(180deg)}.biz-card-body{margin-top:6px}
+    .biz-directory{border-radius:16px;margin:12px 0;color:var(--ink)}
+    .biz-note{font-size:11px;color:var(--muted);margin:5px 0;line-height:1.45}
+    .biz-directory button{border:1px solid var(--line);border-radius:10px;padding:8px 11px;background:var(--soft);color:var(--ink);font-weight:750;font-size:11px;white-space:nowrap}
+    .biz-directory button.biz-primary{background:var(--green);border-color:var(--green);color:#fff}
+    .biz-finder{border:1px solid #d8dfd1;border-radius:18px;padding:14px;background:#f6f4e9;color:#203b2b}
+    .biz-finder .biz-note{color:#5c6b5e}
+    .biz-finder-head{display:flex;align-items:center;gap:10px}.biz-finder-head .grow{flex:1;min-width:0}
+    .biz-finder-icon{width:42px;height:42px;flex:0 0 42px;border-radius:12px;display:grid;place-items:center;background:#e9eee3;color:#244b35}
+    .biz-finder-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .biz-finder-head strong{font-size:15px;color:#203b2b}
+    .biz-finder-stats{display:flex;align-items:center;gap:12px;background:#fffdf5;border:1px solid #d5ddcf;border-radius:12px;padding:10px 14px;margin:12px 0 0}
+    .biz-finder-stat{flex:1;text-align:center}.biz-finder-stat strong{display:block;font-size:17px;color:#203b2b}.biz-finder-stat span{font-size:10px;color:#5c6b5e;text-transform:uppercase;letter-spacing:.03em}
+    .biz-finder-stat-divider{width:1px;align-self:stretch;background:#d5ddcf}
+    .biz-finder-search{margin:12px 0 2px}
+    .biz-finder-search input{width:100%;min-width:0;border:1px solid #d5ddcf;background:#fffdf5;color:#203b2b;border-radius:12px;padding:10px 12px;font:inherit;font-size:12px;box-sizing:border-box}
+    .biz-dir-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin-top:11px}
+    .biz-dir-card{border:1px solid #d5ddcf;border-radius:12px;padding:11px;background:#fffdf5}.biz-dir-card strong{font-size:13px;color:#203b2b}.biz-dir-card p{font-size:11px;color:#5c6b5e;margin:5px 0}
+    .biz-dir-card button{background:#fff;border-color:#d5ddcf}
+    .biz-card-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;border:0;background:none;padding:0;margin:0;font:inherit;font-size:13px;font-weight:800;color:#203b2b}.biz-card-toggle .accordion-chevron{font-size:16px;color:#244b35;transition:transform .18s ease;flex-shrink:0}.biz-card-toggle[aria-expanded="true"] .accordion-chevron{transform:rotate(180deg)}.biz-card-body{margin-top:6px}
     .biz-directory input,.biz-directory textarea,.biz-directory select{width:100%;min-width:0;border:1px solid var(--line);border-radius:9px;padding:9px;background:var(--paper);color:var(--ink);font:inherit;font-size:12px;margin:4px 0 8px}
-    .biz-directory label{display:block;font-size:11px;font-weight:750;margin-top:6px}.biz-dir-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin-top:10px}.biz-dir-card{border:1px solid var(--line);border-radius:12px;padding:11px}.biz-dir-card strong{font-size:13px}.biz-dir-card p{font-size:11px;color:var(--muted);margin:5px 0}
+    .biz-directory label{display:block;font-size:11px;font-weight:750;margin-top:6px}
     .biz-admin{border-top:1px solid var(--line);margin-top:15px;padding-top:13px}.biz-admin-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap}.biz-admin h3{font-size:15px;margin:0}.biz-admin h4{font-size:12px;margin:15px 0 7px}
     .biz-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:11px 0}.biz-metric{border:1px solid var(--line);border-radius:11px;padding:9px;background:var(--soft)}.biz-metric small{display:block;color:var(--muted);font-size:10px}.biz-metric strong{display:block;font-size:18px;margin-top:3px}
     .biz-table-wrap{width:100%;overflow-x:auto;border:1px solid var(--line);border-radius:11px;margin:7px 0 12px}.biz-table{width:100%;border-collapse:collapse;min-width:570px;font-size:11px}.biz-table th,.biz-table td{padding:9px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}.biz-table th{background:var(--soft);font-size:10px;color:var(--muted);font-weight:800}.biz-table tr:last-child td{border-bottom:0}.biz-table td button{padding:7px 9px}.biz-table input,.biz-table select{margin:0;min-width:90px;padding:7px;font-size:11px}.biz-status{display:inline-block;border-radius:99px;padding:4px 7px;background:var(--soft);font-size:10px;font-weight:800}.biz-status.approved{color:#187647;background:#e8f6ee}.biz-status.pending{color:#956300;background:#fff5d9}.biz-status.rejected,.biz-status.suspended{color:#a33;background:#fcebea}
@@ -33,10 +47,12 @@
   root.className = 'biz-directory';
   root.id = 'mjadalaBusinessDirectory';
   root.innerHTML = `
-    <div class="biz-dir-head"><div><strong>Find a local business</strong><p class="biz-note">Discover approved traders and open their storefronts.</p></div><svg class="std-icon" viewBox="0 0 24 24"><path d="M3 10h18M5 10V6l2-3h10l2 3v4M5 10v11h14V10M9 21v-7h6v7"/></svg></div>
-    <div class="biz-dir-tabs"><button type="button" id="bizDirectoryTab" class="active">Businesses</button><button type="button" id="bizAllProductsTab">All products</button><button type="button" id="bizApplyTab">Register a business</button></div>
-    <div id="bizDirectoryView"><input id="bizDirectorySearch" placeholder="Search business name…" aria-label="Search business name"><div id="bizDirectoryResults" class="biz-dir-grid"><p class="biz-note">Loading businesses…</p></div></div>
-    <div id="bizApplicationView" hidden><p class="biz-note" id="bizRegistrationNotice"></p><section class="biz-public-plans"><div class="biz-public-plans-head"><div><strong>Business plans</strong><p class="biz-note">Choose the level of support that fits your business. Your plan is confirmed by the Mjadala team after review.</p></div></div><div id="bizPublicPlans"><p class="biz-note">Loading available plans…</p></div></section><label for="bizApplyName">Business or trading name</label><input id="bizApplyName" maxlength="100" placeholder="e.g. Mama Amina Vegetables"><label for="bizApplyDescription">What do you sell or offer?</label><textarea id="bizApplyDescription" rows="2" maxlength="500" placeholder="Brief description"></textarea><label for="bizApplyLocation">Location (area / estate / market)</label><input id="bizApplyLocation" maxlength="140" placeholder="e.g. Gikomba, Nairobi"><label for="bizApplyPhone">Contact phone (optional)</label><input id="bizApplyPhone" maxlength="30" placeholder="Phone number"><button type="button" class="biz-primary" id="bizSubmitApplication">Submit application</button><p class="biz-note" id="bizApplicationStatus" aria-live="polite"></p></div>
+    <div class="biz-finder">
+      <div class="biz-finder-head"><div class="biz-finder-icon"><svg viewBox="0 0 24 24"><path d="M3 10h18M5 10V6l2-3h10l2 3v4M5 10v11h14V10M9 21v-7h6v7"/></svg></div><div class="grow"><strong>Find a local business</strong><p class="biz-note">Discover approved traders and open their storefronts.</p></div></div>
+      <div class="biz-finder-stats"><div class="biz-finder-stat"><strong id="bizFinderCount">0</strong><span>Businesses</span></div><div class="biz-finder-stat-divider"></div><div class="biz-finder-stat"><strong id="bizFinderLocations">0</strong><span>Locations</span></div></div>
+      <div class="biz-finder-search"><input id="bizDirectorySearch" placeholder="Search business name…" aria-label="Search business name"></div>
+      <div id="bizDirectoryResults" class="biz-dir-grid"><p class="biz-note">Loading businesses…</p></div>
+    </div>
     <div id="bizAdminAccessStatus" class="biz-note" role="status" aria-live="polite" hidden></div>
     <section class="biz-admin" id="bizCreatorAdmin" hidden>
       <div class="biz-admin-head"><div><h3>Creator business dashboard</h3><p class="biz-note">Review applications, manage approved sellers and control plans.</p></div><label style="display:flex;align-items:center;gap:7px;margin:0"><input type="checkbox" id="bizRegistrationSwitch" style="width:auto;margin:0"> Applications open</label></div>
@@ -49,15 +65,22 @@
   catalog.parentElement.insertBefore(root, catalog);
 
   const status = message => { const el = $('bizApplicationStatus'); if (el) el.textContent = message; };
-  function setTab(which) {
-    $('bizDirectoryView').hidden = which !== 'directory';
-    $('bizApplicationView').hidden = which !== 'apply';
-    $('bizDirectoryTab').classList.toggle('active', which === 'directory');
-    $('bizApplyTab').classList.toggle('active', which === 'apply');
-    $('bizAllProductsTab').classList.toggle('active', which === 'products');
+  const applyHost = $('bizApplyHost');
+  const applyToggle = $('bizRegisterToggle');
+  if (applyHost && !applyHost.dataset.filled) {
+    applyHost.dataset.filled = '1';
+    applyHost.innerHTML = `<p class="biz-note" id="bizRegistrationNotice"></p><section class="biz-public-plans"><div class="biz-public-plans-head"><div><strong>Business plans</strong><p class="biz-note">Choose the level of support that fits your business. Your plan is confirmed by the Mjadala team after review.</p></div></div><div id="bizPublicPlans"><p class="biz-note">Loading available plans…</p></div></section><div class="field"><label for="bizApplyName">Business or trading name</label><input id="bizApplyName" maxlength="100" placeholder="e.g. Mama Amina Vegetables"></div><div class="field"><label for="bizApplyDescription">What do you sell or offer?</label><textarea id="bizApplyDescription" rows="2" maxlength="500" placeholder="Brief description"></textarea></div><div class="field"><label for="bizApplyLocation">Location (area / estate / market)</label><input id="bizApplyLocation" maxlength="140" placeholder="e.g. Gikomba, Nairobi"></div><div class="field"><label for="bizApplyPhone">Contact phone (optional)</label><input id="bizApplyPhone" maxlength="30" placeholder="Phone number"></div><div class="owner-actions"><button type="button" id="bizSubmitApplication">Submit application</button></div><p class="biz-note" id="bizApplicationStatus" aria-live="polite"></p>`;
+  }
+  if (applyToggle && applyHost) {
+    applyToggle.onclick = () => {
+      const open = applyHost.hidden;
+      applyHost.hidden = !open;
+      applyToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      applyToggle.textContent = open ? 'Hide' : 'Register';
+      if (open) applyHost.scrollIntoView({behavior:'smooth', block:'start'});
+    };
   }
   function allProducts() {
-    setTab('products');
     window.mjadalaBusinessSellerFilter = null;
     if (typeof window.mjadalaBusinessShowAllProducts === 'function') window.mjadalaBusinessShowAllProducts();
     else if (typeof window.mjadalaBusinessReloadProducts === 'function') window.mjadalaBusinessReloadProducts();
@@ -76,6 +99,9 @@
     const {data,error} = await sb.rpc('mj_search_business_directory', {p_search:query});
     if (error) { host.innerHTML = `<p class="biz-note">Directory unavailable: ${esc(error.message)}</p>`; return; }
     host.innerHTML = data?.length ? data.map(b => `<article class="biz-dir-card"><button type="button" class="biz-card-toggle" data-expand-card aria-expanded="false"><span>${esc(b.business_name)}</span><span class="accordion-chevron">⌄</span></button><div class="biz-card-body" hidden><p>${esc(b.business_description || 'Local business')}</p><p>${esc(b.business_location || 'Location not provided')}${b.business_phone ? ' · ' + esc(b.business_phone) : ''}</p><button type="button" data-storefront="${esc(b.user_id)}" data-business-name="${esc(b.business_name)}">View business</button></div></article>`).join('') : '<p class="biz-note">No approved businesses found yet.</p>';
+    const countEl = $('bizFinderCount'); const localesEl = $('bizFinderLocations');
+    if (countEl) countEl.textContent = data?.length || 0;
+    if (localesEl) localesEl.textContent = new Set((data||[]).map(b=>b.business_location).filter(Boolean)).size;
   }
   function table(headers, rows) {
     return `<div class="biz-table-wrap"><table class="biz-table"><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows || `<tr><td colspan="${headers.length}" class="biz-note">No records to show.</td></tr>`}</tbody></table></div>`;
@@ -133,16 +159,14 @@
       if (user) {
         const result = await sb.rpc('mj_is_creator_admin');
         if (result.error) {
-          accessStatus.hidden = false;
-          accessStatus.textContent = `Creator admin access could not be checked (${result.error.code || 'RPC error'}): ${result.error.message}. The dashboard has been kept hidden for security.`;
+          // Admin-check failures are a developer/owner concern, not something an ordinary
+          // signed-in customer needs to see. Log it for debugging; keep the UI silent for everyone else.
+          console.error('mj_is_creator_admin check failed:', result.error);
         } else {
           isCreator = result.data === true || result.data === 'true';
           if (isCreator) {
             $('bizCreatorAdmin').hidden = false;
             await loadAdmin();
-          } else {
-            accessStatus.hidden = false;
-            accessStatus.textContent = 'You are signed in, but Supabase did not grant creator-admin access to this session. No admin controls have been exposed. Sign out and back in, then retry. If this continues, the session UUID and assigned creator UUID need to be compared.';
           }
         }
       }
@@ -152,8 +176,10 @@
         else $('bizPublicPlans').innerHTML = `<p class="biz-note">Could not load plans: ${esc(publicPlans.error.message)}</p>`;
       }
       const open = await sb.rpc('mj_get_business_registration_open');
-      $('bizRegistrationNotice').textContent = open.error ? 'Business registration setup is pending.' : open.data ? 'Applications are open. Your business must be approved before products can be published.' : 'Applications are temporarily closed. Contact Mjadala support.';
-      $('bizSubmitApplication').disabled = !!open.error || !open.data;
+      const noticeText = open.error ? 'Business registration setup is pending.' : open.data ? 'Applications are open. Your business must be approved before products can be published.' : 'Applications are temporarily closed. Contact Mjadala support.';
+      if ($('bizRegistrationNotice')) $('bizRegistrationNotice').textContent = noticeText;
+      if ($('bizSubmitApplication')) $('bizSubmitApplication').disabled = !!open.error || !open.data;
+      if ($('bizRegisterSubtitle')) $('bizRegisterSubtitle').textContent = open.error ? 'Registration is being set up.' : open.data ? 'List your business in the Mjadala directory and reach more customers.' : 'Applications are temporarily closed. Check back soon.';
       await loadDirectory();
     } catch (error) {
       $('bizCreatorAdmin').hidden = true;
@@ -165,12 +191,9 @@
     }
   }
 
-  $('bizDirectoryTab').onclick = () => setTab('directory');
-  $('bizAllProductsTab').onclick = allProducts;
-  $('bizApplyTab').onclick = () => setTab('apply');
   $('bizDirectorySearch').addEventListener('input', e => loadDirectory(e.target.value.trim()));
   $('bizExistingSearch').addEventListener('input', e => searchExistingBusinesses(e.target.value.trim()));
-  $('bizSubmitApplication').onclick = async () => {
+  $('bizSubmitApplication')?.addEventListener('click', async () => {
     if (!user) { status('Sign in to submit a business application.'); return; }
     const name = $('bizApplyName').value.trim();
     if (!name) { status('Enter your business or trading name.'); return; }
@@ -181,7 +204,7 @@
     const {error} = await sb.from('mj_business_applications').insert({user_id:user.id,business_name:name,description:$('bizApplyDescription').value.trim(),location_text:$('bizApplyLocation').value.trim(),contact_phone:$('bizApplyPhone').value.trim(),selected_plan_id:selectedPlan});
     status(error ? error.message : 'Application submitted. You can publish products after creator approval and plan activation.');
     if (!error) ['bizApplyName','bizApplyDescription','bizApplyLocation','bizApplyPhone'].forEach(id=>$(id).value='');
-  };
+  });
   $('bizRegistrationSwitch').onchange = async () => {
     const {error} = await sb.rpc('mj_creator_set_registration',{p_open:$('bizRegistrationSwitch').checked});
     if (error) { $('bizRegistrationSwitch').checked = !$('bizRegistrationSwitch').checked; alert(error.message); }
