@@ -16,21 +16,21 @@
     .biz-note{font-size:11px;color:var(--muted);margin:5px 0;line-height:1.45}
     .biz-directory button{border:1px solid var(--line);border-radius:10px;padding:8px 11px;background:var(--soft);color:var(--ink);font-weight:750;font-size:11px;white-space:nowrap}
     .biz-directory button.biz-primary{background:var(--green);border-color:var(--green);color:#fff}
-    .biz-finder{border:1px solid #d8dfd1;border-radius:18px;padding:14px;background:#f6f4e9;color:#203b2b}
-    .biz-finder .biz-note{color:#5c6b5e}
+    .biz-finder{border:1px solid var(--line);border-radius:18px;padding:14px;background:var(--soft);color:var(--ink)}
+    .biz-finder .biz-note{color:var(--muted)}
     .biz-finder-head{display:flex;align-items:center;gap:10px}.biz-finder-head .grow{flex:1;min-width:0}
-    .biz-finder-icon{width:42px;height:42px;flex:0 0 42px;border-radius:12px;display:grid;place-items:center;background:#e9eee3;color:#244b35}
+    .biz-finder-icon{width:42px;height:42px;flex:0 0 42px;border-radius:12px;display:grid;place-items:center;background:#e4eee8;color:var(--green)}
     .biz-finder-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-    .biz-finder-head strong{font-size:15px;color:#203b2b}
-    .biz-finder-stats{display:flex;align-items:center;gap:12px;background:#fffdf5;border:1px solid #d5ddcf;border-radius:12px;padding:10px 14px;margin:12px 0 0}
-    .biz-finder-stat{flex:1;text-align:center}.biz-finder-stat strong{display:block;font-size:17px;color:#203b2b}.biz-finder-stat span{font-size:10px;color:#5c6b5e;text-transform:uppercase;letter-spacing:.03em}
-    .biz-finder-stat-divider{width:1px;align-self:stretch;background:#d5ddcf}
+    .biz-finder-head strong{font-size:15px;color:var(--ink)}
+    .biz-finder-stats{display:flex;align-items:center;gap:12px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:12px 0 0}
+    .biz-finder-stat{flex:1;text-align:center}.biz-finder-stat strong{display:block;font-size:17px;color:var(--green)}.biz-finder-stat span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+    .biz-finder-stat-divider{width:1px;align-self:stretch;background:var(--line)}
     .biz-finder-search{margin:12px 0 2px}
-    .biz-finder-search input{width:100%;min-width:0;border:1px solid #d5ddcf;background:#fffdf5;color:#203b2b;border-radius:12px;padding:10px 12px;font:inherit;font-size:12px;box-sizing:border-box}
+    .biz-finder-search input{width:100%;min-width:0;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:12px;padding:10px 12px;font:inherit;font-size:12px;box-sizing:border-box}
     .biz-dir-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin-top:11px}
-    .biz-dir-card{border:1px solid #d5ddcf;border-radius:12px;padding:11px;background:#fffdf5}.biz-dir-card strong{font-size:13px;color:#203b2b}.biz-dir-card p{font-size:11px;color:#5c6b5e;margin:5px 0}
-    .biz-dir-card button{background:#fff;border-color:#d5ddcf}
-    .biz-card-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;border:0;background:none;padding:0;margin:0;font:inherit;font-size:13px;font-weight:800;color:#203b2b}.biz-card-toggle .accordion-chevron{font-size:16px;color:#244b35;transition:transform .18s ease;flex-shrink:0}.biz-card-toggle[aria-expanded="true"] .accordion-chevron{transform:rotate(180deg)}.biz-card-body{margin-top:6px}
+    .biz-dir-card{border:1px solid var(--line);border-radius:12px;padding:11px;background:var(--paper)}.biz-dir-card strong{font-size:13px;color:var(--ink)}.biz-dir-card p{font-size:11px;color:var(--muted);margin:5px 0}
+    .biz-dir-card button{background:var(--green);border-color:var(--green);color:#fff}
+    .biz-card-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;border:0;background:none;padding:0;margin:0;font:inherit;font-size:13px;font-weight:800;color:var(--ink)}.biz-card-toggle .accordion-chevron{font-size:16px;color:var(--green);transition:transform .18s ease;flex-shrink:0}.biz-card-toggle[aria-expanded="true"] .accordion-chevron{transform:rotate(180deg)}.biz-card-body{margin-top:6px}
     .biz-directory input,.biz-directory textarea,.biz-directory select{width:100%;min-width:0;border:1px solid var(--line);border-radius:9px;padding:9px;background:var(--paper);color:var(--ink);font:inherit;font-size:12px;margin:4px 0 8px}
     .biz-directory label{display:block;font-size:11px;font-weight:750;margin-top:6px}
     .biz-admin{border-top:1px solid var(--line);margin-top:15px;padding-top:13px}.biz-admin-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap}.biz-admin h3{font-size:15px;margin:0}.biz-admin h4{font-size:12px;margin:15px 0 7px}
@@ -159,16 +159,14 @@
       if (user) {
         const result = await sb.rpc('mj_is_creator_admin');
         if (result.error) {
-          accessStatus.hidden = false;
-          accessStatus.textContent = `Creator admin access could not be checked (${result.error.code || 'RPC error'}): ${result.error.message}. The dashboard has been kept hidden for security.`;
+          // Admin-check failures are a developer/owner concern, not something an ordinary
+          // signed-in customer needs to see. Log it for debugging; keep the UI silent for everyone else.
+          console.error('mj_is_creator_admin check failed:', result.error);
         } else {
           isCreator = result.data === true || result.data === 'true';
           if (isCreator) {
             $('bizCreatorAdmin').hidden = false;
             await loadAdmin();
-          } else {
-            accessStatus.hidden = false;
-            accessStatus.textContent = 'You are signed in, but Supabase did not grant creator-admin access to this session. No admin controls have been exposed. Sign out and back in, then retry. If this continues, the session UUID and assigned creator UUID need to be compared.';
           }
         }
       }
