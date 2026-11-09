@@ -28,25 +28,48 @@
   ];
 
   let user = null;
+  let isAdmin = false;
   let subtopicFilter = null;
   let communities = [];
   let activeCommunity = null;
   let activeTab = '';
   let communityPosts = [];
+  let adPlans = [];
+  let engAds = [];
+  let adCurrent = 0;
+  let adTimer = null;
+  let adPaused = false;
+  let pendingAdMediaFile = null;
   const profileCache = new Map();
   const likeState = new Map();   // postId -> boolean liked (by me)
   const likeCounts = new Map();  // postId -> count
   const commentCounts = new Map();
   const openComments = new Set();
+  const GEAR_SVG = '<svg class="std-icon" viewBox="0 0 24 24" style="width:24px;height:24px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.47.43.88.84 1.17.3.2.65.32 1.02.34H21a2 2 0 1 1 0 4h-.09c-.47.02-.92.19-1.3.47-.27.2-.49.46-.63.76Z"/></svg>';
+  function createFocalPicker(previewEl, imgEl){
+    let fx = 50, fy = 50;
+    function apply(){ imgEl.style.objectPosition = `${fx}% ${fy}%`; }
+    function dragAt(clientX, clientY){
+      const r = previewEl.getBoundingClientRect();
+      fx = Math.max(0, Math.min(100, ((clientX - r.left) / r.width) * 100));
+      fy = Math.max(0, Math.min(100, ((clientY - r.top) / r.height) * 100));
+      apply();
+    }
+    let dragging = false;
+    previewEl.addEventListener('pointerdown', e => { dragging = true; previewEl.classList.add('dragging'); previewEl.setPointerCapture(e.pointerId); dragAt(e.clientX, e.clientY); });
+    previewEl.addEventListener('pointermove', e => { if (dragging) dragAt(e.clientX, e.clientY); });
+    ['pointerup','pointercancel'].forEach(evt => previewEl.addEventListener(evt, () => { dragging = false; previewEl.classList.remove('dragging'); }));
+    return { reset(x,y){ fx = (x==null?50:x); fy = (y==null?50:y); apply(); }, get x(){ return Math.round(fx); }, get y(){ return Math.round(fy); } };
+  }
 
   const style = document.createElement('style');
   style.textContent = `
-  #engineeringHub,#engCommunityDetail{position:fixed;inset:0;z-index:4000;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain}
+  #engineeringHub,#engCommunityDetail{position:absolute;inset:0;z-index:30;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;overflow:hidden}
   #engineeringHub[hidden],#engCommunityDetail[hidden]{display:none!important}
-  .eng-top{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid var(--line);background:var(--paper);position:sticky;top:0;z-index:2}
+  .eng-top{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid var(--line);background:var(--paper);flex:0 0 auto}
   .eng-top h2{font-size:16px;margin:0;flex:1}
   .eng-back{border:1px solid var(--line);background:#fff;border-radius:11px;width:34px;height:34px;display:grid;place-items:center;color:var(--green);flex:0 0 auto}
-  .eng-body{padding:12px 15px 24px}
+  .eng-body{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:12px 15px calc(84px + env(safe-area-inset-bottom))}
   .eng-hero p.eyebrow{color:#f5dca8}
   .eng-sub-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:4px 0 2px}
   .eng-sub-chip{display:flex;flex-direction:column;align-items:center;gap:5px;border:1px solid var(--line);background:#fff;border-radius:13px;padding:9px 3px;font-size:9px;font-weight:750;color:var(--ink);text-align:center;line-height:1.2}
@@ -88,6 +111,22 @@
   .eng-comment-row:last-child{border-bottom:0}
   .eng-comment-box textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:7px;font:inherit;font-size:11px;background:var(--paper);color:var(--ink);box-sizing:border-box;margin-top:6px;min-height:40px}
   .eng-comment-box button{margin-top:6px}
+  .eng-pos-preview{position:relative;overflow:hidden;border-radius:16px;min-height:160px;background:var(--soft);margin:6px 0 2px;cursor:grab;touch-action:none;user-select:none;display:none}
+  .eng-pos-preview.has-image{display:block}
+  .eng-pos-preview.dragging{cursor:grabbing}
+  .eng-pos-preview img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+  .eng-pos-preview .eng-pos-hint{position:absolute;left:0;right:0;bottom:0;padding:7px 10px;background:linear-gradient(0deg,#000a,transparent);color:#fff;font-size:10px;font-weight:700}
+  .eng-comm-avatar{position:relative;overflow:hidden}
+  .eng-comm-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .eng-avatar-edit-btn{position:absolute;right:-4px;bottom:-4px;width:22px;height:22px;border-radius:50%;background:#228b22;color:#fff;border:2px solid #fff;display:grid;place-items:center;font-size:11px;z-index:1;line-height:1}
+  .eng-comm-card .eng-comm-ico{position:relative;overflow:hidden}
+  .eng-comm-card .eng-comm-ico img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .eng-plan-row{display:flex;align-items:center;gap:8px;justify-content:space-between;border:1px solid var(--line);border-radius:11px;padding:9px 10px;margin:6px 0;font-size:12px}
+  .eng-plan-row .eng-plan-actions{display:flex;gap:6px;flex:0 0 auto}
+  .eng-plan-row .eng-plan-actions button{border:1px solid #c7d9cc;background:#f2f8f1;color:var(--green);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:800}
+  .eng-pay-box{border:1px dashed #d9bd7b;background:#fffaf0;border-radius:11px;padding:9px;margin:8px 0;font-size:11px;color:#6b5c38}
+  #engMyAds h5{font-size:11px;margin:10px 0 6px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  #engAdPaymentFields[hidden]{display:none}
   `;
   document.head.append(style);
 
@@ -98,6 +137,52 @@
     <div class="eng-body">
       <div class="hero"><div class="eyebrow">LEARN · SHARE · BUILD · GROW</div><h3>Engineering Innovations for a Better Africa</h3><p>Join the communities, trends and skills built for African engineers.</p><button type="button" class="pill-btn" id="engExploreBtn">Explore Engineering →</button></div>
       <div class="eng-sub-grid" id="engSubGrid"></div>
+      <div id="engAdPlayer" class="mj-ad-shell"></div>
+      <div class="row-card" id="engAdPromoRow"><div class="thumb"><svg class="std-icon"><use href="#i-zap"/></svg></div><div class="grow"><h4>Promote in Engineering</h4><p>Reach engineers across every subtopic.</p></div><button type="button" class="mini-btn" id="engAdFormToggle" aria-expanded="false">Promote</button></div>
+      <section class="owner-panel" id="engAdFormBody" hidden>
+        <h4>Promote in Engineering</h4>
+        <p class="subtle">Ads are reviewed by an admin before they go live.</p>
+        <div class="field"><label>Headline</label><input id="engAdTitle" maxlength="90" placeholder="What should engineers notice?"></div>
+        <div class="field"><label>Description</label><textarea id="engAdDescription" rows="2" maxlength="240" placeholder="A short, clear message"></textarea></div>
+        <div class="field"><label>Photo or video</label><input id="engAdMedia" type="file" accept="image/*,video/mp4,video/webm,video/quicktime"></div>
+        <div class="eng-pos-preview" id="engAdPosPreview"><img id="engAdPosImg" alt=""><div class="eng-pos-hint">Drag to choose what shows</div></div>
+        <div class="field-grid">
+          <div class="field"><label>Show under</label><select id="engAdSubtopic"><option value="">All of Engineering</option>${SUBTOPICS.map(s => `<option value="${esc(s.key)}">${esc(s.label)}</option>`).join('')}</select></div>
+          <div class="field"><label>Button text</label><select id="engAdCta"><option>Learn more</option><option>Shop now</option><option>Contact us</option><option>Visit website</option></select></div>
+        </div>
+        <div class="field-grid">
+          <div class="field"><label>Destination link (optional)</label><input id="engAdUrl" type="url" placeholder="https://…"></div>
+          <div class="field"><label>Plan</label><select id="engAdPlan"></select></div>
+        </div>
+        <div id="engAdPlanInfo" class="eng-pay-box" hidden></div>
+        <div class="field-grid" id="engAdPaymentFields" hidden>
+          <div class="field"><label>M-Pesa code you paid with</label><input id="engAdPayRef" maxlength="40" placeholder="e.g. QFT7X8ABCD"></div>
+          <div class="field"><label>Phone used (optional)</label><input id="engAdPayPhone" maxlength="20" placeholder="07…"></div>
+        </div>
+        <div class="owner-actions"><button type="button" class="eng-btn-primary" id="engAdSubmit">Submit for review</button></div>
+        <p class="subtle" id="engAdMessage" aria-live="polite"></p>
+        <div id="engMyAds"></div>
+      </section>
+      <section class="owner-panel" id="engAdAdmin" hidden>
+        <h4>Engineering ads review</h4>
+        <p class="subtle">Review submitted campaigns — plan, payment and media — before they go live.</p>
+        <div id="engAdReviewList">Loading…</div>
+        <button type="button" class="mini-btn" id="engPlanManageToggle" aria-expanded="false" style="margin-top:10px">Manage ad plans</button>
+        <div id="engPlanManage" hidden>
+          <div id="engPlanList"></div>
+          <h4 style="margin-top:12px">Add a plan</h4>
+          <div class="field"><label>Name</label><input id="engPlanName" maxlength="60" placeholder="e.g. Starter"></div>
+          <div class="field-grid">
+            <div class="field"><label>Price (KES)</label><input id="engPlanPrice" type="number" min="0" step="1" value="0"></div>
+            <div class="field"><label>Duration (days)</label><input id="engPlanDuration" type="number" min="1" step="1" value="7"></div>
+          </div>
+          <div class="field"><label><input id="engPlanFree" type="checkbox" style="width:auto;margin-right:6px">This is the free tier</label></div>
+          <div class="field"><label>Payment instructions shown to advertisers (if paid)</label><textarea id="engPlanPayInstructions" rows="2" placeholder="e.g. Pay to Till 123456, then enter the M-Pesa code"></textarea></div>
+          <div class="field"><label>Admin note (optional)</label><input id="engPlanDescription" maxlength="160" placeholder="Shown to advertisers"></div>
+          <div class="owner-actions"><button type="button" class="eng-btn-primary" id="engPlanSave">Add plan</button></div>
+          <p class="subtle" id="engPlanMessage" aria-live="polite"></p>
+        </div>
+      </section>
       <div class="section-title">Trending in Engineering <span class="subtle" id="engTrendStatus">Loading…</span></div>
       <div id="engTrending"><p class="live-empty">Loading trending stories…</p></div>
       <div class="eng-learning">
@@ -117,10 +202,18 @@
     <div class="eng-top"><button type="button" class="eng-back" id="engDetailBack" aria-label="Back">←</button><h2 id="engDetailTitle">Community</h2></div>
     <div class="eng-body">
       <div class="eng-comm-banner">
-        <div class="eng-comm-avatar"><svg class="std-icon" viewBox="0 0 24 24" style="width:24px;height:24px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.47.43.88.84 1.17.3.2.65.32 1.02.34H21a2 2 0 1 1 0 4h-.09c-.47.02-.92.19-1.3.47-.27.2-.49.46-.63.76Z"/></svg></div>
+        <div class="eng-comm-avatar" id="engDetailAvatar"><svg class="std-icon" viewBox="0 0 24 24" style="width:24px;height:24px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.47.43.88.84 1.17.3.2.65.32 1.02.34H21a2 2 0 1 1 0 4h-.09c-.47.02-.92.19-1.3.47-.27.2-.49.46-.63.76Z"/></svg></div>
         <div class="grow"><h3 id="engDetailName">—</h3><p id="engDetailMeta">—</p></div>
         <button type="button" class="eng-btn-primary" id="engDetailJoin">Join</button>
       </div>
+      <section class="owner-panel" id="engAvatarEditor" hidden>
+        <h4>Community photo</h4>
+        <p class="subtle">Choose a photo, then drag it to pick what shows.</p>
+        <div class="field"><label>Photo</label><input id="engAvatarFile" type="file" accept="image/*"></div>
+        <div class="eng-pos-preview" id="engAvatarPreview"><img id="engAvatarPreviewImg" alt=""><div class="eng-pos-hint">Drag to reposition</div></div>
+        <div class="owner-actions"><button type="button" class="eng-btn-primary" id="engAvatarSave">Save photo</button><button type="button" class="secondary" id="engAvatarCancel">Cancel</button></div>
+        <p class="subtle" id="engAvatarMessage" aria-live="polite"></p>
+      </section>
       <p class="eng-comm-desc" id="engDetailDesc"></p>
       <div class="chips" id="engDetailTabs" role="tablist"></div>
       <div class="eng-composer" id="engComposer" hidden>
@@ -136,7 +229,7 @@
       </div>
       <div id="engFeed"><p class="live-empty">Loading discussions…</p></div>
     </div>
-    <button type="button" class="eng-btn-primary" id="engCreateFab" style="position:fixed;right:16px;bottom:22px;border-radius:999px;box-shadow:0 6px 18px #0003;z-index:5">+ Create Post</button>`;
+    <button type="button" class="eng-btn-primary" id="engCreateFab" style="position:absolute;right:16px;bottom:16px;border-radius:999px;box-shadow:0 6px 18px #0003;z-index:5">+ Create Post</button>`;
   host.appendChild(detail);
 
   function openOverlay(el){ el.hidden = false; document.body.style.overflow = 'hidden'; }
@@ -150,6 +243,15 @@
   }
   $('engHubBack').onclick = () => closeOverlay(hub);
   $('engExploreBtn').onclick = () => $('engTrending').scrollIntoView({behavior:'smooth',block:'start'});
+
+  // Tapping Home/Explore/Reels/Communities/Profile (or any in-app "see all"
+  // link) must close the Engineering overlay so those key sections are
+  // visible again underneath — the bottom nav itself always stays on screen.
+  document.addEventListener('click', e => {
+    if (e.target.closest('.nav-item') || e.target.closest('[data-go]')) {
+      closeOverlay(detail); closeOverlay(hub);
+    }
+  }, true);
 
   // Both existing "Engineering" category chips (Home and Explore) open the hub.
   // Matched by text so no existing markup needs to change.
@@ -167,6 +269,7 @@
       renderSubGrid();
       loadTrending();
       loadCommunities();
+      loadEngAds();
     });
   }
 
@@ -207,7 +310,7 @@
     communities = data || [];
     status.textContent = `${communities.length} communit${communities.length===1?'y':'ies'}`;
     if (!communities.length) { host.innerHTML = '<p class="live-empty">No Engineering communities yet.</p>'; return; }
-    host.innerHTML = communities.map(c => `<div class="eng-comm-card" data-open-community="${esc(c.id)}"><span class="eng-comm-ico"><svg class="std-icon"><use href="#i-settings"/></svg></span><strong>${esc(c.name)}${c.is_verified?'<svg class="std-icon eng-verify" style="width:13px;height:13px"><use href="#i-check"/></svg>':''}</strong><small id="eng-members-${esc(c.id)}">Loading members…</small><button type="button" class="eng-btn-primary" style="justify-content:center" data-open-community="${esc(c.id)}">View</button></div>`).join('');
+    host.innerHTML = communities.map(c => `<div class="eng-comm-card"><span class="eng-comm-ico" data-open-community="${esc(c.id)}">${commIconInner(c)}${cardEditBtn(c.id)}</span><strong data-open-community="${esc(c.id)}">${esc(c.name)}${c.is_verified?'<svg class="std-icon eng-verify" style="width:13px;height:13px"><use href="#i-check"/></svg>':''}</strong><small id="eng-members-${esc(c.id)}">Loading members…</small><button type="button" class="eng-btn-primary" style="justify-content:center" data-open-community="${esc(c.id)}">View</button></div>`).join('');
     communities.forEach(c => loadMemberCount(c.id));
   }
 
@@ -228,6 +331,20 @@
   }
   function userOf(id){ return profileCache.get(id) || {nickname:'Mjadala member', avatar_url:null}; }
 
+  function commIconInner(c){
+    if (c.avatar_url) return `<img src="${esc(c.avatar_url)}" alt="" loading="lazy" style="object-position:${c.avatar_focal_x ?? 50}% ${c.avatar_focal_y ?? 50}%">`;
+    return GEAR_SVG;
+  }
+  function cardEditBtn(id){ return isAdmin ? `<button type="button" class="eng-avatar-edit-btn" data-edit-avatar="${esc(id)}" aria-label="Edit photo" title="Edit photo">✎</button>` : ''; }
+
+  document.addEventListener('click', e => {
+    const edit = e.target.closest('[data-edit-avatar]');
+    if (edit) {
+      e.stopImmediatePropagation();
+      const c = communities.find(x => x.id === edit.dataset.editAvatar);
+      if (c) openCommunityDetail(c).then(() => openAvatarEditor());
+    }
+  });
   document.addEventListener('click', e => {
     const open = e.target.closest('[data-open-community]');
     if (open) { const c = communities.find(x => x.id === open.dataset.openCommunity); if (c) openCommunityDetail(c); }
@@ -239,13 +356,69 @@
     $('engDetailTitle').textContent = c.subtopic || 'Engineering';
     $('engDetailDesc').textContent = c.description || '';
     $('engDetailMeta').textContent = 'Loading members…';
+    $('engDetailAvatar').innerHTML = commIconInner(c) + cardEditBtn(c.id);
     renderTabs();
+    closeAvatarEditor();
     openOverlay(detail);
     closeOverlay(hub);
     await refreshMemberMeta();
     await loadFeed();
   }
-  $('engDetailBack').onclick = () => { closeOverlay(detail); openOverlay(hub); };
+  $('engDetailBack').onclick = () => { closeOverlay(detail); openOverlay(hub); loadCommunities(); };
+
+  // Community photo editor — drag-to-reposition, same mechanism as ad media.
+  let avatarObjectUrl = null, pendingAvatarFile = null;
+  const avatarFocal = createFocalPicker($('engAvatarPreview'), $('engAvatarPreviewImg'));
+  function openAvatarEditor(){
+    if (!isAdmin || !activeCommunity) return;
+    $('engAvatarEditor').hidden = false;
+    $('engAvatarEditor').scrollIntoView({behavior:'smooth',block:'center'});
+    avatarFocal.reset(activeCommunity.avatar_focal_x, activeCommunity.avatar_focal_y);
+    if (activeCommunity.avatar_url) { $('engAvatarPreviewImg').src = activeCommunity.avatar_url; $('engAvatarPreview').classList.add('has-image'); }
+  }
+  function closeAvatarEditor(){
+    $('engAvatarEditor').hidden = true;
+    $('engAvatarMessage').textContent = '';
+    pendingAvatarFile = null;
+  }
+  $('engAvatarCancel').onclick = closeAvatarEditor;
+  $('engAvatarFile').addEventListener('change', () => {
+    pendingAvatarFile = $('engAvatarFile').files[0] || null;
+    if (avatarObjectUrl) { URL.revokeObjectURL(avatarObjectUrl); avatarObjectUrl = null; }
+    if (pendingAvatarFile) {
+      avatarFocal.reset(50, 50);
+      avatarObjectUrl = URL.createObjectURL(pendingAvatarFile);
+      $('engAvatarPreviewImg').src = avatarObjectUrl;
+      $('engAvatarPreview').classList.add('has-image');
+    }
+  });
+  $('engAvatarSave').onclick = async () => {
+    const msg = $('engAvatarMessage');
+    if (!activeCommunity) return;
+    if (!pendingAvatarFile && !activeCommunity.avatar_url) { msg.textContent = 'Choose a photo first.'; return; }
+    const btn = $('engAvatarSave'); btn.disabled = true; msg.textContent = 'Saving…';
+    try {
+      const patch = { avatar_focal_x: avatarFocal.x, avatar_focal_y: avatarFocal.y };
+      if (pendingAvatarFile) {
+        if (pendingAvatarFile.size > 6*1024*1024) throw new Error('Photo must be 6 MB or smaller.');
+        const path = `${activeCommunity.id}/${crypto.randomUUID()}-${pendingAvatarFile.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+        const up = await sb.storage.from('mj-community-avatars').upload(path, pendingAvatarFile, { upsert:false, contentType: pendingAvatarFile.type });
+        if (up.error) throw up.error;
+        const { data: pub } = sb.storage.from('mj-community-avatars').getPublicUrl(path);
+        patch.avatar_url = pub.publicUrl; patch.avatar_path = path;
+      }
+      const { error } = await sb.from('mj_communities').update(patch).eq('id', activeCommunity.id);
+      if (error) throw error;
+      Object.assign(activeCommunity, patch);
+      const idx = communities.findIndex(x => x.id === activeCommunity.id);
+      if (idx > -1) Object.assign(communities[idx], patch);
+      $('engDetailAvatar').innerHTML = commIconInner(activeCommunity) + cardEditBtn(activeCommunity.id);
+      msg.textContent = 'Saved.';
+      pendingAvatarFile = null;
+      setTimeout(closeAvatarEditor, 700);
+    } catch (err) { msg.textContent = 'Could not save: ' + (err.message || err); }
+    finally { btn.disabled = false; }
+  };
 
   async function refreshMemberMeta(){
     if (!activeCommunity) return;
@@ -405,6 +578,210 @@
     finally { btn.disabled = false; }
   };
 
-  sb.auth.getSession().then(({ data }) => { user = data.session?.user || null; });
-  sb.auth.onAuthStateChange((_e, session) => { user = session?.user || null; });
+  // ---------- Engineering ads: plans, player, submission, admin review ----------
+  const adBucket = 'mjadala-ads';
+
+  function planLabel(p){ return `${p.name} — ${p.is_free || Number(p.price_kes) === 0 ? 'Free' : 'KES ' + Number(p.price_kes).toLocaleString()} / ${p.duration_days}d`; }
+
+  async function loadAdPlansForForm(){
+    const sel = $('engAdPlan');
+    const { data, error } = await sb.from('mj_ad_plans').select('*').eq('is_active', true).order('sort_order');
+    adPlans = error ? [] : (data || []);
+    sel.innerHTML = adPlans.length ? adPlans.map(p => `<option value="${esc(p.id)}">${esc(planLabel(p))}</option>`).join('') : '<option value="">No plans available yet</option>';
+    updatePlanInfo();
+  }
+  function updatePlanInfo(){
+    const plan = adPlans.find(p => p.id === $('engAdPlan').value);
+    const info = $('engAdPlanInfo'), payFields = $('engAdPaymentFields');
+    if (!plan) { info.hidden = true; payFields.hidden = true; return; }
+    const free = plan.is_free || Number(plan.price_kes) === 0;
+    info.hidden = false;
+    info.innerHTML = free
+      ? `<strong>${esc(plan.name)}</strong> — free, runs ${esc(String(plan.duration_days))} days.${plan.description ? ' ' + esc(plan.description) : ''}`
+      : `<strong>${esc(plan.name)}</strong> — KES ${Number(plan.price_kes).toLocaleString()}, runs ${esc(String(plan.duration_days))} days.${plan.description ? ' ' + esc(plan.description) : ''}<br>${esc(plan.payment_instructions || 'Pay, then enter your M-Pesa code below so an admin can verify it before approving.')}`;
+    payFields.hidden = free;
+  }
+  $('engAdPlan').addEventListener('change', updatePlanInfo);
+
+  const adMediaFocal = createFocalPicker($('engAdPosPreview'), $('engAdPosImg'));
+  $('engAdMedia').addEventListener('change', () => {
+    pendingAdMediaFile = $('engAdMedia').files[0] || null;
+    if ($('engAdMedia')._prevUrl) { URL.revokeObjectURL($('engAdMedia')._prevUrl); }
+    if (pendingAdMediaFile && pendingAdMediaFile.type.startsWith('image/')) {
+      adMediaFocal.reset(50, 50);
+      const url = URL.createObjectURL(pendingAdMediaFile);
+      $('engAdMedia')._prevUrl = url;
+      $('engAdPosImg').src = url;
+      $('engAdPosPreview').classList.add('has-image');
+    } else {
+      $('engAdPosPreview').classList.remove('has-image');
+      $('engAdPosImg').removeAttribute('src');
+    }
+  });
+
+  function setAdFormOpen(open){
+    const toggle = $('engAdFormToggle');
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    toggle.textContent = open ? 'Close' : 'Promote';
+    $('engAdFormBody').hidden = !open;
+    if (open) { loadAdPlansForForm(); loadMyEngAds(); $('engAdFormBody').scrollIntoView({behavior:'smooth',block:'start'}); }
+  }
+  $('engAdFormToggle').onclick = () => setAdFormOpen($('engAdFormToggle').getAttribute('aria-expanded') !== 'true');
+
+  $('engAdSubmit').onclick = async () => {
+    const msg = $('engAdMessage');
+    if (!user) { msg.textContent = 'Sign in to submit an advert.'; return; }
+    const title = $('engAdTitle').value.trim(), planId = $('engAdPlan').value;
+    const plan = adPlans.find(p => p.id === planId);
+    if (!title || !pendingAdMediaFile || !plan) { msg.textContent = 'Add a headline, a photo or video, and choose a plan.'; return; }
+    const free = plan.is_free || Number(plan.price_kes) === 0;
+    const payRef = $('engAdPayRef').value.trim();
+    if (!free && !payRef) { msg.textContent = 'Enter the M-Pesa code you paid with, so an admin can verify it.'; return; }
+    if (pendingAdMediaFile.size > 50*1024*1024) { msg.textContent = 'Media must be 50 MB or smaller.'; return; }
+    const mediaType = pendingAdMediaFile.type.startsWith('video/') ? 'video' : (pendingAdMediaFile.type.startsWith('image/') ? 'image' : null);
+    if (!mediaType) { msg.textContent = 'Choose an image or video.'; return; }
+    const btn = $('engAdSubmit'); btn.disabled = true; msg.textContent = 'Submitting…';
+    try {
+      const path = `${user.id}/${crypto.randomUUID()}-${pendingAdMediaFile.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+      const up = await sb.storage.from(adBucket).upload(path, pendingAdMediaFile, { upsert:false, contentType: pendingAdMediaFile.type });
+      if (up.error) throw up.error;
+      const { data: pub } = sb.storage.from(adBucket).getPublicUrl(path);
+      const endsAt = new Date(Date.now() + plan.duration_days * 86400000).toISOString();
+      const payload = {
+        user_id: user.id, title, description: $('engAdDescription').value.trim(),
+        media_url: pub.publicUrl, media_path: path, media_type: mediaType,
+        category: 'Engineering', audience: 'engineering', eng_subtopic: $('engAdSubtopic').value || null,
+        destination_url: $('engAdUrl').value.trim() || null, cta_text: $('engAdCta').value,
+        ends_at: endsAt, status: 'pending', plan_id: plan.id,
+        payment_status: free ? 'n/a' : 'pending', payment_reference: free ? null : payRef,
+        payment_phone: free ? null : ($('engAdPayPhone').value.trim() || null),
+        media_focal_x: mediaType === 'image' ? Math.round(adMediaFocal.x) : null,
+        media_focal_y: mediaType === 'image' ? Math.round(adMediaFocal.y) : null
+      };
+      const { error } = await sb.from('mj_ad_campaigns').insert(payload);
+      if (error) throw error;
+      msg.textContent = free ? 'Submitted. It will appear after admin approval.' : 'Submitted. An admin will verify your payment and review it shortly.';
+      ['engAdTitle','engAdDescription','engAdMedia','engAdUrl','engAdPayRef','engAdPayPhone'].forEach(id => $(id).value = '');
+      $('engAdPosPreview').classList.remove('has-image'); $('engAdPosImg').removeAttribute('src');
+      pendingAdMediaFile = null; adMediaFocal.reset(50,50);
+      loadMyEngAds();
+    } catch (err) { msg.textContent = 'Could not submit: ' + (err.message || err); }
+    finally { btn.disabled = false; }
+  };
+
+  async function loadMyEngAds(){
+    const host = $('engMyAds');
+    if (!user) { host.innerHTML = ''; return; }
+    const { data, error } = await sb.from('mj_ad_campaigns').select('id,title,status,rejection_reason,payment_status,created_at').eq('user_id', user.id).eq('category','Engineering').order('created_at',{ascending:false}).limit(10);
+    if (error || !data || !data.length) { host.innerHTML = ''; return; }
+    const label = s => s==='approved' ? 'Live now' : s==='rejected' ? 'Rejected' : 'Pending review';
+    host.innerHTML = `<h5>Your Engineering ads</h5>${data.map(a => `<div class="mj-my-ad-row"><span>${esc(a.title)}</span><span class="mj-ad-pill ${esc(a.status)}" title="${a.status==='rejected'&&a.rejection_reason?esc(a.rejection_reason):''}">${label(a.status)}</span></div>`).join('')}`;
+  }
+
+  function stopAd(){ if (adTimer) clearTimeout(adTimer); adTimer = null; }
+  function scheduleAd(){ stopAd(); if (adPaused || !engAds.length) return; const a = engAds[adCurrent]; adTimer = setTimeout(() => { adCurrent++; renderAdPlayer(); }, a.media_type==='video' ? 10000 : 5000); }
+  function renderAdPlayer(){
+    stopAd();
+    const player = $('engAdPlayer');
+    if (!engAds.length) { player.innerHTML = '<div class="mj-ad-content"><span class="mj-ad-tag">MJADALA · ENGINEERING</span><h3>Reach engineers across every subtopic.</h3><p>Sponsored Engineering campaigns will appear here.</p><a class="mj-ad-cta" href="#" id="engAdCreateLink">Promote in Engineering</a></div>'; $('engAdCreateLink')?.addEventListener('click', e => { e.preventDefault(); setAdFormOpen(true); }); return; }
+    adCurrent = (adCurrent + engAds.length) % engAds.length;
+    const a = engAds[adCurrent], fx = Number.isFinite(a.media_focal_x) ? a.media_focal_x : 50, fy = Number.isFinite(a.media_focal_y) ? a.media_focal_y : 50;
+    const media = a.media_type === 'video' ? `<video class="mj-ad-media" src="${esc(a.media_url)}" muted playsinline autoplay></video>` : `<img class="mj-ad-bg" src="${esc(a.media_url)}" alt="" aria-hidden="true"><img class="mj-ad-media" src="${esc(a.media_url)}" alt="Sponsored campaign" style="object-position:${fx}% ${fy}%">`;
+    player.innerHTML = `${media}<div class="mj-ad-shade"></div><div class="mj-ad-dots">${engAds.map((_,i) => `<button type="button" class="${i===adCurrent?'active':''}" data-eng-ad-dot="${i}" aria-label="Show advert ${i+1}"></button>`).join('')}</div><div class="mj-ad-controls"><button type="button" id="engAdPause" aria-label="Pause advert">Ⅱ</button><button type="button" id="engAdNext" aria-label="Next advert">›</button></div><div class="mj-ad-content"><span class="mj-ad-tag">SPONSORED · ${esc(a.eng_subtopic || 'Engineering')}</span><h3>${esc(a.title)}</h3><p>${esc(a.description)}</p>${a.destination_url?`<a class="mj-ad-cta" href="${esc(a.destination_url)}" target="_blank" rel="noopener">${esc(a.cta_text||'Learn more')}</a>`:`<span class="mj-ad-cta" aria-disabled="true">${esc(a.cta_text||'Learn more')}</span>`}</div>`;
+    const video = player.querySelector('video'); if (video) video.play().catch(() => {});
+    $('engAdPause').onclick = () => { adPaused = !adPaused; if (video) { adPaused ? video.pause() : video.play().catch(()=>{}); } $('engAdPause').textContent = adPaused ? '▶' : 'Ⅱ'; adPaused ? stopAd() : scheduleAd(); };
+    $('engAdNext').onclick = () => { adCurrent++; renderAdPlayer(); };
+    player.querySelectorAll('[data-eng-ad-dot]').forEach(b => b.onclick = () => { adCurrent = Number(b.dataset.engAdDot); renderAdPlayer(); });
+    scheduleAd();
+  }
+  async function loadEngAds(){
+    let q = sb.from('mj_ad_campaigns').select('id,title,description,media_url,media_type,eng_subtopic,destination_url,cta_text,media_focal_x,media_focal_y').eq('status','approved').eq('is_active',true).eq('category','Engineering').gt('ends_at', new Date().toISOString()).order('approved_at',{ascending:false}).limit(8);
+    if (subtopicFilter) q = q.or(`eng_subtopic.eq.${subtopicFilter},eng_subtopic.is.null`);
+    const { data, error } = await q;
+    engAds = error ? [] : (data || []);
+    renderAdPlayer();
+  }
+
+  async function loadAdminAds(){
+    if (!isAdmin) return;
+    const host = $('engAdReviewList');
+    const { data, error } = await sb.from('mj_ad_campaigns').select('*,mj_ad_plans(name,price_kes,is_free,duration_days)').eq('status','pending').eq('category','Engineering').order('created_at');
+    if (error) { host.textContent = error.message; return; }
+    const rows = data || [];
+    host.innerHTML = rows.length ? rows.map(a => {
+      const plan = a.mj_ad_plans;
+      const payPill = a.payment_status === 'paid' ? '<span class="mj-ad-pill approved">Paid</span>' : a.payment_status === 'rejected' ? '<span class="mj-ad-pill rejected">Payment rejected</span>' : a.payment_status === 'pending' ? '<span class="mj-ad-pill pending">Payment pending</span>' : '<span class="mj-ad-pill approved">Free plan</span>';
+      return `<article class="eng-plan-row" style="flex-direction:column;align-items:stretch">
+        <strong>${esc(a.title)}</strong>
+        <p class="eng-comm-desc" style="margin:2px 0">${esc(a.description)}</p>
+        <p class="eng-pay-box" style="margin:4px 0">Plan: <strong>${plan ? esc(plan.name) : '—'}</strong>${plan && !plan.is_free ? ' · KES ' + Number(plan.price_kes).toLocaleString() : ''} ${payPill}${a.payment_reference ? ' · ref ' + esc(a.payment_reference) : ''}${a.payment_phone ? ' · ' + esc(a.payment_phone) : ''}</p>
+        <p class="subtle">${esc(a.eng_subtopic || 'All of Engineering')} · ${esc(a.media_type)} · ends ${esc(new Date(a.ends_at).toLocaleDateString())}</p>
+        <a href="${esc(a.media_url)}" target="_blank" rel="noopener">Preview media</a>
+        <div class="eng-plan-actions" style="margin-top:7px">
+          ${a.payment_status === 'pending' ? `<button type="button" data-ad-mark-paid="${a.id}">Mark paid</button><button type="button" data-ad-mark-rejected="${a.id}">Mark unpaid</button>` : ''}
+          <button type="button" class="eng-btn-primary" data-eng-ad-review="${a.id}" data-decision="approved">Approve</button>
+          <button type="button" data-eng-ad-review="${a.id}" data-decision="rejected">Reject</button>
+        </div>
+      </article>`;
+    }).join('') : '<p class="live-empty">No Engineering campaigns awaiting review.</p>';
+    host.querySelectorAll('[data-eng-ad-review]').forEach(b => b.onclick = async () => {
+      const id = b.dataset.engAdReview, decision = b.dataset.decision;
+      let reason = '';
+      if (decision === 'rejected') { reason = prompt('Reason for rejection (shown to advertiser):') || ''; if (!reason) return; }
+      b.disabled = true;
+      const { error } = await sb.from('mj_ad_campaigns').update({ status: decision, rejection_reason: reason, approved_at: decision==='approved' ? new Date().toISOString() : null, is_active: decision==='approved' }).eq('id', id);
+      if (error) alert(error.message);
+      await loadAdminAds(); await loadEngAds();
+    });
+    host.querySelectorAll('[data-ad-mark-paid]').forEach(b => b.onclick = async () => { b.disabled = true; const { error } = await sb.from('mj_ad_campaigns').update({ payment_status: 'paid' }).eq('id', b.dataset.adMarkPaid); if (error) alert(error.message); await loadAdminAds(); });
+    host.querySelectorAll('[data-ad-mark-rejected]').forEach(b => b.onclick = async () => { b.disabled = true; const { error } = await sb.from('mj_ad_campaigns').update({ payment_status: 'rejected' }).eq('id', b.dataset.adMarkRejected); if (error) alert(error.message); await loadAdminAds(); });
+  }
+
+  // ---------- Admin: manage ad plans ----------
+  $('engPlanManageToggle').onclick = () => {
+    const open = $('engPlanManageToggle').getAttribute('aria-expanded') !== 'true';
+    $('engPlanManageToggle').setAttribute('aria-expanded', open ? 'true' : 'false');
+    $('engPlanManage').hidden = !open;
+    if (open) loadPlanList();
+  };
+  async function loadPlanList(){
+    const host = $('engPlanList');
+    const { data, error } = await sb.from('mj_ad_plans').select('*').order('sort_order');
+    if (error) { host.textContent = error.message; return; }
+    host.innerHTML = (data||[]).map(p => `<div class="eng-plan-row"><span>${esc(p.name)} — ${p.is_free?'Free':'KES '+Number(p.price_kes).toLocaleString()} / ${p.duration_days}d ${p.is_active?'':'(inactive)'}</span><span class="eng-plan-actions"><button type="button" data-plan-toggle="${p.id}" data-active="${p.is_active}">${p.is_active?'Deactivate':'Activate'}</button><button type="button" data-plan-delete="${p.id}">Delete</button></span></div>`).join('') || '<p class="live-empty">No plans yet.</p>';
+    host.querySelectorAll('[data-plan-toggle]').forEach(b => b.onclick = async () => { const active = b.dataset.active === 'true'; const { error } = await sb.from('mj_ad_plans').update({ is_active: !active }).eq('id', b.dataset.planToggle); if (error) alert(error.message); await loadPlanList(); await loadAdPlansForForm(); });
+    host.querySelectorAll('[data-plan-delete]').forEach(b => b.onclick = async () => { if (!confirm('Delete this plan? Ads already submitted under it keep their record.')) return; const { error } = await sb.from('mj_ad_plans').delete().eq('id', b.dataset.planDelete); if (error) alert(error.message); await loadPlanList(); await loadAdPlansForForm(); });
+  }
+  $('engPlanSave').onclick = async () => {
+    const msg = $('engPlanMessage');
+    const name = $('engPlanName').value.trim();
+    if (!name) { msg.textContent = 'Give the plan a name.'; return; }
+    const isFree = $('engPlanFree').checked;
+    const btn = $('engPlanSave'); btn.disabled = true; msg.textContent = 'Saving…';
+    try {
+      const { error } = await sb.from('mj_ad_plans').insert({
+        name, description: $('engPlanDescription').value.trim(),
+        price_kes: isFree ? 0 : Number($('engPlanPrice').value || 0),
+        is_free: isFree, duration_days: Number($('engPlanDuration').value || 7),
+        payment_instructions: $('engPlanPayInstructions').value.trim()
+      });
+      if (error) throw error;
+      msg.textContent = 'Plan added.';
+      ['engPlanName','engPlanDescription','engPlanPayInstructions'].forEach(id => $(id).value = '');
+      $('engPlanPrice').value = 0; $('engPlanDuration').value = 7; $('engPlanFree').checked = false;
+      await loadPlanList(); await loadAdPlansForForm();
+    } catch (err) { msg.textContent = 'Could not save: ' + (err.message || err); }
+    finally { btn.disabled = false; }
+  };
+
+  async function refreshAdminVisibility(){
+    const r = await sb.rpc('mj_is_creator_admin');
+    isAdmin = !r.error && r.data === true;
+    $('engAdAdmin').hidden = !isAdmin;
+    if (isAdmin) loadAdminAds();
+    loadCommunities();
+  }
+
+  sb.auth.getSession().then(({ data }) => { user = data.session?.user || null; refreshAdminVisibility(); loadEngAds(); loadAdPlansForForm(); });
+  sb.auth.onAuthStateChange((_e, session) => { user = session?.user || null; refreshAdminVisibility(); loadMyEngAds(); });
 })();
