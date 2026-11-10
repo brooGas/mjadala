@@ -76,7 +76,8 @@
   .eng-sub-chip .eng-sub-ico{width:30px;height:30px;border-radius:50%;background:var(--soft);color:var(--green);display:grid;place-items:center}
   .eng-sub-chip.on{border-color:var(--green);background:#eef5ee}
   .eng-sub-chip.on .eng-sub-ico{background:var(--green);color:#fff}
-  .eng-btn-primary{border:0;border-radius:12px;padding:10px 14px;background:#228b22;color:#fff;font-size:12px;font-weight:850;display:inline-flex;align-items:center;gap:6px}
+  .eng-btn-primary{border:0;border-radius:12px;padding:10px 14px;background:var(--green);color:#fff;font-size:12px;font-weight:850;display:inline-flex;align-items:center;gap:6px}
+  .eng-btn-primary:hover{background:var(--green2)}
   .eng-btn-primary:disabled{opacity:.6}
   .eng-learning{margin:12px 0;border-radius:18px;padding:15px;background:linear-gradient(120deg,var(--ivory),#fff6e4);border:1px solid #ecdcb0;display:flex;align-items:center;gap:12px}
   .eng-learning .eng-learning-ico{width:44px;height:44px;border-radius:12px;background:var(--gold);color:#4a3a14;display:grid;place-items:center;flex:0 0 auto}
@@ -135,10 +136,9 @@
   hub.innerHTML = `
     <div class="eng-top"><button type="button" class="eng-back" id="engHubBack" aria-label="Back">←</button><h2>Engineering</h2></div>
     <div class="eng-body">
-      <div class="hero"><div class="eyebrow">LEARN · SHARE · BUILD · GROW</div><h3>Engineering Innovations for a Better Africa</h3><p>Join the communities, trends and skills built for African engineers.</p><button type="button" class="pill-btn" id="engExploreBtn">Explore Engineering →</button></div>
-      <div class="eng-sub-grid" id="engSubGrid"></div>
       <div id="engAdPlayer" class="mj-ad-shell"></div>
       <div class="row-card" id="engAdPromoRow"><div class="thumb"><svg class="std-icon"><use href="#i-zap"/></svg></div><div class="grow"><h4>Promote in Engineering</h4><p>Reach engineers across every subtopic.</p></div><button type="button" class="mini-btn" id="engAdFormToggle" aria-expanded="false">Promote</button></div>
+      <div class="eng-sub-grid" id="engSubGrid"></div>
       <section class="owner-panel" id="engAdFormBody" hidden>
         <h4>Promote in Engineering</h4>
         <p class="subtle">Ads are reviewed by an admin before they go live.</p>
@@ -155,12 +155,14 @@
           <div class="field"><label>Plan</label><select id="engAdPlan"></select></div>
         </div>
         <div id="engAdPlanInfo" class="eng-pay-box" hidden></div>
-        <div class="field-grid" id="engAdPaymentFields" hidden>
-          <div class="field"><label>M-Pesa code you paid with</label><input id="engAdPayRef" maxlength="40" placeholder="e.g. QFT7X8ABCD"></div>
-          <div class="field"><label>Phone used (optional)</label><input id="engAdPayPhone" maxlength="20" placeholder="07…"></div>
+        <div id="engAdPaymentFields" hidden>
+          <div class="field"><label>Phone number for the M-Pesa prompt</label><input id="engAdPayPhone" maxlength="20" placeholder="07… or 2547…"></div>
+          <p class="subtle">We'll send a Safaricom STK push to this number once you submit. Already paid another way?</p>
+          <div class="field"><label>M-Pesa code you paid with (optional)</label><input id="engAdPayRef" maxlength="40" placeholder="e.g. QFT7X8ABCD"></div>
         </div>
         <div class="owner-actions"><button type="button" class="eng-btn-primary" id="engAdSubmit">Submit for review</button></div>
         <p class="subtle" id="engAdMessage" aria-live="polite"></p>
+        <div id="engAdStkStatus"></div>
         <div id="engMyAds"></div>
       </section>
       <section class="owner-panel" id="engAdAdmin" hidden>
@@ -242,7 +244,6 @@
     loadCommunities();
   }
   $('engHubBack').onclick = () => closeOverlay(hub);
-  $('engExploreBtn').onclick = () => $('engTrending').scrollIntoView({behavior:'smooth',block:'start'});
 
   // Tapping Home/Explore/Reels/Communities/Profile (or any in-app "see all"
   // link) must close the Engineering overlay so those key sections are
@@ -407,11 +408,16 @@
         const { data: pub } = sb.storage.from('mj-community-avatars').getPublicUrl(path);
         patch.avatar_url = pub.publicUrl; patch.avatar_path = path;
       }
-      const { error } = await sb.from('mj_communities').update(patch).eq('id', activeCommunity.id);
+      const { data: updated, error } = await sb.from('mj_communities').update(patch).eq('id', activeCommunity.id)
+        .select('id,avatar_url,avatar_path,avatar_focal_x,avatar_focal_y').maybeSingle();
       if (error) throw error;
-      Object.assign(activeCommunity, patch);
+      // Supabase/PostgREST returns no error when RLS silently matches 0 rows — without this
+      // check the UI would show "Saved" while nothing was actually written, and the photo
+      // would vanish on the next real load. Treat that as a real failure instead.
+      if (!updated) throw new Error('Not saved — run MIGRATION_ENGINEERING_ADS_AND_AVATARS.sql (admin update policy) or confirm this account is a Mjadala admin.');
+      Object.assign(activeCommunity, updated);
       const idx = communities.findIndex(x => x.id === activeCommunity.id);
-      if (idx > -1) Object.assign(communities[idx], patch);
+      if (idx > -1) Object.assign(communities[idx], updated);
       $('engDetailAvatar').innerHTML = commIconInner(activeCommunity) + cardEditBtn(activeCommunity.id);
       msg.textContent = 'Saved.';
       pendingAvatarFile = null;
@@ -636,7 +642,8 @@
     if (!title || !pendingAdMediaFile || !plan) { msg.textContent = 'Add a headline, a photo or video, and choose a plan.'; return; }
     const free = plan.is_free || Number(plan.price_kes) === 0;
     const payRef = $('engAdPayRef').value.trim();
-    if (!free && !payRef) { msg.textContent = 'Enter the M-Pesa code you paid with, so an admin can verify it.'; return; }
+    const payPhone = $('engAdPayPhone').value.trim();
+    if (!free && !payRef && !payPhone) { msg.textContent = 'Enter a phone number for the M-Pesa prompt, or a code you already paid with.'; return; }
     if (pendingAdMediaFile.size > 50*1024*1024) { msg.textContent = 'Media must be 50 MB or smaller.'; return; }
     const mediaType = pendingAdMediaFile.type.startsWith('video/') ? 'video' : (pendingAdMediaFile.type.startsWith('image/') ? 'image' : null);
     if (!mediaType) { msg.textContent = 'Choose an image or video.'; return; }
@@ -653,21 +660,74 @@
         category: 'Engineering', audience: 'engineering', eng_subtopic: $('engAdSubtopic').value || null,
         destination_url: $('engAdUrl').value.trim() || null, cta_text: $('engAdCta').value,
         ends_at: endsAt, status: 'pending', plan_id: plan.id,
-        payment_status: free ? 'n/a' : 'pending', payment_reference: free ? null : payRef,
-        payment_phone: free ? null : ($('engAdPayPhone').value.trim() || null),
+        payment_status: free ? 'n/a' : 'pending', payment_reference: free ? null : (payRef || null),
+        payment_phone: free ? null : (payPhone || null),
         media_focal_x: mediaType === 'image' ? Math.round(adMediaFocal.x) : null,
         media_focal_y: mediaType === 'image' ? Math.round(adMediaFocal.y) : null
       };
-      const { error } = await sb.from('mj_ad_campaigns').insert(payload);
+      const { data: inserted, error } = await sb.from('mj_ad_campaigns').insert(payload).select('id').single();
       if (error) throw error;
-      msg.textContent = free ? 'Submitted. It will appear after admin approval.' : 'Submitted. An admin will verify your payment and review it shortly.';
       ['engAdTitle','engAdDescription','engAdMedia','engAdUrl','engAdPayRef','engAdPayPhone'].forEach(id => $(id).value = '');
       $('engAdPosPreview').classList.remove('has-image'); $('engAdPosImg').removeAttribute('src');
       pendingAdMediaFile = null; adMediaFocal.reset(50,50);
+      if (free) {
+        msg.textContent = 'Submitted. It will appear after admin approval.';
+      } else if (payPhone && !payRef) {
+        msg.textContent = 'Submitted. Starting the M-Pesa prompt…';
+        await startAdStkPush(inserted.id, payPhone);
+      } else {
+        msg.textContent = 'Submitted. An admin will verify your payment code and review it shortly.';
+      }
       loadMyEngAds();
     } catch (err) { msg.textContent = 'Could not submit: ' + (err.message || err); }
     finally { btn.disabled = false; }
   };
+
+  // ---------- Daraja (M-Pesa STK push) for paid ad plans ----------
+  // Requires the daraja-ad-stk-push / daraja-ad-stk-query Supabase Edge
+  // Functions (see DARAJA_AD_EDGE_FUNCTIONS/ in the delivered files) to be
+  // deployed with the same M-Pesa secrets as the rest of Mjadala. If they
+  // are not deployed yet, this fails gracefully and the advertiser can still
+  // pay manually and enter the M-Pesa code above.
+  async function startAdStkPush(campaignId, phone){
+    const status = $('engAdStkStatus');
+    status.innerHTML = '<p class="subtle">Requesting the Safaricom prompt…</p>';
+    try {
+      if (!sb.functions) throw new Error('Payments are not set up yet.');
+      const { data, error } = await sb.functions.invoke('daraja-ad-stk-push', { body: { campaign_id: campaignId, phone } });
+      if (error) throw error;
+      if (!data?.ok) throw new Error(data?.error || 'The M-Pesa prompt was not confirmed.');
+      status.innerHTML = `<p class="subtle">${esc(data.customer_message || 'Check your phone for the Safaricom prompt and enter your PIN. Never share your PIN with anyone, including Mjadala.')}</p>`;
+      watchAdPayment(campaignId, status);
+    } catch (err) {
+      status.innerHTML = `<p class="subtle">Could not start the M-Pesa prompt (${esc(err.message || String(err))}). You can still pay manually and enter the M-Pesa code above, then resubmit, or contact an admin.</p>`;
+    }
+  }
+  function watchAdPayment(campaignId, statusEl){
+    let finished = false, channel = null, polls = 0;
+    const apply = (row) => {
+      if (!row || finished) return;
+      if (row.payment_status === 'paid') {
+        statusEl.innerHTML = `<p class="subtle">Paid · Safaricom receipt ${esc(row.payment_reference || 'confirmed')}. Your ad is now with an admin for review.</p>`;
+        finished = true; if (channel && sb.removeChannel) sb.removeChannel(channel);
+        loadMyEngAds();
+      } else if (row.payment_status === 'rejected') {
+        statusEl.innerHTML = '<p class="subtle">The M-Pesa payment was not completed. You can try again or enter a code manually.</p>';
+        finished = true; if (channel && sb.removeChannel) sb.removeChannel(channel);
+      }
+    };
+    if (sb.channel) {
+      channel = sb.channel('eng-ad-pay-' + campaignId)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'mj_ad_campaigns', filter: 'id=eq.' + campaignId }, p => apply(p.new))
+        .subscribe();
+    }
+    const poller = setInterval(() => {
+      if (finished || ++polls > 30) { clearInterval(poller); return; }
+      if (polls >= 3 && polls % 3 === 1 && sb.functions) { sb.functions.invoke('daraja-ad-stk-query', { body: { campaign_id: campaignId } }).catch(() => {}); }
+      sb.from('mj_ad_campaigns').select('payment_status,payment_reference').eq('id', campaignId).maybeSingle().then(({ data }) => apply(data));
+    }, 4000);
+    setTimeout(() => { finished = true; clearInterval(poller); if (channel && sb.removeChannel) sb.removeChannel(channel); }, 150000);
+  }
 
   async function loadMyEngAds(){
     const host = $('engMyAds');
