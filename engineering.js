@@ -31,6 +31,8 @@
   let isAdmin = false;
   let subtopicFilter = null;
   let communities = [];
+  const engCommunityIds = new Set(); // ids of every Engineering community, kept warm so the
+                                      // old Communities-tab "View" buttons can be redirected here.
   let activeCommunity = null;
   let activeTab = '';
   let communityPosts = [];
@@ -64,8 +66,8 @@
 
   const style = document.createElement('style');
   style.textContent = `
-  #engineeringHub,#engCommunityDetail{position:absolute;inset:0;z-index:30;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;overflow:hidden}
-  #engineeringHub[hidden],#engCommunityDetail[hidden]{display:none!important}
+  #engineeringHub,#engCommunityDetail,#engAdsDashboard{position:absolute;inset:0;z-index:30;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;overflow:hidden}
+  #engineeringHub[hidden],#engCommunityDetail[hidden],#engAdsDashboard[hidden]{display:none!important}
   .eng-top{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid var(--line);background:var(--paper);flex:0 0 auto}
   .eng-top h2{font-size:16px;margin:0;flex:1}
   .eng-back{border:1px solid var(--line);background:#fff;border-radius:11px;width:34px;height:34px;display:grid;place-items:center;color:var(--green);flex:0 0 auto}
@@ -89,13 +91,13 @@
   .eng-lesson-row p{margin:2px 0 0;font-size:10px;color:var(--muted)}
   .eng-comm-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
   .eng-comm-card{border:1px solid var(--line);border-radius:14px;padding:11px;background:#fff;display:flex;flex-direction:column;gap:7px;text-align:left}
-  .eng-comm-card .eng-comm-ico{width:34px;height:34px;border-radius:10px;background:var(--soft);color:var(--green);display:grid;place-items:center}
+  .eng-comm-card .eng-comm-ico{width:84px;height:84px;border-radius:16px;background:var(--soft);color:var(--green);display:grid;place-items:center}
   .eng-comm-card strong{font-size:12px;line-height:1.25;display:flex;align-items:center;gap:4px}
   .eng-comm-card .eng-verify{color:var(--green)}
   .eng-comm-card small{color:var(--muted);font-size:10px}
   .eng-comm-card button{margin-top:2px}
   .eng-comm-banner{background:linear-gradient(120deg,#174d35,#2f7757);color:#fff;border-radius:18px;padding:16px;display:flex;align-items:center;gap:12px;margin-bottom:4px}
-  .eng-comm-banner .eng-comm-avatar{width:50px;height:50px;border-radius:14px;background:#ffffff22;border:1px solid #ffffff40;color:#fff;display:grid;place-items:center;flex:0 0 auto}
+  .eng-comm-banner .eng-comm-avatar{width:72px;height:72px;border-radius:16px;background:#ffffff22;border:1px solid #ffffff40;color:#fff;display:grid;place-items:center;flex:0 0 auto}
   .eng-comm-banner h3{margin:0 0 3px;font-size:16px;display:flex;align-items:center;gap:5px}
   .eng-comm-banner .eng-verify{color:#f1d18a}
   .eng-comm-banner p{margin:0;font-size:11px;color:#e2eee5}
@@ -119,7 +121,7 @@
   .eng-pos-preview .eng-pos-hint{position:absolute;left:0;right:0;bottom:0;padding:7px 10px;background:linear-gradient(0deg,#000a,transparent);color:#fff;font-size:10px;font-weight:700}
   .eng-comm-avatar{position:relative;overflow:hidden}
   .eng-comm-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-  .eng-avatar-edit-btn{position:absolute;right:-4px;bottom:-4px;width:22px;height:22px;border-radius:50%;background:#228b22;color:#fff;border:2px solid #fff;display:grid;place-items:center;font-size:11px;z-index:1;line-height:1}
+  .eng-avatar-edit-btn{position:absolute;right:-4px;bottom:-4px;width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;border:2px solid #fff;display:grid;place-items:center;font-size:12px;z-index:1;line-height:1}
   .eng-comm-card .eng-comm-ico{position:relative;overflow:hidden}
   .eng-comm-card .eng-comm-ico img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .eng-plan-row{display:flex;align-items:center;gap:8px;justify-content:space-between;border:1px solid var(--line);border-radius:11px;padding:9px 10px;margin:6px 0;font-size:12px}
@@ -136,55 +138,8 @@
   hub.innerHTML = `
     <div class="eng-top"><button type="button" class="eng-back" id="engHubBack" aria-label="Back">←</button><h2>Engineering</h2></div>
     <div class="eng-body">
-      <div id="engAdPlayer" class="mj-ad-shell"></div>
-      <div class="row-card" id="engAdPromoRow"><div class="thumb"><svg class="std-icon"><use href="#i-zap"/></svg></div><div class="grow"><h4>Promote in Engineering</h4><p>Reach engineers across every subtopic.</p></div><button type="button" class="mini-btn" id="engAdFormToggle" aria-expanded="false">Promote</button></div>
+      <div class="row-card" id="engAdPromoRow"><div class="thumb"><svg class="std-icon"><use href="#i-zap"/></svg></div><div class="grow"><h4>Engineering Ads Dashboard</h4><p>Promote a campaign and review submissions.</p></div><button type="button" class="mini-btn" id="engAdFormToggle">Open</button></div>
       <div class="eng-sub-grid" id="engSubGrid"></div>
-      <section class="owner-panel" id="engAdFormBody" hidden>
-        <h4>Promote in Engineering</h4>
-        <p class="subtle">Ads are reviewed by an admin before they go live.</p>
-        <div class="field"><label>Headline</label><input id="engAdTitle" maxlength="90" placeholder="What should engineers notice?"></div>
-        <div class="field"><label>Description</label><textarea id="engAdDescription" rows="2" maxlength="240" placeholder="A short, clear message"></textarea></div>
-        <div class="field"><label>Photo or video</label><input id="engAdMedia" type="file" accept="image/*,video/mp4,video/webm,video/quicktime"></div>
-        <div class="eng-pos-preview" id="engAdPosPreview"><img id="engAdPosImg" alt=""><div class="eng-pos-hint">Drag to choose what shows</div></div>
-        <div class="field-grid">
-          <div class="field"><label>Show under</label><select id="engAdSubtopic"><option value="">All of Engineering</option>${SUBTOPICS.map(s => `<option value="${esc(s.key)}">${esc(s.label)}</option>`).join('')}</select></div>
-          <div class="field"><label>Button text</label><select id="engAdCta"><option>Learn more</option><option>Shop now</option><option>Contact us</option><option>Visit website</option></select></div>
-        </div>
-        <div class="field-grid">
-          <div class="field"><label>Destination link (optional)</label><input id="engAdUrl" type="url" placeholder="https://…"></div>
-          <div class="field"><label>Plan</label><select id="engAdPlan"></select></div>
-        </div>
-        <div id="engAdPlanInfo" class="eng-pay-box" hidden></div>
-        <div id="engAdPaymentFields" hidden>
-          <div class="field"><label>Phone number for the M-Pesa prompt</label><input id="engAdPayPhone" maxlength="20" placeholder="07… or 2547…"></div>
-          <p class="subtle">We'll send a Safaricom STK push to this number once you submit. Already paid another way?</p>
-          <div class="field"><label>M-Pesa code you paid with (optional)</label><input id="engAdPayRef" maxlength="40" placeholder="e.g. QFT7X8ABCD"></div>
-        </div>
-        <div class="owner-actions"><button type="button" class="eng-btn-primary" id="engAdSubmit">Submit for review</button></div>
-        <p class="subtle" id="engAdMessage" aria-live="polite"></p>
-        <div id="engAdStkStatus"></div>
-        <div id="engMyAds"></div>
-      </section>
-      <section class="owner-panel" id="engAdAdmin" hidden>
-        <h4>Engineering ads review</h4>
-        <p class="subtle">Review submitted campaigns — plan, payment and media — before they go live.</p>
-        <div id="engAdReviewList">Loading…</div>
-        <button type="button" class="mini-btn" id="engPlanManageToggle" aria-expanded="false" style="margin-top:10px">Manage ad plans</button>
-        <div id="engPlanManage" hidden>
-          <div id="engPlanList"></div>
-          <h4 style="margin-top:12px">Add a plan</h4>
-          <div class="field"><label>Name</label><input id="engPlanName" maxlength="60" placeholder="e.g. Starter"></div>
-          <div class="field-grid">
-            <div class="field"><label>Price (KES)</label><input id="engPlanPrice" type="number" min="0" step="1" value="0"></div>
-            <div class="field"><label>Duration (days)</label><input id="engPlanDuration" type="number" min="1" step="1" value="7"></div>
-          </div>
-          <div class="field"><label><input id="engPlanFree" type="checkbox" style="width:auto;margin-right:6px">This is the free tier</label></div>
-          <div class="field"><label>Payment instructions shown to advertisers (if paid)</label><textarea id="engPlanPayInstructions" rows="2" placeholder="e.g. Pay to Till 123456, then enter the M-Pesa code"></textarea></div>
-          <div class="field"><label>Admin note (optional)</label><input id="engPlanDescription" maxlength="160" placeholder="Shown to advertisers"></div>
-          <div class="owner-actions"><button type="button" class="eng-btn-primary" id="engPlanSave">Add plan</button></div>
-          <p class="subtle" id="engPlanMessage" aria-live="polite"></p>
-        </div>
-      </section>
       <div class="section-title">Trending in Engineering <span class="subtle" id="engTrendStatus">Loading…</span></div>
       <div id="engTrending"><p class="live-empty">Loading trending stories…</p></div>
       <div class="eng-learning">
@@ -234,8 +189,65 @@
     <button type="button" class="eng-btn-primary" id="engCreateFab" style="position:absolute;right:16px;bottom:16px;border-radius:999px;box-shadow:0 6px 18px #0003;z-index:5">+ Create Post</button>`;
   host.appendChild(detail);
 
+  const dashboard = document.createElement('div');
+  dashboard.id = 'engAdsDashboard'; dashboard.hidden = true;
+  dashboard.innerHTML = `
+    <div class="eng-top"><button type="button" class="eng-back" id="engAdsDashBack" aria-label="Back">←</button><h2>Engineering Ads Dashboard</h2></div>
+    <div class="eng-body">
+      <section class="owner-panel" id="engAdFormBody">
+        <h4>Promote in Engineering</h4>
+        <p class="subtle">Ads are reviewed by an admin before they go live.</p>
+        <div class="field"><label>Headline</label><input id="engAdTitle" maxlength="90" placeholder="What should engineers notice?"></div>
+        <div class="field"><label>Description</label><textarea id="engAdDescription" rows="2" maxlength="240" placeholder="A short, clear message"></textarea></div>
+        <div class="field"><label>Photo or video</label><input id="engAdMedia" type="file" accept="image/*,video/mp4,video/webm,video/quicktime"></div>
+        <div class="eng-pos-preview" id="engAdPosPreview"><img id="engAdPosImg" alt=""><div class="eng-pos-hint">Drag to choose what shows</div></div>
+        <div class="field-grid">
+          <div class="field"><label>Show under</label><select id="engAdSubtopic"><option value="">All of Engineering</option>${SUBTOPICS.map(s => `<option value="${esc(s.key)}">${esc(s.label)}</option>`).join('')}</select></div>
+          <div class="field"><label>Button text</label><select id="engAdCta"><option>Learn more</option><option>Shop now</option><option>Contact us</option><option>Visit website</option></select></div>
+        </div>
+        <div class="field-grid">
+          <div class="field"><label>Destination link (optional)</label><input id="engAdUrl" type="url" placeholder="https://…"></div>
+          <div class="field"><label>Plan</label><select id="engAdPlan"></select></div>
+        </div>
+        <div id="engAdPlanInfo" class="eng-pay-box" hidden></div>
+        <div id="engAdPaymentFields" hidden>
+          <div class="field"><label>Phone number for the M-Pesa prompt</label><input id="engAdPayPhone" maxlength="20" placeholder="07… or 2547…"></div>
+          <p class="subtle">We'll send a Safaricom STK push to this number once you submit. Already paid another way?</p>
+          <div class="field"><label>M-Pesa code you paid with (optional)</label><input id="engAdPayRef" maxlength="40" placeholder="e.g. QFT7X8ABCD"></div>
+        </div>
+        <div class="owner-actions"><button type="button" class="eng-btn-primary" id="engAdSubmit">Submit for review</button></div>
+        <p class="subtle" id="engAdMessage" aria-live="polite"></p>
+        <div id="engAdStkStatus"></div>
+        <div id="engMyAds"></div>
+      </section>
+      <section class="owner-panel" id="engAdAdmin" hidden>
+        <h4>Engineering ads review</h4>
+        <p class="subtle">Review submitted campaigns — plan, payment and media — before they go live.</p>
+        <div id="engAdReviewList">Loading…</div>
+        <button type="button" class="mini-btn" id="engPlanManageToggle" aria-expanded="false" style="margin-top:10px">Manage ad plans</button>
+        <div id="engPlanManage" hidden>
+          <div id="engPlanList"></div>
+          <h4 style="margin-top:12px">Add a plan</h4>
+          <div class="field"><label>Name</label><input id="engPlanName" maxlength="60" placeholder="e.g. Starter"></div>
+          <div class="field-grid">
+            <div class="field"><label>Price (KES)</label><input id="engPlanPrice" type="number" min="0" step="1" value="0"></div>
+            <div class="field"><label>Duration (days)</label><input id="engPlanDuration" type="number" min="1" step="1" value="7"></div>
+          </div>
+          <div class="field"><label><input id="engPlanFree" type="checkbox" style="width:auto;margin-right:6px">This is the free tier</label></div>
+          <div class="field"><label>Payment instructions shown to advertisers (if paid)</label><textarea id="engPlanPayInstructions" rows="2" placeholder="e.g. Pay to Till 123456, then enter the M-Pesa code"></textarea></div>
+          <div class="field"><label>Admin note (optional)</label><input id="engPlanDescription" maxlength="160" placeholder="Shown to advertisers"></div>
+          <div class="owner-actions"><button type="button" class="eng-btn-primary" id="engPlanSave">Add plan</button></div>
+          <p class="subtle" id="engPlanMessage" aria-live="polite"></p>
+        </div>
+      </section>
+    </div>`;
+  host.appendChild(dashboard);
+
   function openOverlay(el){ el.hidden = false; document.body.style.overflow = 'hidden'; }
   function closeOverlay(el){ el.hidden = true; document.body.style.overflow = ''; }
+  function openAdsDashboard(){ openOverlay(dashboard); closeOverlay(hub); closeOverlay(detail); loadAdPlansForForm(); loadMyEngAds(); if (isAdmin) loadAdminAds(); }
+  $('engAdsDashBack').onclick = () => { closeOverlay(dashboard); openOverlay(hub); };
+  $('engAdFormToggle').onclick = () => openAdsDashboard();
 
   function openHub(){
     openOverlay(hub);
@@ -250,7 +262,7 @@
   // visible again underneath — the bottom nav itself always stays on screen.
   document.addEventListener('click', e => {
     if (e.target.closest('.nav-item') || e.target.closest('[data-go]')) {
-      closeOverlay(detail); closeOverlay(hub);
+      closeOverlay(detail); closeOverlay(hub); closeOverlay(dashboard);
     }
   }, true);
 
@@ -309,9 +321,10 @@
     const { data, error } = await q;
     if (error) { host.innerHTML = `<p class="live-empty">Communities unavailable: ${esc(error.message)}. Run MIGRATION_ENGINEERING_HUB.sql.</p>`; status.textContent=''; return; }
     communities = data || [];
+    communities.forEach(c => engCommunityIds.add(c.id));
     status.textContent = `${communities.length} communit${communities.length===1?'y':'ies'}`;
     if (!communities.length) { host.innerHTML = '<p class="live-empty">No Engineering communities yet.</p>'; return; }
-    host.innerHTML = communities.map(c => `<div class="eng-comm-card"><span class="eng-comm-ico" data-open-community="${esc(c.id)}">${commIconInner(c)}${cardEditBtn(c.id)}</span><strong data-open-community="${esc(c.id)}">${esc(c.name)}${c.is_verified?'<svg class="std-icon eng-verify" style="width:13px;height:13px"><use href="#i-check"/></svg>':''}</strong><small id="eng-members-${esc(c.id)}">Loading members…</small><button type="button" class="eng-btn-primary" style="justify-content:center" data-open-community="${esc(c.id)}">View</button></div>`).join('');
+    host.innerHTML = communities.map(c => `<div class="eng-comm-card"><span class="eng-comm-ico" data-open-eng-community="${esc(c.id)}">${commIconInner(c)}${cardEditBtn(c.id)}</span><strong data-open-eng-community="${esc(c.id)}">${esc(c.name)}${c.is_verified?'<svg class="std-icon eng-verify" style="width:13px;height:13px"><use href="#i-check"/></svg>':''}</strong><small id="eng-members-${esc(c.id)}">Loading members…</small><button type="button" class="eng-btn-primary" style="justify-content:center" data-open-eng-community="${esc(c.id)}">View</button></div>`).join('');
     communities.forEach(c => loadMemberCount(c.id));
   }
 
@@ -347,9 +360,30 @@
     }
   });
   document.addEventListener('click', e => {
-    const open = e.target.closest('[data-open-community]');
-    if (open) { const c = communities.find(x => x.id === open.dataset.openCommunity); if (c) openCommunityDetail(c); }
+    const open = e.target.closest('[data-open-eng-community]');
+    if (open) { e.stopImmediatePropagation(); const c = communities.find(x => x.id === open.dataset.openEngCommunity); if (c) openCommunityDetail(c); }
   });
+
+  // Engineering communities also show up in the app's original Communities
+  // tab and in Home's "Popular spaces" (both use the older [data-open-community]
+  // attribute, which opens a generic "Publish discussion" modal). Intercept
+  // those taps in the capture phase — before that older handler runs — and
+  // send them to our own Engineering community page instead, so there's only
+  // one, better surface for an Engineering community. Other topics' communities
+  // are untouched and keep using the original modal.
+  sb.from('mj_communities').select('id').eq('topic','Engineering').then(({ data }) => (data || []).forEach(r => engCommunityIds.add(r.id)));
+  document.addEventListener('click', e => {
+    const old = e.target.closest('[data-open-community]');
+    if (!old) return;
+    const id = old.dataset.openCommunity;
+    if (!engCommunityIds.has(id)) return;
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+    const existing = communities.find(x => x.id === id);
+    if (existing) { openCommunityDetail(existing); return; }
+    sb.from('mj_communities').select('id,name,slug,description,subtopic,is_verified,is_private,approval_required,created_by,avatar_url,avatar_path,avatar_focal_x,avatar_focal_y').eq('id', id).maybeSingle().then(({ data }) => {
+      if (data) { communities.push(data); engCommunityIds.add(data.id); openCommunityDetail(data); }
+    });
+  }, true);
 
   async function openCommunityDetail(c){
     activeCommunity = c; activeTab = ''; communityPosts = [];
@@ -625,14 +659,6 @@
     }
   });
 
-  function setAdFormOpen(open){
-    const toggle = $('engAdFormToggle');
-    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    toggle.textContent = open ? 'Close' : 'Promote';
-    $('engAdFormBody').hidden = !open;
-    if (open) { loadAdPlansForForm(); loadMyEngAds(); $('engAdFormBody').scrollIntoView({behavior:'smooth',block:'start'}); }
-  }
-  $('engAdFormToggle').onclick = () => setAdFormOpen($('engAdFormToggle').getAttribute('aria-expanded') !== 'true');
 
   $('engAdSubmit').onclick = async () => {
     const msg = $('engAdMessage');
@@ -743,10 +769,11 @@
   function renderAdPlayer(){
     stopAd();
     const player = $('engAdPlayer');
-    if (!engAds.length) { player.innerHTML = '<div class="mj-ad-content"><span class="mj-ad-tag">MJADALA · ENGINEERING</span><h3>Reach engineers across every subtopic.</h3><p>Sponsored Engineering campaigns will appear here.</p><a class="mj-ad-cta" href="#" id="engAdCreateLink">Promote in Engineering</a></div>'; $('engAdCreateLink')?.addEventListener('click', e => { e.preventDefault(); setAdFormOpen(true); }); return; }
+    if (!player) return; // the carousel now lives on Home; this page only has the dashboard entry
+    if (!engAds.length) { player.innerHTML = '<div class="mj-ad-content"><span class="mj-ad-tag">MJADALA · ENGINEERING</span><h3>Reach engineers across every subtopic.</h3><p>Sponsored Engineering campaigns will appear here.</p><a class="mj-ad-cta" href="#" id="engAdCreateLink">Promote in Engineering</a></div>'; $('engAdCreateLink')?.addEventListener('click', e => { e.preventDefault(); openAdsDashboard(); }); return; }
     adCurrent = (adCurrent + engAds.length) % engAds.length;
     const a = engAds[adCurrent], fx = Number.isFinite(a.media_focal_x) ? a.media_focal_x : 50, fy = Number.isFinite(a.media_focal_y) ? a.media_focal_y : 50;
-    const media = a.media_type === 'video' ? `<video class="mj-ad-media" src="${esc(a.media_url)}" muted playsinline autoplay></video>` : `<img class="mj-ad-bg" src="${esc(a.media_url)}" alt="" aria-hidden="true"><img class="mj-ad-media" src="${esc(a.media_url)}" alt="Sponsored campaign" style="object-position:${fx}% ${fy}%">`;
+    const media = a.media_type === 'video' ? `<video class="mj-ad-media" src="${esc(a.media_url)}" muted playsinline autoplay></video>` : `<img class="mj-ad-media" src="${esc(a.media_url)}" alt="Sponsored campaign" style="object-position:${fx}% ${fy}%">`;
     player.innerHTML = `${media}<div class="mj-ad-shade"></div><div class="mj-ad-dots">${engAds.map((_,i) => `<button type="button" class="${i===adCurrent?'active':''}" data-eng-ad-dot="${i}" aria-label="Show advert ${i+1}"></button>`).join('')}</div><div class="mj-ad-controls"><button type="button" id="engAdPause" aria-label="Pause advert">Ⅱ</button><button type="button" id="engAdNext" aria-label="Next advert">›</button></div><div class="mj-ad-content"><span class="mj-ad-tag">SPONSORED · ${esc(a.eng_subtopic || 'Engineering')}</span><h3>${esc(a.title)}</h3><p>${esc(a.description)}</p>${a.destination_url?`<a class="mj-ad-cta" href="${esc(a.destination_url)}" target="_blank" rel="noopener">${esc(a.cta_text||'Learn more')}</a>`:`<span class="mj-ad-cta" aria-disabled="true">${esc(a.cta_text||'Learn more')}</span>`}</div>`;
     const video = player.querySelector('video'); if (video) video.play().catch(() => {});
     $('engAdPause').onclick = () => { adPaused = !adPaused; if (video) { adPaused ? video.pause() : video.play().catch(()=>{}); } $('engAdPause').textContent = adPaused ? '▶' : 'Ⅱ'; adPaused ? stopAd() : scheduleAd(); };
