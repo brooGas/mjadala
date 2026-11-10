@@ -304,7 +304,7 @@
   async function loadCommunities(){
     const host = $('engCommunities'), status = $('engCommStatus');
     host.innerHTML = '<p class="live-empty">Loading communities…</p>';
-    let q = sb.from('mj_communities').select('id,name,slug,description,subtopic,is_verified,is_private,approval_required,created_by').eq('topic','Engineering').order('name');
+    let q = sb.from('mj_communities').select('id,name,slug,description,subtopic,is_verified,is_private,approval_required,created_by,avatar_url,avatar_path,avatar_focal_x,avatar_focal_y').eq('topic','Engineering').order('name');
     if (subtopicFilter) q = q.eq('subtopic', subtopicFilter);
     const { data, error } = await q;
     if (error) { host.innerHTML = `<p class="live-empty">Communities unavailable: ${esc(error.message)}. Run MIGRATION_ENGINEERING_HUB.sql.</p>`; status.textContent=''; return; }
