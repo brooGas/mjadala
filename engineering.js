@@ -723,7 +723,15 @@
     try {
       if (!sb.functions) throw new Error('Payments are not set up yet.');
       const { data, error } = await sb.functions.invoke('daraja-ad-stk-push', { body: { campaign_id: campaignId, phone } });
-      if (error) throw error;
+      if (error) {
+        // supabase-js's error.message is just "Edge Function returned a non-2xx
+        // status code" — the real reason is in the function's JSON response body.
+        let detail = error.message;
+        if (error.context && typeof error.context.json === 'function') {
+          try { const body = await error.context.json(); if (body?.error) detail = body.error; } catch {}
+        }
+        throw new Error(detail);
+      }
       if (!data?.ok) throw new Error(data?.error || 'The M-Pesa prompt was not confirmed.');
       status.innerHTML = `<p class="subtle">${esc(data.customer_message || 'Check your phone for the Safaricom prompt and enter your PIN. Never share your PIN with anyone, including Mjadala.')}</p>`;
       watchAdPayment(campaignId, status);
