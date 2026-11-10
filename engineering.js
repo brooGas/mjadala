@@ -91,7 +91,8 @@
   .eng-lesson-row p{margin:2px 0 0;font-size:10px;color:var(--muted)}
   .eng-comm-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
   .eng-comm-card{border:1px solid var(--line);border-radius:14px;padding:11px;background:#fff;display:flex;flex-direction:column;gap:7px;text-align:left}
-  .eng-comm-card .eng-comm-ico{width:84px;height:84px;border-radius:16px;background:var(--soft);color:var(--green);display:grid;place-items:center}
+  .eng-comm-card .eng-comm-ico{width:100%;height:84px;border-radius:16px;background:var(--soft);color:var(--green);display:grid;place-items:center;box-sizing:border-box}
+  .eng-comm-card button.eng-btn-primary{width:100%;box-sizing:border-box}
   .eng-comm-card strong{font-size:12px;line-height:1.25;display:flex;align-items:center;gap:4px}
   .eng-comm-card .eng-verify{color:var(--green)}
   .eng-comm-card small{color:var(--muted);font-size:10px}
@@ -138,6 +139,7 @@
   hub.innerHTML = `
     <div class="eng-top"><button type="button" class="eng-back" id="engHubBack" aria-label="Back">←</button><h2>Engineering</h2></div>
     <div class="eng-body">
+      <div id="engAdPlayer" class="mj-ad-shell"></div>
       <div class="row-card" id="engAdPromoRow"><div class="thumb"><svg class="std-icon"><use href="#i-zap"/></svg></div><div class="grow"><h4>Engineering Ads Dashboard</h4><p>Promote a campaign and review submissions.</p></div><button type="button" class="mini-btn" id="engAdFormToggle">Open</button></div>
       <div class="eng-sub-grid" id="engSubGrid"></div>
       <div class="section-title">Trending in Engineering <span class="subtle" id="engTrendStatus">Loading…</span></div>
@@ -818,7 +820,7 @@
       b.disabled = true;
       const { error } = await sb.from('mj_ad_campaigns').update({ status: decision, rejection_reason: reason, approved_at: decision==='approved' ? new Date().toISOString() : null, is_active: decision==='approved' }).eq('id', id);
       if (error) alert(error.message);
-      await loadAdminAds(); await loadEngAds();
+      await loadAdminAds(); await loadEngAds(); document.dispatchEvent(new CustomEvent('mj-ads-changed'));
     });
     host.querySelectorAll('[data-ad-mark-paid]').forEach(b => b.onclick = async () => { b.disabled = true; const { error } = await sb.from('mj_ad_campaigns').update({ payment_status: 'paid' }).eq('id', b.dataset.adMarkPaid); if (error) alert(error.message); await loadAdminAds(); });
     host.querySelectorAll('[data-ad-mark-rejected]').forEach(b => b.onclick = async () => { b.disabled = true; const { error } = await sb.from('mj_ad_campaigns').update({ payment_status: 'rejected' }).eq('id', b.dataset.adMarkRejected); if (error) alert(error.message); await loadAdminAds(); });
