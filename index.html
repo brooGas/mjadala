@@ -246,6 +246,10 @@ button,input{font:inherit}button{cursor:pointer}
 .screen[data-screen="2"] .instagram-reel-stage .reel-audio-line{font-size:10px!important}
 .screen[data-screen="2"] .instagram-reel-stage .reel-actions button span{font-size:10px!important}
 </style>
+
+<style id="mjadala-watt-ai-entry-style">
+#wattAiLaunch{position:fixed;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:8500;width:54px;height:54px;border:2px solid #d9f2e6;border-radius:50%;background:linear-gradient(145deg,#082f32,#087e70);color:#d9f2e6;box-shadow:0 8px 24px #062f2b55;font-size:21px;font-weight:900;display:grid;place-items:center;cursor:pointer}#wattAiOverlay{position:fixed;inset:0;z-index:20000;background:#f3f7f5;display:none}#wattAiOverlay.open{display:block}#wattAiFrame{display:block;width:100%;height:100%;border:0;background:#f3f7f5}@media(min-width:700px){#wattAiLaunch{right:25px;bottom:25px}}
+</style>
 </head>
 <body>
 
@@ -564,7 +568,6 @@ updateHeaderActions();
 <script src="live-social.js" defer></script>
 <script src="engineering.js?v=20261110-3" defer></script>
 <script src="live-reels.js" defer></script>
-<script src="watt-ai.js" defer></script>
 
 <style id="mjadala-reel-trim-touch-fix">
 #reelComposerPanel .reel-trim-panel input[type="range"]{display:block;position:relative;z-index:3;width:100%;min-height:32px;margin:5px 0 10px;padding:0;touch-action:pan-x;pointer-events:auto;accent-color:var(--green);cursor:pointer}
@@ -609,6 +612,15 @@ updateHeaderActions();
 .live-modal{width:min(100%,560px)!important;max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;min-height:0!important;overflow-y:auto!important;overscroll-behavior:contain!important;flex:0 0 auto!important;box-sizing:border-box!important;margin:auto!important;padding-bottom:calc(16px + env(safe-area-inset-bottom))!important;}
 @media(max-width:650px){.live-modal-backdrop{align-items:flex-end!important;padding:calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom))!important}.live-modal{width:100%!important;max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;border-radius:20px 20px 14px 14px!important;}}
 </style>
+
+
+<button id="wattAiLaunch" type="button" aria-label="Open Watt AI" title="Watt AI">✦</button>
+<section id="wattAiOverlay" aria-label="Watt AI full-screen assistant" aria-hidden="true">
+ <iframe id="wattAiFrame" src="/watt-ai.html" title="Watt AI"></iframe>
+</section>
+<script id="mjadala-watt-ai-entry">
+(()=>{const launch=document.getElementById('wattAiLaunch'),overlay=document.getElementById('wattAiOverlay'),frame=document.getElementById('wattAiFrame');if(!launch||!overlay||!frame)return;let previousY=0,previousFocus=null;async function sendGreeting(){let name='';let signedIn=false;try{const client=window.mjadalaSupabaseClient;if(client?.auth?.getUser){const {data}=await client.auth.getUser();const user=data?.user;if(user){signedIn=true;name=user.user_metadata?.nickname||user.user_metadata?.display_name||user.user_metadata?.full_name||document.getElementById('liveProfileName')?.textContent?.trim()||user.email?.split('@')[0]||'';}}}catch(e){}if(!name||name==='Your profile')signedIn=false;frame.contentWindow?.postMessage({type:'MJADALA_WATT_GREETING',signedIn,name},location.origin)}function open(){previousY=window.scrollY;previousFocus=document.activeElement;overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';launch.style.visibility='hidden';if(frame.contentDocument?.readyState==='complete')sendGreeting();else frame.addEventListener('load',sendGreeting,{once:true});frame.focus()}function shut(){overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');document.body.style.overflow='';launch.style.visibility='visible';window.scrollTo(0,previousY);if(previousFocus?.focus)previousFocus.focus()}launch.addEventListener('click',open);window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data?.type==='MJADALA_WATT_CLOSE')shut()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('open'))shut()});frame.addEventListener('load',()=>{if(overlay.classList.contains('open'))sendGreeting()});})();
+</script>
 
 </body></html>
 <style>
