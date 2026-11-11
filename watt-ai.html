@@ -104,10 +104,13 @@ body[data-theme="violet"] .shield{background:#e4d6ff;color:#553b80}
 body[data-theme="violet"] .privacy b{color:#553b80}
 body[data-theme="violet"] .privacy p{color:#776493}
 body[data-theme="violet"] .privacy .privacy-note{color:#6840a6}
-/* The prompt stays visible on both the home and chat views while content scrolls. */
+/* Keep the dashboard panels in normal vertical flow; only the composer is pinned. */
 .shell{height:100svh;min-height:0;max-height:100svh}
-.home{padding-bottom:0}
-.home .content{padding-bottom:150px}
+.home{padding-bottom:0;position:relative;isolation:isolate;overflow-x:hidden;overflow-y:auto}
+.home > *{position:relative;flex:0 0 auto;min-width:0;max-width:100%}
+.home > .hero{width:100%;z-index:1}
+.home > .theme-panel{display:block;width:auto;margin:13px 15px 0;z-index:1}
+.home > .content{width:100%;padding-bottom:150px;z-index:1}
 .composer{position:absolute!important;left:0;right:0;bottom:0;z-index:40;flex:none;margin:0;padding:8px 12px calc(8px + env(safe-area-inset-bottom));border-radius:0;border-left:0;border-right:0;border-bottom:0;box-shadow:0 -5px 18px var(--shadow);background:var(--panel)}
 .disclaimer{position:absolute;left:0;right:0;bottom:58px;z-index:39;padding:5px 12px 4px;background:var(--panel)}
 .chat{padding-bottom:118px}
