@@ -59,6 +59,38 @@ body[data-theme="violet"] .hero p{color:#eee5ff}body[data-theme="violet"] .bothe
 /* Agent plans: free entry with optional specialist upgrades */
 .plan-area{margin:18px 0 4px}.plan-intro{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin:0 3px 11px}.plan-intro h2{font-size:17px;margin:0;color:var(--ink);letter-spacing:-.3px}.plan-intro p{font-size:10px;color:var(--muted);line-height:1.45;margin:4px 0 0;max-width:260px}.free-banner{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid color-mix(in srgb,var(--accent) 25%,var(--line));background:var(--soft);border-radius:15px;margin-bottom:10px}.free-symbol{width:34px;height:34px;border-radius:11px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:18px;flex:none}.free-banner b{display:block;font-size:12px;color:var(--ink)}.free-banner small{display:block;font-size:10px;color:var(--muted);margin-top:3px}.free-tag{margin-left:auto;font-size:9px;font-weight:800;color:var(--accent);background:var(--panel);padding:6px 8px;border-radius:20px;white-space:nowrap}.agent-plans{display:grid;grid-template-columns:1fr 1fr;gap:9px}.agent-plan{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:11px;min-width:0;box-shadow:0 4px 13px var(--shadow)}.agent-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}.agent-icon{width:32px;height:32px;border-radius:10px;background:var(--soft);color:var(--accent);display:grid;place-items:center;font-size:17px;flex:none}.agent-plan h3{font-size:11px;margin:0;color:var(--ink)}.agent-plan .tagline{font-size:9px;color:var(--muted);margin-top:2px}.tierline{display:flex;justify-content:space-between;gap:5px;border-top:1px solid var(--line);padding-top:7px;margin-top:7px;font-size:9px}.tierline b{color:var(--ink)}.tierline span{color:var(--muted);text-align:right}.pro-copy{font-size:9px;line-height:1.45;color:var(--muted);margin:7px 0 9px;min-height:38px}.plan-btn{width:100%;border:1px solid var(--accent);background:var(--soft);color:var(--accent);font-size:10px;font-weight:800;padding:8px 7px;border-radius:10px;cursor:pointer}.bundle{margin-top:10px;padding:13px;border-radius:16px;background:linear-gradient(125deg,var(--hero1),var(--hero2),var(--hero3));color:#fff;position:relative;overflow:hidden}.bundle:after{content:'✦';position:absolute;right:12px;top:2px;font-size:56px;color:#ffffff19}.bundle-label{font-size:9px;letter-spacing:.8px;font-weight:800;color:var(--accent2)}.bundle h3{font-size:15px;margin:5px 0}.bundle p{font-size:10px;line-height:1.45;color:#e2f2ec;margin:0 0 10px;max-width:280px}.bundle button{border:0;background:var(--accent2);color:var(--hero1);font-size:10px;font-weight:900;padding:9px 12px;border-radius:10px;cursor:pointer}.pricing-note{font-size:9px;color:var(--muted);line-height:1.45;margin:9px 3px 0}.plan-feedback{font-size:10px;color:var(--accent);font-weight:700;min-height:15px;margin:7px 3px 0}
 
+
+/* Requested Watt AI-only refinements: preserve the Mjadala app navigation. */
+html,body{height:100%;overflow:hidden}
+.shell{height:100svh;min-height:0;max-height:100svh}
+.home{display:flex;flex-direction:column;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.content{flex:none;width:100%;padding-bottom:18px}
+.chat{flex:1;min-height:0;overflow:hidden}
+.messages{min-height:0;overscroll-behavior:contain}
+.composer{position:relative;z-index:20;flex:0 0 auto;margin:0;padding:8px 12px calc(8px + env(safe-area-inset-bottom));border-radius:0;border-left:0;border-right:0;border-bottom:0;box-shadow:0 -5px 18px var(--shadow);background:var(--panel)}
+.disclaimer{flex:0 0 auto;padding:5px 12px 4px;background:var(--panel)}
+.bottom{display:none!important}
+.plan-area{margin:18px 0 4px}
+.plans-disclosure{border:1px solid var(--line);border-radius:17px;background:var(--panel);box-shadow:0 5px 17px var(--shadow);overflow:hidden}
+.plan-intro{list-style:none;cursor:pointer;align-items:center;margin:0;padding:13px 12px;min-height:66px}
+.plan-intro::-webkit-details-marker{display:none}
+.plan-intro h2{font-size:16px}
+.plan-intro p{margin-top:3px}
+.plan-summary-side{display:flex;align-items:center;gap:9px;flex:none}
+.plan-summary-side .pill{font-size:9px;padding:6px 8px}
+.plan-chevron{width:27px;height:27px;display:grid;place-items:center;border-radius:50%;background:var(--soft);color:var(--accent);font-size:19px;transition:transform .2s}
+.plans-disclosure[open] .plan-chevron{transform:rotate(180deg)}
+.plans-content{padding:0 11px 12px;border-top:1px solid var(--line)}
+.plans-content .free-banner{margin-top:11px}
+.privacy{margin:15px 0 4px;padding:14px;border-radius:17px;align-items:flex-start;gap:12px;background:linear-gradient(135deg,var(--soft),var(--panel));border:1px solid color-mix(in srgb,var(--accent) 24%,var(--line));box-shadow:0 5px 16px var(--shadow);color:var(--ink)}
+.shield{width:38px;height:38px;border-radius:13px;background:var(--accent);color:#fff;font-size:22px;box-shadow:0 4px 10px var(--shadow)}
+.privacy-copy{min-width:0}
+.privacy b{font-size:13px;color:var(--ink)}
+.privacy p{font-size:11px;line-height:1.5;color:var(--muted);margin:4px 0 5px}
+.privacy .privacy-note{font-size:10px;font-weight:750;color:var(--accent)}
+body[data-theme="violet"] .privacy{background:linear-gradient(135deg,#f0eafa,#fff);border-color:#dfd0f4}
+body[data-theme="violet"] .shield{background:#6840a6;color:#fff}
+@media(min-width:600px){.shell{height:calc(100svh - 44px);min-height:0}}
 </style>
 </head>
 <body>
@@ -84,7 +116,9 @@ body[data-theme="violet"] .hero p{color:#eee5ff}body[data-theme="violet"] .bothe
     <button class="suggestion" data-prompt="How can I grow my small business online?"><strong>↗</strong>How can I grow my business online?</button>
    </section>
    <section class="plan-area" id="agentPlans">
-    <div class="plan-intro"><div><h2>Meet your AI agents</h2><p>Start free. Upgrade only the specialist tools you need.</p></div><span class="pill" style="color:var(--accent);border-color:var(--line);background:var(--soft)">AGENT PLANS</span></div>
+    <details class="plans-disclosure">
+     <summary class="plan-intro"><div><h2>Meet your AI agents</h2><p>Start free. Upgrade only the specialist tools you need.</p></div><span class="plan-summary-side"><span class="pill" style="color:var(--accent);border-color:var(--line);background:var(--soft)">AGENT PLANS</span><span class="plan-chevron" aria-hidden="true">⌄</span></span></summary>
+     <div class="plans-content">
     <div class="free-banner"><div class="free-symbol">✦</div><div><b>Watt AI Starter</b><small>Chat, everyday help and essential Mjadala discovery.</small></div><span class="free-tag">FREE</span></div>
     <div class="agent-plans">
      <article class="agent-plan"><div class="agent-top"><span class="agent-icon">▣</span><div><h3>Shopping Agent</h3><div class="tagline">Find the right products</div></div></div><div class="tierline"><b>Free</b><span>Product discovery</span></div><div class="tierline"><b>Pro</b><span>Deeper comparisons & buying guides</span></div><p class="pro-copy">Compare options, understand trade-offs and get tailored buying advice.</p><button class="plan-btn" data-plan="Shopping Pro">Explore Shopping Pro</button></article>
@@ -97,17 +131,18 @@ body[data-theme="violet"] .hero p{color:#eee5ff}body[data-theme="violet"] .bothe
     <div class="bundle"><div class="bundle-label">ONE PLAN · EVERY SPECIALIST</div><h3>Watt AI All-Access</h3><p>Unlock all Pro agents under one subscription. Ideal for users who want the full Watt AI experience.</p><button data-plan="Watt AI All-Access">Explore All-Access</button></div>
     <div class="pricing-note">Plan prices are not set yet. Free features remain useful; paid upgrades add advanced capabilities. No payment is taken in this preview.</div>
     <div class="plan-feedback" id="planFeedback" aria-live="polite"></div>
+     </div>
+    </details>
    </section>
-   <section class="privacy"><div class="shield">✓</div><div><b>Your privacy matters</b><small>You control what you share with Watt AI.</small></div></section>
+   <section class="privacy"><div class="shield" aria-hidden="true">⌑</div><div class="privacy-copy"><b>Your privacy matters</b><p>You’re in control of what you share with Watt AI. Keep passwords, payment details and other sensitive information to yourself.</p><span class="privacy-note">Share only what’s needed for the help you want.</span></div></section>
   </div>
  </main>
  <section class="chat" id="chat">
   <div class="chathead"><span>✦ &nbsp; Watt AI</span><div class="theme-switch"><span id="activeThemeName">Midnight Jade</span><button class="newchat" id="newchat">＋ New chat</button></div></div>
   <div class="messages" id="messages"><div class="msg ai" id="chatWelcome">Hello! I’m Watt AI. How can I help you today?</div></div>
  </section>
- <div class="composer"><button class="round" title="Voice input (preview only)">🎙</button><input id="prompt" placeholder="Ask Watt AI anything..." autocomplete="off"><button class="round send" id="send" title="Send">➤</button></div>
  <div class="disclaimer">Preview only · Responses are simulated; no AI service is connected yet.</div>
- <nav class="bottom"><div class="tab"><i>⌂</i>Home</div><div class="tab"><i>⌕</i>Explore</div><div class="tab ai-tab active"><i>✦</i><span>AI</span></div><div class="tab"><i>♧</i>Communities</div><div class="tab"><i>♙</i>Profile</div></nav>
+ <div class="composer"><button class="round" title="Voice input (preview only)">🎙</button><input id="prompt" placeholder="Ask Watt AI anything..." autocomplete="off"><button class="round send" id="send" title="Send">➤</button></div>
 </div>
 <script>
 const home=document.getElementById('home'),chat=document.getElementById('chat'),messages=document.getElementById('messages'),input=document.getElementById('prompt');
