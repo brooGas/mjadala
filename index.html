@@ -248,7 +248,7 @@ button,input{font:inherit}button{cursor:pointer}
 </style>
 
 <style id="mjadala-watt-ai-entry-style">
-#wattAiLaunch{position:fixed;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:8500;width:54px;height:54px;border:2px solid #d9f2e6;border-radius:50%;background:linear-gradient(145deg,#082f32,#087e70);color:#d9f2e6;box-shadow:0 8px 24px #062f2b55;font-size:21px;font-weight:900;display:grid;place-items:center;cursor:pointer}#wattAiOverlay{position:fixed;inset:0;z-index:20000;background:#f3f7f5;display:none}#wattAiOverlay.open{display:block}#wattAiFrame{display:block;width:100%;height:100%;border:0;background:#f3f7f5}@media(min-width:700px){#wattAiLaunch{right:25px;bottom:25px}}
+#wattAiLaunch{position:fixed;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:8500;width:58px;height:58px;border:2px solid #8ce9d1;border-radius:50%;background:radial-gradient(circle at 32% 25%,#35d9c0 0,#087e70 48%,#082f32 100%);color:#eafffb;box-shadow:0 0 0 4px #35d9c022,0 8px 24px #062f2b66;display:grid;place-items:center;cursor:pointer}#wattAiLaunch .watt-ai-face{position:relative;width:31px;height:25px;border:2px solid #d9fff4;border-radius:11px 11px 9px 9px;background:linear-gradient(145deg,#eafffb,#a8f5e2);box-shadow:inset 0 -3px 5px #2b9d88}#wattAiLaunch .watt-ai-face:before{content:"";position:absolute;left:6px;top:7px;width:4px;height:5px;border-radius:50%;background:#07534d;box-shadow:12px 0 #07534d}#wattAiLaunch .watt-ai-face:after{content:"";position:absolute;left:11px;bottom:4px;width:6px;height:2px;border-radius:2px;background:#168879}#wattAiLaunch .watt-ai-face i{position:absolute;width:5px;height:7px;left:-6px;top:8px;border-radius:4px 0 0 4px;background:#9cf0dd;box-shadow:33px 0 #9cf0dd}#wattAiLaunch .watt-ai-face b{position:absolute;width:2px;height:6px;left:13px;top:-8px;background:#baffed;border-radius:2px}#wattAiLaunch .watt-ai-face b:after{content:"";position:absolute;width:6px;height:6px;left:-2px;top:-4px;border-radius:50%;background:#c8fff1;box-shadow:0 0 7px #8ffff0}#wattAiOverlay{position:fixed;inset:0;z-index:20000;background:#f3f7f5;display:none}#wattAiOverlay.open{display:block}#wattAiFrame{display:block;width:100%;height:100%;border:0;background:#f3f7f5}@media(min-width:700px){#wattAiLaunch{right:25px;bottom:25px}}
 </style>
 </head>
 <body>
@@ -614,7 +614,7 @@ updateHeaderActions();
 </style>
 
 
-<button id="wattAiLaunch" type="button" aria-label="Open Watt AI" title="Watt AI">✦</button>
+<button id="wattAiLaunch" type="button" aria-label="Open Watt AI" title="Watt AI"><span class="watt-ai-face" aria-hidden="true"><i></i><b></b></span></button>
 <section id="wattAiOverlay" aria-label="Watt AI full-screen assistant" aria-hidden="true">
  <iframe id="wattAiFrame" src="/watt-ai.html" title="Watt AI"></iframe>
 </section>
