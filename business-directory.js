@@ -1,287 +1,534 @@
-/* Mjadala Business Directory + creator administration. Requires the shared Supabase client. */
+/* Mjadala Business + Shop integration. Uses the existing public Supabase project key.
+   Never place a service_role key in browser code. */
 (() => {
   'use strict';
-  const sb = window.mjadalaSupabaseClient;
-  if (!sb) return;
+  const SUPABASE_URL = 'https://olqwfscmhtdseljvfqvm.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_Ay8LXBjvNhXQJDKQMF_Etw_SMb6_z4M';
+  const AUTH_DOMAIN = 'mjadala.app';
+  if (!window.supabase?.createClient) { console.error('Supabase SDK failed to load'); return; }
+  const sb = window.mjadalaSupabaseClient || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  window.mjadalaSupabaseClient = sb;
+  window.mjadalaAuth = { getSession: () => sb.auth.getSession(), signOut: () => sb.auth.signOut(), getUser: () => sb.auth.getUser() };
   const $ = id => document.getElementById(id);
-  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let user = null, isCreator = false, plans = [], editingPlanId = null;
-  const screen = document.querySelector('[data-screen="1"]');
-  const catalog = $('businessProductCatalog');
-  if (!screen || !catalog || $('mjadalaBusinessDirectory')) return;
+  let session = null, activeProduct = null, selectedImages = [], poolId = null, catalogProducts = [], productDetailOpen = false, poolOfferOpen = false;
+  const money = n => 'KSh ' + Number(n || 0).toLocaleString('en-KE');
+  const toast = msg => { if (typeof window.showToast === 'function') window.showToast(msg); else alert(msg); };
+  const errorText = e => e?.message || String(e || 'Unknown error');
+  const emailFor = nick => nick.trim().toLowerCase().replace(/^@/, '') + '@' + AUTH_DOMAIN;
 
-  const style = document.createElement('style');
-  style.textContent = `
-    .biz-directory{border-radius:16px;margin:12px 0;color:var(--ink)}
-    .biz-note{font-size:11px;color:var(--muted);margin:5px 0;line-height:1.45}
-    .biz-directory button{border:1px solid var(--line);border-radius:10px;padding:8px 11px;background:var(--soft);color:var(--ink);font-weight:750;font-size:11px;white-space:nowrap}
-    .biz-directory button.biz-primary{background:var(--green);border-color:var(--green);color:#fff}
-    .biz-finder{border:1px solid #d8dfd1;border-radius:18px;padding:14px;background:#f6f4e9;color:#203b2b}
-    .biz-finder .biz-note{color:#5c6b5e}
-    .biz-finder-head{display:flex;align-items:center;gap:10px}.biz-finder-head .grow{flex:1;min-width:0}
-    .biz-finder-icon{width:42px;height:42px;flex:0 0 42px;border-radius:12px;display:grid;place-items:center;background:#e9eee3;color:#244b35}
-    .biz-finder-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-    .biz-finder-head strong{font-size:15px;color:#203b2b}
-    .biz-finder-stats{display:flex;align-items:center;gap:12px;background:#fffdf5;border:1px solid #d5ddcf;border-radius:12px;padding:10px 14px;margin:12px 0 0}
-    .biz-finder-stat{flex:1;text-align:center}.biz-finder-stat strong{display:block;font-size:17px;color:#203b2b}.biz-finder-stat span{font-size:10px;color:#5c6b5e;text-transform:uppercase;letter-spacing:.03em}
-    .biz-finder-stat-divider{width:1px;align-self:stretch;background:#d5ddcf}
-    .biz-finder-search{margin:12px 0 2px}
-    .biz-finder-search input{width:100%;min-width:0;border:1px solid #d5ddcf;background:#fffdf5;color:#203b2b;border-radius:12px;padding:10px 12px;font:inherit;font-size:12px;box-sizing:border-box}
-    .biz-dir-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin-top:11px}
-    .biz-dir-card{border:1px solid #d5ddcf;border-radius:12px;padding:11px;background:#fffdf5}.biz-dir-card strong{font-size:13px;color:#203b2b}.biz-dir-card p{font-size:11px;color:#5c6b5e;margin:5px 0}
-    .biz-dir-card button{background:#fff;border-color:#d5ddcf}
-    .biz-card-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;border:0;background:none;padding:0;margin:0;font:inherit;font-size:13px;font-weight:800;color:#203b2b}.biz-card-toggle .accordion-chevron{font-size:16px;color:#244b35;transition:transform .18s ease;flex-shrink:0}.biz-card-toggle[aria-expanded="true"] .accordion-chevron{transform:rotate(180deg)}.biz-card-body{margin-top:6px}
-    .biz-directory input,.biz-directory textarea,.biz-directory select{width:100%;min-width:0;border:1px solid var(--line);border-radius:9px;padding:9px;background:var(--paper);color:var(--ink);font:inherit;font-size:12px;margin:4px 0 8px}
-    .biz-directory label{display:block;font-size:11px;font-weight:750;margin-top:6px}
-    .biz-admin{border-top:1px solid var(--line);margin-top:15px;padding-top:13px}.biz-admin-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap}.biz-admin h3{font-size:15px;margin:0}.biz-admin h4{font-size:12px;margin:15px 0 7px}
-    .biz-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:11px 0}.biz-metric{border:1px solid var(--line);border-radius:11px;padding:9px;background:var(--soft)}.biz-metric small{display:block;color:var(--muted);font-size:10px}.biz-metric strong{display:block;font-size:18px;margin-top:3px}
-    .biz-table-wrap{width:100%;overflow-x:auto;border:1px solid var(--line);border-radius:11px;margin:7px 0 12px}.biz-table{width:100%;border-collapse:collapse;min-width:570px;font-size:11px}.biz-table th,.biz-table td{padding:9px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}.biz-table th{background:var(--soft);font-size:10px;color:var(--muted);font-weight:800}.biz-table tr:last-child td{border-bottom:0}.biz-table td button{padding:7px 9px}.biz-table input,.biz-table select{margin:0;min-width:90px;padding:7px;font-size:11px}.biz-status{display:inline-block;border-radius:99px;padding:4px 7px;background:var(--soft);font-size:10px;font-weight:800}.biz-status.approved{color:#187647;background:#e8f6ee}.biz-status.pending{color:#956300;background:#fff5d9}.biz-status.rejected,.biz-status.suspended{color:#a33;background:#fcebea}
-    .biz-admin-form{border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0;background:var(--soft)}.biz-admin-form .biz-inline{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.biz-inline{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.biz-inline>*{flex:1;min-width:85px}.biz-admin-actions{display:flex;gap:7px;flex-wrap:wrap}.biz-directory button:disabled{opacity:.55}
-    .biz-public-plans{margin:10px 0 16px;border:1px solid #d8dfd1;border-radius:16px;padding:13px;background:#f6f4e9;color:#203b2b}.biz-public-plans-head strong{font-size:15px;color:#203b2b}.biz-plan-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:11px}.biz-plan-card{position:relative;display:block;border:1px solid #d5ddcf;border-radius:14px;padding:12px;background:#fffdf5;color:#203b2b;cursor:pointer;min-width:0}.biz-plan-card:has(input:checked){border:2px solid #b38a35;background:#fff9e7;box-shadow:0 5px 16px #263b2a16;padding:11px}.biz-plan-card input{position:absolute;right:10px;top:10px;width:17px;height:17px;accent-color:#244b35}.biz-plan-card b{display:block;font-size:13px;padding-right:20px}.biz-plan-card .biz-plan-price{display:block;font-size:20px;font-weight:900;color:#244b35;margin:8px 0 2px}.biz-plan-card small{display:block;font-size:10px;color:#647267;line-height:1.4}.biz-plan-popular{position:absolute;left:9px;top:-8px;background:#b38a35;color:#fff;padding:3px 7px;border-radius:20px;font-size:9px;font-weight:850}.biz-plan-trial{display:inline-block;margin-top:8px;padding:4px 7px;border-radius:20px;background:#e9eee3;color:#31553b;font-size:9px;font-weight:850}.biz-plan-state{display:inline-block;border-radius:20px;padding:4px 8px;font-size:10px;font-weight:800;background:#e8f6ee;color:#187647}.biz-admin details{border:1px solid var(--line);border-radius:12px;margin:9px 0;background:var(--paper);overflow:hidden}.biz-admin details>summary{list-style:none;cursor:pointer;padding:12px 13px;font-size:12px;font-weight:850;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--soft)}.biz-admin details>summary::-webkit-details-marker{display:none}.biz-admin details>summary:after{content:'＋';font-size:16px;color:var(--green)}.biz-admin details[open]>summary:after{content:'−'}.biz-admin details>.biz-admin-section{padding:0 10px 10px}.biz-admin .biz-table-wrap{overscroll-behavior-x:contain;touch-action:pan-x pan-y}
-    @media(max-width:520px){.biz-plan-grid{grid-template-columns:1fr 1fr;gap:7px}.biz-plan-card{padding:10px}.biz-plan-card .biz-plan-price{font-size:18px}.biz-admin details>summary{padding:11px}}
-    @media(max-width:420px){.biz-metrics{gap:5px}.biz-metric{padding:7px}.biz-metric strong{font-size:16px}}
-  `;
-  document.head.append(style);
-
-  const root = document.createElement('section');
-  root.className = 'biz-directory';
-  root.id = 'mjadalaBusinessDirectory';
-  root.innerHTML = `
-    <div class="biz-finder">
-      <div class="biz-finder-head"><div class="biz-finder-icon"><svg viewBox="0 0 24 24"><path d="M3 10h18M5 10V6l2-3h10l2 3v4M5 10v11h14V10M9 21v-7h6v7"/></svg></div><div class="grow"><strong>Find a local business</strong><p class="biz-note">Discover approved traders and open their storefronts.</p></div></div>
-      <div class="biz-finder-stats"><div class="biz-finder-stat"><strong id="bizFinderCount">0</strong><span>Businesses</span></div><div class="biz-finder-stat-divider"></div><div class="biz-finder-stat"><strong id="bizFinderLocations">0</strong><span>Locations</span></div></div>
-      <div class="biz-finder-search"><input id="bizDirectorySearch" placeholder="Search business name…" aria-label="Search business name"></div>
-      <div id="bizDirectoryResults" class="biz-dir-grid"><p class="biz-note">Loading businesses…</p></div>
-    </div>
-    <div id="bizAdminAccessStatus" class="biz-note" role="status" aria-live="polite" hidden></div>
-    <section class="biz-admin" id="bizCreatorAdmin" hidden>
-      <div class="biz-admin-head"><div><h3>Creator business dashboard</h3><p class="biz-note">Review applications, manage approved sellers and control plans.</p></div><label style="display:flex;align-items:center;gap:7px;margin:0"><input type="checkbox" id="bizRegistrationSwitch" style="width:auto;margin:0"> Applications open</label></div>
-      <div class="biz-metrics"><div class="biz-metric"><small>Pending applications</small><strong id="bizMetricPending">—</strong></div><div class="biz-metric"><small>Approved businesses</small><strong id="bizMetricApproved">—</strong></div><div class="biz-metric"><small>Available plans</small><strong id="bizMetricPlans">—</strong></div></div>
-      <details open><summary>Business applications</summary><div class="biz-admin-section"><div id="bizPendingApplications"><p class="biz-note">Loading…</p></div></div></details>
-      <details><summary>Approved and existing businesses</summary><div class="biz-admin-section"><input id="bizExistingSearch" placeholder="Search business name…"><div id="bizExistingBusinesses"><p class="biz-note">Loading businesses…</p></div></div></details>
-      <details><summary>Plans and pricing</summary><div class="biz-admin-section"><div id="bizPlanEditor"></div>
-      <div class="biz-admin-form"><strong id="bizPlanFormTitle" style="font-size:12px">Add a business plan</strong><div class="biz-inline biz-admin-form-grid"><input id="bizPlanName" placeholder="Plan name"><input id="bizPlanPrice" type="number" min="0" step="1" placeholder="Price KSh"><input id="bizPlanDays" type="number" min="1" value="30" placeholder="Access days"><input id="bizPlanTrial" type="number" min="0" value="0" placeholder="Trial days"></div><input id="bizPlanDescription" placeholder="Plan benefits / description"><div class="biz-admin-actions"><button type="button" class="biz-primary" id="bizSavePlan">Add plan</button><button type="button" id="bizCancelPlanEdit" hidden>Cancel edit</button></div></div></div></details>
-    </section>`;
-  catalog.parentElement.insertBefore(root, catalog);
-
-  const status = message => { const el = $('bizApplicationStatus'); if (el) el.textContent = message; };
-  const applyHost = $('bizApplyHost');
-  const applyToggle = $('bizRegisterToggle');
-  if (applyHost && !applyHost.dataset.filled) {
-    applyHost.dataset.filled = '1';
-    applyHost.innerHTML = `<p class="biz-note" id="bizRegistrationNotice"></p><section class="biz-public-plans"><div class="biz-public-plans-head"><div><strong>Business plans</strong><p class="biz-note">Choose the level of support that fits your business. Your plan is confirmed by the Mjadala team after review.</p></div></div><div id="bizPublicPlans"><p class="biz-note">Loading available plans…</p></div></section><div class="field"><label for="bizApplyName">Business or trading name</label><input id="bizApplyName" maxlength="100" placeholder="e.g. Mama Amina Vegetables"></div><div class="field"><label for="bizApplyDescription">What do you sell or offer?</label><textarea id="bizApplyDescription" rows="2" maxlength="500" placeholder="Brief description"></textarea></div><div class="field"><label for="bizApplyLocation">Location (area / estate / market)</label><input id="bizApplyLocation" maxlength="140" placeholder="e.g. Gikomba, Nairobi"></div><div class="field"><label for="bizApplyPhone">Contact phone (optional)</label><input id="bizApplyPhone" maxlength="30" placeholder="Phone number"></div><div class="owner-actions"><button type="button" id="bizSubmitApplication">Submit application</button></div><p class="biz-note" id="bizApplicationStatus" aria-live="polite"></p>`;
+  function addAuthUI() {
+    if ($('businessAuthPanel')) return;
+    const section = document.querySelector('[data-screen="1"]');
+    const panel = document.createElement('div'); panel.className = 'owner-panel'; panel.id = 'businessAuthPanel';
+    panel.innerHTML = `<h4>Connect your Mjadala account</h4><p>Sign in with the nickname and password you already use on Mjadala to publish products and place orders.</p>
+      <div class="field"><label for="bizNick">Mjadala nickname</label><input id="bizNick" autocomplete="username" placeholder="Your nickname"></div>
+      <div class="field"><label for="bizPassword">Password</label><input id="bizPassword" type="password" autocomplete="current-password" placeholder="Your password"></div>
+      <button type="button" id="bizSignIn">Sign in</button><p id="bizAuthStatus" class="cart-note" aria-live="polite"></p>`;
+    section.insertBefore(panel, section.firstChild);
+    $('bizSignIn').addEventListener('click', async () => {
+      const nick = $('bizNick').value.trim(), pw = $('bizPassword').value;
+      if (!nick || !pw) { $('bizAuthStatus').textContent = 'Enter your nickname and password.'; return; }
+      $('bizSignIn').disabled = true; $('bizAuthStatus').textContent = 'Signing in…';
+      try {
+        const { data, error } = await sb.auth.signInWithPassword({ email: emailFor(nick), password: pw });
+        if (error) throw error;
+        session = data.session; $('bizAuthStatus').textContent = 'Signed in. Business tools are ready.';
+        $('businessAuthPanel').style.display = 'none'; await loadProduct(); toast('Signed in to Mjadala');
+      } catch (e) { $('bizAuthStatus').textContent = errorText(e); }
+      finally { $('bizSignIn').disabled = false; }
+    });
   }
-  if (applyToggle && applyHost) {
-    applyToggle.onclick = () => {
-      const open = applyHost.hidden;
-      applyHost.hidden = !open;
-      applyToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-      applyToggle.textContent = open ? 'Hide' : 'Register';
-      if (open) applyHost.scrollIntoView({behavior:'smooth', block:'start'});
+  async function loadBusinessProfile() {
+    if (!session?.user) return;
+    try {
+      const { data, error } = await sb.from('business_profiles').select('business_name,user_id').eq('user_id', session.user.id).maybeSingle();
+      if (error) throw error;
+      if (data?.business_name) { $('sellerBusinessName').value = data.business_name; $('myBusinessTitle').textContent = 'My Business · ' + data.business_name; $('businessProfileStatus').textContent = 'Your business profile is saved. Published products appear in the live marketplace.'; }
+      const { data: profile } = await sb.from('profiles').select('nickname').eq('id', session.user.id).maybeSingle();
+      const owner = profile?.nickname || session.user.email?.split('@')[0] || 'Account owner';
+      $('myBusinessOwner').textContent = data?.business_name ? 'Owner: ' + owner : 'Create your business profile and manage your products.';
+      $('businessOwnerLabel').textContent = 'Owner: ' + owner;
+    } catch (e) { console.warn('Could not load business profile:', errorText(e)); }
+  }
+  $('openMyBusiness')?.addEventListener('click',()=>{
+    if (!requireSession()) return;
+    const panel = $('ownerPanel');
+    if (panel) {
+      const opening = getComputedStyle(panel).display === 'none';
+      panel.style.display = opening ? 'block' : 'none';
+      $('openMyBusiness').textContent = opening ? 'Close' : 'Open';
+      const poolToggle = $('sellerPoolEnabled'); if (poolToggle) poolToggle.closest('.field').style.display = opening ? '' : 'none';
+      if (!opening) { $('sellerPoolSettings').style.display = 'none'; }
+      if (opening) { const poolToggle = $('sellerPoolEnabled'); if (poolToggle) poolToggle.closest('.field').style.display = ''; }
+      if (opening) { loadOwnerInventory(); panel.scrollIntoView({behavior:'smooth',block:'start'}); $('sellerBusinessName')?.focus({preventScroll:true}); }
+    }
+  });
+
+  function requireSession() {
+    if (session?.user) return true;
+    addAuthUI(); $('businessAuthPanel').style.display = 'block'; $('bizAuthStatus').textContent = 'Sign in first to save products or place orders.';
+    $('businessAuthPanel').scrollIntoView({behavior:'smooth',block:'center'}); return false;
+  }
+  function readProductForm() {
+    const name = $('sellerProductName').value.trim();
+    const description = $('sellerProductDescription').value.trim();
+    const price = Number($('sellerProductPrice').value);
+    const stockQuantity = Number($('sellerProductQty')?.value);
+    if (!Number.isInteger(stockQuantity) || stockQuantity < 0) throw new Error('Enter a whole-number available quantity (0 or more).');
+    if (!name) throw new Error('Enter a product name.');
+    if (!Number.isFinite(price) || price <= 0) throw new Error('Enter a price greater than zero.');
+    const min = Math.max(2, Number($('poolMinimum').value) || 2);
+    const max = Math.max(min, Number($('poolCapacity').value) || min);
+    const discount = Math.min(90, Math.max(0, Number($('poolDiscount').value) || 0));
+    return {
+      seller_id: session.user.id, product_name:name, description, price, currency:'KES', image_urls:[], stock_quantity:stockQuantity,
+      standard_delivery_fee: Math.max(0, Number($('sellerDeliveryFee').value) || 0),
+      express_delivery_fee: Math.max(0, Number($('sellerExpressFee').value) || 0),
+      pickup_available: $('sellerPickup').value !== 'delivery',
+      warranty_available: $('sellerWarranty').value !== 'No warranty offered',
+      warranty_period: $('sellerWarranty').value, warranty_terms: $('sellerWarranty').value,
+      returns_allowed: !!$('sellerReturns').value.trim(), return_window_days:7, return_terms:$('sellerReturns').value.trim(),
+      additional_terms:$('sellerTerms').value.trim(), pooling_enabled:$('sellerPoolEnabled').checked,
+      pool_min_members:min, pool_max_members:max, pool_discount_percent:discount,
+      pool_delivery_fee: Math.max(0, Number($('sellerPoolDeliveryFee').value) || 0), published:true
     };
   }
-  function allProducts() {
-    window.mjadalaBusinessSellerFilter = null;
-    if (typeof window.mjadalaBusinessShowAllProducts === 'function') window.mjadalaBusinessShowAllProducts();
-    else if (typeof window.mjadalaBusinessReloadProducts === 'function') window.mjadalaBusinessReloadProducts();
-    catalog.scrollIntoView({behavior:'smooth', block:'start'});
-  }
-  function storefront(userId, name) {
-    window.mjadalaBusinessSellerFilter = userId;
-    if (typeof window.mjadalaBusinessOpenStorefront === 'function') window.mjadalaBusinessOpenStorefront();
-    if (typeof window.mjadalaBusinessReloadProducts === 'function') window.mjadalaBusinessReloadProducts();
-    const title = catalog.parentElement.querySelector('.section-title');
-    if (title) title.innerHTML = `Products · ${esc(name)} <button type="button" id="bizBackToAll" class="mini-btn">All products</button>`;
-    catalog.scrollIntoView({behavior:'smooth', block:'start'});
-  }
-  async function loadDirectory(query = '') {
-    const host = $('bizDirectoryResults'); host.innerHTML = '<p class="biz-note">Searching…</p>';
-    const {data,error} = await sb.rpc('mj_search_business_directory', {p_search:query});
-    if (error) { host.innerHTML = `<p class="biz-note">Directory unavailable: ${esc(error.message)}</p>`; return; }
-    host.innerHTML = data?.length ? data.map(b => `<article class="biz-dir-card"><button type="button" class="biz-card-toggle" data-expand-card aria-expanded="false"><span>${esc(b.business_name)}</span><span class="accordion-chevron">⌄</span></button><div class="biz-card-body" hidden><p>${esc(b.business_description || 'Local business')}</p><p>${esc(b.business_location || 'Location not provided')}${b.business_phone ? ' · ' + esc(b.business_phone) : ''}</p><button type="button" data-storefront="${esc(b.user_id)}" data-business-name="${esc(b.business_name)}">View business</button></div></article>`).join('') : '<p class="biz-note">No approved businesses found yet.</p>';
-    const countEl = $('bizFinderCount'); const localesEl = $('bizFinderLocations');
-    if (countEl) countEl.textContent = data?.length || 0;
-    if (localesEl) localesEl.textContent = new Set((data||[]).map(b=>b.business_location).filter(Boolean)).size;
-  }
-  function table(headers, rows) {
-    return `<div class="biz-table-wrap"><table class="biz-table"><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows || `<tr><td colspan="${headers.length}" class="biz-note">No records to show.</td></tr>`}</tbody></table></div>`;
-  }
-  async function loadAdmin() {
-    const sw = await sb.rpc('mj_get_business_registration_open');
-    $('bizRegistrationSwitch').checked = !!sw.data;
-    const p = await sb.from('mj_business_plans').select('*').order('sort_order');
-    if (p.error) { $('bizPlanEditor').innerHTML = `<p class="biz-note">Could not load plans: ${esc(p.error.message)}</p>`; return; }
-    plans = p.data || [];
-    $('bizMetricPlans').textContent = plans.filter(x=>x.is_active).length;
-    $('bizPlanEditor').innerHTML = plans.length ? table(['Plan','Price','Duration','Trial','Status','Actions'], plans.map(x=>`<tr><td><strong>${esc(x.plan_name)}</strong><br><span class="biz-note">${esc(x.description)}</span></td><td>KSh ${Number(x.price_kes).toLocaleString('en-KE')}</td><td>${x.billing_days} days</td><td>${x.trial_days} days</td><td><span class="biz-status ${x.is_active?'approved':'suspended'}">${x.is_active?'Active':'Suspended'}</span></td><td><div class="biz-admin-actions"><button type="button" data-edit-plan="${x.id}">Edit</button><button type="button" data-toggle-plan="${x.id}" data-next-active="${!x.is_active}">${x.is_active?'Suspend':'Reactivate'}</button><button type="button" data-delete-plan="${x.id}" style="color:#a33">Delete</button></div></td></tr>`).join('')) : '<p class="biz-note">No plans created yet.</p>';
-    const a = await sb.from('mj_business_applications').select('id,user_id,business_name,description,location_text,contact_phone,status,created_at').eq('status','pending').order('created_at',{ascending:true});
-    if (a.error) $('bizPendingApplications').innerHTML = `<p class="biz-note">Could not load applications: ${esc(a.error.message)}</p>`;
-    else {
-      const rows = (a.data || []).map(x=>`<tr><td><strong>${esc(x.business_name)}</strong><br><span class="biz-note">${esc(x.description)}</span></td><td>${esc(x.location_text)}</td><td>${esc(x.contact_phone || '—')}</td><td><select data-plan-for="${x.id}">${plans.filter(z=>z.is_active).map(z=>`<option value="${z.id}">${esc(z.plan_name)} · KSh ${Number(z.price_kes).toLocaleString('en-KE')}</option>`).join('')}</select></td><td><input data-trial-for="${x.id}" type="number" min="0" value="0" aria-label="Trial days"></td><td><div class="biz-admin-actions"><button type="button" class="biz-primary" data-review="${x.id}" data-approve="true">Approve</button><button type="button" data-review="${x.id}" data-approve="false">Reject</button></div></td></tr>`).join('');
-      $('bizPendingApplications').innerHTML = table(['Business / offer','Location','Contact','Plan','Trial','Decision'], rows);
-      $('bizMetricPending').textContent = (a.data || []).length;
+  async function uploadPhotos(files) {
+    const urls = [];
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) continue;
+      if (file.size > 8 * 1024 * 1024) throw new Error(file.name + ' is over the 8 MB image limit.');
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+      const path = `${session.user.id}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await sb.storage.from('product-images').upload(path, file, {upsert:false, contentType:file.type});
+      if (error) throw error;
+      const { data } = sb.storage.from('product-images').getPublicUrl(path);
+      urls.push(data.publicUrl);
     }
-    await searchExistingBusinesses($('bizExistingSearch').value.trim());
-    renderPublicPlans();
+    return urls;
   }
-  function renderPublicPlans() {
-    const host = $('bizPublicPlans');
-    if (!host) return;
-    const available = plans.filter(p => p.is_active);
-    if (!available.length) { host.innerHTML = '<p class="biz-note">Business plans are being updated. Please check again soon.</p>'; return; }
-    const chosen = $('bizSelectedPlan')?.value || (available.find(p=>p.plan_key==='growth')?.id || ''); host.innerHTML = `<div class="biz-plan-grid">${available.map(p=>`<label class="biz-plan-card">${p.plan_key==='growth'?'<span class="biz-plan-popular">MOST POPULAR</span>':''}<input type="radio" name="bizSelectedPlan" id="bizSelectedPlan" value="${p.id}" ${chosen===p.id?'checked':''}><b>${esc(p.plan_name)}</b><span class="biz-plan-price">${Number(p.price_kes)===0?'Free':'KSh '+Number(p.price_kes).toLocaleString('en-KE')}</span><small>Per ${Number(p.billing_days)} days · ${esc(p.description || 'Business listing and product tools')}</small><span class="biz-plan-trial">${Number(p.trial_days)>0?Number(p.trial_days)+'-day trial':'No trial'}</span></label>`).join('')}</div><p class="biz-note">Selecting a plan records your preference only. Paid checkout and verified activation will be completed separately.</p>`;
+  function renderProduct(p, announceOwn = false) {
+    if (activeProduct?.id && String(activeProduct.id) !== String(p.id)) poolId = null;
+    activeProduct = p; productDetailOpen = true; poolOfferOpen = false;
+    const productCard = document.querySelector('.product-card'); if (productCard) productCard.style.display = '';
+    if ($('customerTermsPanel')) $('customerTermsPanel').style.display = '';
+    if ($('customerTermsContent')) $('customerTermsContent').style.display = 'none';
+    if ($('toggleWarrantyDetails')) $('toggleWarrantyDetails').setAttribute('aria-expanded','false');
+    if ($('toggleCheckoutPanel')) { $('toggleCheckoutPanel').setAttribute('aria-expanded','false'); $('toggleCheckoutPanel').style.display = 'flex'; }
+    if ($('businessCartPanel')) $('businessCartPanel').style.display = 'none';
+    if ($('poolPanel')) $('poolPanel').style.display = 'none';
+    if ($('viewPoolOfferButton')) { $('viewPoolOfferButton').style.display = p.pooling_enabled ? 'inline-flex' : 'none'; $('viewPoolOfferButton').innerHTML = 'Pool Offer <span aria-hidden="true">⌄</span>'; $('viewPoolOfferButton').setAttribute('aria-expanded','false'); }
+    const isOwnProduct = !!session?.user?.id && String(p.seller_id) === String(session.user.id);
+    if ($('businessCartPanel')) $('businessCartPanel').style.display = 'none';
+    if ($('toggleCheckoutPanel')) $('toggleCheckoutPanel').style.display = isOwnProduct ? 'none' : 'flex';
+    const qtyControls = document.querySelector('.product-card .qty-controls'); if (qtyControls) qtyControls.style.display = isOwnProduct ? 'none' : '';
+    if (isOwnProduct && announceOwn) toast('This is your product. You can manage it, but cannot purchase it through customer checkout.');
+    $('customerProductName').textContent = p.product_name;
+    $('customerProductDescription').textContent = p.description || '';
+    $('customerProductPrice').textContent = money(p.price);
+    $('customerWarranty').textContent = p.warranty_period || 'No warranty offered';
+    $('customerReturns').textContent = p.return_terms || 'No additional return policy provided.';
+    $('customerTerms').textContent = p.additional_terms || 'No additional terms provided.';
+    const thumb = document.querySelector('.product-thumb');
+    if (thumb) {
+      const image = Array.isArray(p.image_urls) ? p.image_urls.find(url => typeof url === 'string' && url.trim()) : null;
+      thumb.innerHTML = image
+        ? `<img alt="${escapeHTML(p.product_name)}" src="${escapeHTML(image)}" style="width:100%;height:100%;object-fit:cover;border-radius:12px">`
+        : `<span class="product-image-fallback">${escapeHTML((p.product_name || 'P').trim().slice(0,2).toUpperCase())}</span>`;
+    }
+    const standard = Number(p.standard_delivery_fee || 0), express = Number(p.express_delivery_fee || 0);
+    const delivery = $('deliveryMethod');
+    delivery.innerHTML = `<option value="standard">Standard delivery · ${money(standard)}</option><option value="express">Express delivery · ${money(express)}</option>${p.pickup_available ? '<option value="pickup">Collect from seller · Free</option>' : ''}`;
+    window.businessCurrentProduct = p;
+    if (typeof window.updateCart === 'function') { /* legacy functions are scoped; event below refreshes totals */ }
+    document.dispatchEvent(new CustomEvent('mjadala:product-loaded',{detail:p}));
+    updateCartUI();
+    $('poolSectionHeading').style.display = 'none';
+    $('poolPanel').style.display = 'none';
+    if (p.pooling_enabled) {
+      $('poolMinimum').value = p.pool_min_members || 2; $('poolCapacity').value = p.pool_max_members || 5;
+      $('poolDiscount').value = p.pool_discount_percent || 0; $('sellerPoolDeliveryFee').value = p.pool_delivery_fee || 0;
+      $('poolMinimumDisplay').textContent = p.pool_min_members || 2;
+      $('poolRegularPrice').textContent = money(p.price);
+      $('poolDiscountPrice').textContent = money(Math.round(Number(p.price) * (1 - Number(p.pool_discount_percent || 0)/100)));
+      $('poolDeliveryDisplay').textContent = money(p.pool_delivery_fee || 0);
+      $('poolDeliveryExplanation').textContent = 'Seller-set pool delivery fee per customer: ' + money(p.pool_delivery_fee || 0) + '. Final discount eligibility is checked by the server when you order.';
+    }
   }
-  async function searchExistingBusinesses(query = '') {
-    const host = $('bizExistingBusinesses'); host.innerHTML = '<p class="biz-note">Loading businesses…</p>';
-    const {data,error} = await sb.rpc('mj_creator_list_business_profiles', {p_search:query});
-    if (error) { host.innerHTML = `<p class="biz-note">${esc(error.message)}</p>`; return; }
-    const activePlans = plans.filter(z => z.is_active === true);
-    const rows = (data || []).map(b=>`<tr><td><strong>${esc(b.business_name)}</strong><br><span class="biz-note">${esc(b.user_id)}</span></td><td><span class="biz-status ${esc(b.directory_status)}">${esc(b.directory_status)}</span></td><td><select data-existing-plan="${b.user_id}" ${activePlans.length ? '' : 'disabled'}><option value="">${activePlans.length ? 'Choose active plan' : 'No active plans — reactivate one'}</option>${activePlans.map(z=>`<option value="${z.id}">${esc(z.plan_name)} · KSh ${Number(z.price_kes).toLocaleString('en-KE')}</option>`).join('')}</select></td><td><input data-existing-days="${b.user_id}" type="number" min="1" value="30" aria-label="Access days"></td><td><button type="button" class="biz-primary" data-assign-existing="${b.user_id}" ${activePlans.length ? '' : 'disabled'}>Approve / assign</button></td></tr>`).join('');
-    host.innerHTML = table(['Business / owner ID','Approval','Plan','Days','Action'], rows);
-    $('bizMetricApproved').textContent = (data || []).filter(b=>b.directory_status==='approved').length;
+  function renderCatalog(products) {
+    catalogProducts = products || [];
+    const host = $('businessProductCatalog'); if (!host) return;
+    if (!catalogProducts.length) {
+      host.innerHTML = '<p class="live-empty">No products have been published yet. Sellers can publish the first real listing below.</p>';
+      const card = document.querySelector('.product-card'); if (card) card.style.display = 'none';
+      return;
+    }
+    host.innerHTML = '<div class="market-grid">' + catalogProducts.map(p => {
+      const image = Array.isArray(p.image_urls) ? p.image_urls.find(url => typeof url === 'string' && url.trim()) : null;
+      const isOwner = !!session?.user?.id && String(p.seller_id) === String(session.user.id);
+      const initials = escapeHTML((p.product_name || 'P').trim().slice(0,2).toUpperCase());
+      const imagePart = image
+        ? `<img loading="lazy" src="${escapeHTML(image)}" alt="${escapeHTML(p.product_name)}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="market-image-fallback" hidden>${initials}</div>`
+        : `<div class="market-image-fallback">${initials}</div>`;
+      const qty = Number.isFinite(Number(p.stock_quantity)) ? Number(p.stock_quantity) : null;
+      return `<article class="market-item" data-open-product="${escapeHTML(p.id)}"><div class="market-image-wrap">${imagePart}<button type="button" class="market-fav" aria-pressed="false" aria-label="Save to favourites" data-fav-toggle onclick="event.stopPropagation();this.setAttribute('aria-pressed', this.getAttribute('aria-pressed')!=='true')"><svg class="std-icon"><use href="#i-heart"/></svg></button>${qty !== null && qty <= 5 ? `<span class="market-badge">${qty === 0 ? 'Out of stock' : qty + ' left'}</span>` : ''}</div><div class="market-body"><h4>${escapeHTML(p.product_name)}</h4><strong>${money(p.price)}</strong><p class="market-meta"><svg class="std-icon"><use href="#i-truck"/></svg> ${money(p.standard_delivery_fee || 0)} delivery</p></div><button type="button" class="market-cart" data-open-product="${escapeHTML(p.id)}" aria-label="View product"><svg class="std-icon"><use href="#i-cart"/></svg></button>${isOwner ? `<button type="button" class="market-remove" data-unpublish-product="${escapeHTML(p.id)}" onclick="event.stopPropagation()">Remove from marketplace</button>` : ''}</article>`;
+    }).join('') + '</div>';
   }
-  let initRunning = false;
-  async function init(sessionOverride) {
-    if (initRunning) return;
-    initRunning = true;
-    const accessStatus = $('bizAdminAccessStatus');
+  async function loadOwnerInventory() {
+    if (!session?.user?.id) return;
+    const panel = $('ownerPanel'); if (!panel) return;
+    let inventory = panel.querySelector('#ownerProductInventory');
+    if (!inventory) {
+      inventory = document.createElement('div');
+      inventory.id = 'ownerProductInventory'; inventory.className = 'owner-inventory';
+      inventory.innerHTML = '<h4>My Products</h4><p class="subtle">Manage your existing listings without deleting order history.</p><div class="owner-product-list">Loading your products…</div>';
+      panel.insertBefore(inventory, panel.firstChild);
+    }
+    const list = inventory.querySelector('.owner-product-list');
     try {
-      let session = sessionOverride;
-      if (session === undefined) {
-        const sessionResult = await sb.auth.getSession();
-        if (sessionResult.error) throw sessionResult.error;
-        session = sessionResult.data?.session || null;
+      const {data,error} = await sb.from('business_products').select('id,product_name,price,published,created_at,seller_id').eq('seller_id',session.user.id).order('created_at',{ascending:false});
+      if (error) throw error;
+      if (!data?.length) { list.innerHTML = '<p class="subtle">You have no products yet.</p>'; return; }
+      list.innerHTML = data.map(p => `<div class="owner-product-row"><div class="owner-product-info"><strong>${escapeHTML(p.product_name || 'Untitled product')}</strong><small>${money(p.price)} · ${p.published ? 'Published' : 'Not published'}</small></div><button type="button" class="owner-product-action" ${p.published ? `data-unpublish-product="${escapeHTML(p.id)}"` : `data-publish-product="${escapeHTML(p.id)}"`}>${p.published ? 'Remove' : 'Publish'}</button>${p.published ? '' : `<button type="button" class="owner-product-action" data-delete-product="${escapeHTML(p.id)}" style="color:#a33!important;min-width:70px!important">Delete</button>`}</div>`).join('');
+    } catch (err) {
+      list.innerHTML = '<p class="subtle">Could not load your inventory: ' + escapeHTML(errorText(err)) + '</p>';
+    }
+  }
+  function escapeHTML(s) { return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function updateCartUI() {
+    if (!activeProduct) return;
+    const q = Math.max(0, Number($('qtyValue').textContent) || 0);
+    const method = $('deliveryMethod').value;
+    const fee = method === 'pickup' ? 0 : method === 'express' ? Number(activeProduct.express_delivery_fee || 0) : Number(activeProduct.standard_delivery_fee || 0);
+    $('cartCount').textContent = q; $('cartSubtotal').textContent = money(q * Number(activeProduct.price));
+    $('cartDelivery').textContent = money(fee); $('cartTotal').textContent = money(q * Number(activeProduct.price) + fee);
+    $('deliveryAddressWrap').style.display = method === 'pickup' ? 'none' : '';
+    window.mjSetCartBadge && window.mjSetCartBadge(q);
+  }
+  async function publish() {
+    if (!requireSession()) return;
+    const status = $('publishStatus'); status.textContent = 'Saving product and uploading images…';
+    try {
+      const payload = readProductForm();
+      const businessName = $('sellerBusinessName').value.trim();
+      if (!businessName) throw new Error('Enter your approved business name.');
+      // Check approval + an active creator-assigned plan before uploading files or inserting anything.
+      // The database trigger remains the final enforcement layer for every insert/update.
+      const { data: canPublish, error: accessError } = await sb.rpc('mj_business_can_publish', { p_user: session.user.id });
+      if (accessError) throw accessError;
+      if (canPublish !== true) throw new Error('Your business must first be approved by Mjadala and have an active plan before you can publish. Submit the business application and wait for approval.');
+      const { data: approvedBusiness, error: businessError } = await sb.from('business_profiles').select('business_name,directory_status').eq('user_id', session.user.id).maybeSingle();
+      if (businessError) throw businessError;
+      if (!approvedBusiness || approvedBusiness.directory_status !== 'approved') throw new Error('Your business has not received approval yet.');
+      if (businessName.toLowerCase() !== String(approvedBusiness.business_name || '').toLowerCase()) throw new Error('Use the exact approved business name shown in your business profile.');
+      $('myBusinessTitle').textContent = 'My Business · ' + approvedBusiness.business_name;
+      $('businessProfileStatus').textContent = 'Your business is approved. Your active plan allows product publishing.';
+      const { data: ownerProfile } = await sb.from('profiles').select('nickname').eq('id',session.user.id).maybeSingle(); const ownerName=ownerProfile?.nickname||session.user.email?.split('@')[0]||'Account owner'; $('myBusinessOwner').textContent='Owner: '+ownerName; $('businessOwnerLabel').textContent='Owner: '+ownerName;
+      const files = selectedImages.length ? selectedImages : [...($('productPhotos').files || [])];
+      payload.image_urls = await uploadPhotos(files);
+      let result = await sb.from('business_products').insert(payload).select('*').single();
+      // Quantity is required. If the stock migration is missing, fail clearly rather than silently discarding inventory.
+      if (result.error) throw result.error;
+      const data = result.data;
+      renderProduct(data);
+      await loadProduct();
+      await loadOwnerInventory();
+      // Clear the creation fields after a successful save so the same details/photos
+      // are not accidentally submitted as another listing.
+      $('sellerProductName').value = '';
+      $('sellerProductDescription').value = '';
+      $('sellerProductPrice').value = '';
+      selectedImages = [];
+      $('productPhotos').value = '';
+      $('productPhotoNames').textContent = 'No product photos selected';
+      status.textContent = 'Published and saved to Supabase. The form is ready for another product.';
+      toast('Product published');
+    } catch (e) { status.textContent = 'Could not publish: ' + errorText(e); }
+  }
+  function closeProductDetail() {
+    productDetailOpen = false; activeProduct = null; poolId = null; poolOfferOpen = false;
+    const detail = document.querySelector('.product-card'); if (detail) detail.style.display = 'none';
+    ['customerTermsPanel','customerTermsContent','businessCartPanel','poolPanel','poolSectionHeading'].forEach(id => { const el=$(id); if(el) el.style.display='none'; });
+    if ($('toggleCheckoutPanel')) $('toggleCheckoutPanel').style.display='none';
+    if ($('viewPoolOfferButton')) $('viewPoolOfferButton').style.display='none';
+  }
+  async function loadProduct() {
+    try {
+      let productQuery = sb.from('business_products').select('*').eq('published',true).order('created_at',{ascending:false}).limit(60);
+      if (window.mjadalaBusinessSellerFilter) productQuery = productQuery.eq('seller_id', window.mjadalaBusinessSellerFilter);
+      const {data,error} = await productQuery;
+      if (error) throw error;
+      renderCatalog(data || []);
+      const keep = activeProduct && (data || []).find(p => String(p.id) === String(activeProduct.id));
+      if (keep) renderProduct(keep);
+      else closeProductDetail();
+    } catch (e) {
+      const host = $('businessProductCatalog'); if (host) host.innerHTML = '<p class="live-empty">Could not load live listings: ' + escapeHTML(errorText(e)) + '</p>';
+      console.warn('Could not load shop listing:',errorText(e));
+    }
+  }
+  window.mjadalaBusinessReloadProducts = loadProduct;
+  window.mjadalaBusinessShowAllProducts = () => { closeProductDetail(); window.mjadalaBusinessSellerFilter = null; loadProduct(); };
+  window.mjadalaBusinessOpenStorefront = () => { closeProductDetail(); };
+  async function checkout() {
+    if (!requireSession()) return;
+    const quantity = Math.max(0, Number($('qtyValue').textContent) || 0);
+    if (!quantity) { toast('Add at least one item first'); return; }
+    if (!activeProduct?.id) { toast('Open a product first'); return; }
+    if (session?.user?.id && String(activeProduct.seller_id) === String(session.user.id)) { toast('You cannot purchase your own product through customer checkout.'); return; }
+    const available = Number(activeProduct.stock_quantity);
+    if (Number.isFinite(available) && available >= 0 && quantity > available) { toast('Only ' + available + ' item(s) are currently available.'); return; }
+    if (Number.isFinite(available) && available === 0) { toast('This product is out of stock.'); return; }
+    const name = $('checkoutCustomerName').value.trim(), phone = $('checkoutCustomerPhone').value.trim();
+    const method = $('deliveryMethod').value, address = $('deliveryAddress').value.trim();
+    if (!name || !phone) { toast('Enter your name and phone number'); return; }
+    if (method !== 'pickup' && !address) { toast('Enter your delivery location'); return; }
+    const button = $('stkButton'); button.disabled = true; button.textContent = 'Creating secure order…';
+    try {
+      const {data,error} = await sb.rpc('place_business_order',{p_product_id:activeProduct.id,p_quantity:quantity,p_delivery_method:method,p_customer_name:name,p_customer_phone:phone,p_delivery_address:address || 'Seller pickup',p_pool_id:poolId});
+      if (error) throw error;
+      const result = Array.isArray(data) ? data[0] : data;
+      try {
+        button.textContent = 'Requesting M-Pesa prompt…';
+        const { data: payment, error: paymentError } = await sb.functions.invoke('daraja-stk-push', { body: { order_id: result.order_id, phone } });
+        if (paymentError) throw paymentError;
+        if (!payment?.ok) throw new Error(payment?.error || 'The M-Pesa prompt was not confirmed.');
+        result.payment_status = 'pending';
+        result.payment_message = payment.customer_message || 'Check your phone for the Safaricom prompt.';
+        result.payment_started = true;
+        showOrderResult(result);
+        watchOrderStatus(result.order_id);
+        toast('M-Pesa request accepted. Check your phone; never share your PIN with Mjadala.');
+      } catch (paymentErr) {
+        result.payment_started = false;
+        result.payment_message = 'Order created, but the M-Pesa prompt could not be started: ' + errorText(paymentErr) + '. Your order remains unpaid; do not pay manually until you confirm its status.';
+        showOrderResult(result);
+        toast('Order saved; payment initiation needs setup.');
       }
-      user = session?.user || null;
-      isCreator = false;
-      $('bizCreatorAdmin').hidden = true;
-      accessStatus.hidden = true;
-      if (user) {
-        const result = await sb.rpc('mj_is_creator_admin');
-        if (result.error) {
-          // Admin-check failures are a developer/owner concern, not something an ordinary
-          // signed-in customer needs to see. Log it for debugging; keep the UI silent for everyone else.
-          console.error('mj_is_creator_admin check failed:', result.error);
+    } catch(e) { toast('Order failed: ' + errorText(e)); }
+    finally { button.disabled = false; button.innerHTML = '<svg class="std-icon"><use href="#i-credit"/></svg> Pay with M-Pesa · STK Push'; }
+  }
+  function watchOrderStatus(orderId) {
+    if (!orderId) return;
+    let channel = null;
+    let finished = false;
+    const applyStatus = (row, notify = false) => {
+      if (!row || finished) return;
+      const status = String(row.payment_status || '').toLowerCase();
+      const buttons = [...document.querySelectorAll('#accountPanelContent .account-action-btn')];
+      const paymentRow = buttons.find(b => (b.textContent || '').includes('Payment status'));
+      const nextRow = buttons.find(b => (b.textContent || '').includes('Next step'));
+      const small = paymentRow?.querySelector('small');
+      if (status === 'paid') {
+        if (small) small.textContent = 'Paid · Safaricom receipt ' + (row.mpesa_receipt_number || 'confirmed');
+        if (nextRow?.querySelector('small')) nextRow.querySelector('small').textContent = 'Payment confirmed by Safaricom. Keep the receipt for your records.';
+        if (notify) toast('Payment confirmed by Safaricom.');
+        finished = true;
+        if (channel && sb.removeChannel) sb.removeChannel(channel);
+      } else if (status === 'failed') {
+        if (small) small.textContent = 'Failed or cancelled · no payment confirmed';
+        if (nextRow?.querySelector('small')) nextRow.querySelector('small').textContent = 'Check your M-Pesa messages before retrying. Do not pay twice.';
+        if (notify) toast('M-Pesa payment was not completed.');
+        finished = true;
+        if (channel && sb.removeChannel) sb.removeChannel(channel);
+      }
+    };
+    // Subscribe first, then fetch current status so an early callback isn't missed.
+    if (sb.channel) {
+      channel = sb.channel('mjadala-order-' + orderId)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'business_orders', filter: 'id=eq.' + orderId }, payload => applyStatus(payload.new, true))
+        .subscribe();
+    }
+    sb.from('business_orders').select('payment_status,mpesa_receipt_number').eq('id', orderId).maybeSingle()
+      .then(({ data, error }) => {
+        if (error) { console.warn('Could not refresh payment status:', error.message); return; }
+        applyStatus(data, false);
+      });
+    // Fallback: realtime can miss an update (RLS, publication, sleeping phone), so also poll every 4s for 3 minutes.
+    let polls = 0;
+    const poller = setInterval(() => {
+      if (finished || ++polls > 45) { clearInterval(poller); return; }
+      // Backup: from ~16s, every ~12s ask Safaricom directly (settles the order if the callback never arrived).
+      if (polls >= 4 && polls % 3 === 1 && sb.functions) { sb.functions.invoke('daraja-stk-query', { body: { order_id: orderId } }).catch(() => {}); }
+      sb.from('business_orders').select('payment_status,mpesa_receipt_number').eq('id', orderId).maybeSingle()
+        .then(({ data }) => { if (data) applyStatus(data, true); });
+    }, 4000);
+    setTimeout(() => { try { if (channel && sb.removeChannel) sb.removeChannel(channel); } catch (_) {} }, 180000);
+  }
+  function showOrderResult(r) {
+    if (typeof window.showAccountPanel === 'function') window.showAccountPanel('Order created',[{icon:'✓',label:'Order reference',detail:r?.order_id || r?.id || 'Created'},{icon:'▣',label:'Amount due',detail:money(r?.total_amount)},{icon:'▦',label:'Payment status',detail:r?.payment_started?'STK request accepted · awaiting Safaricom callback':'Unpaid · M-Pesa request not started'},{icon:'ℹ',label:'Next step',detail:r?.payment_message || 'Check the payment status before retrying.'}]);
+    $('qtyValue').textContent='0'; updateCartUI();
+  }
+  async function handleJoinPool() {
+    if (!requireSession()) return;
+    if (!activeProduct?.id || !activeProduct.pooling_enabled) { toast('This product does not have pooling enabled.'); return; }
+    try {
+      if (!poolId) {
+        // Reuse an existing open pool for this product before creating another one.
+        const existing = await sb.from('product_pools').select('id').eq('product_id',activeProduct.id).eq('pool_status','open').order('created_at',{ascending:false}).limit(1).maybeSingle();
+        if (existing.error) throw existing.error;
+        if (existing.data?.id) {
+          poolId = existing.data.id;
         } else {
-          isCreator = result.data === true || result.data === 'true';
-          if (isCreator) {
-            $('bizCreatorAdmin').hidden = false;
-            await loadAdmin();
-          }
+          const {data,error} = await sb.from('product_pools').insert({product_id:activeProduct.id,created_by:session.user.id,pool_name:activeProduct.product_name+' group buy',pool_status:'open'}).select('id').single();
+          if (error) throw error; poolId=data.id;
         }
       }
-      if (!isCreator) {
-        const publicPlans = await sb.from('mj_business_plans').select('*').eq('is_active',true).order('sort_order');
-        if (!publicPlans.error) { plans = publicPlans.data || []; renderPublicPlans(); }
-        else $('bizPublicPlans').innerHTML = `<p class="biz-note">Could not load plans: ${esc(publicPlans.error.message)}</p>`;
-      }
-      const open = await sb.rpc('mj_get_business_registration_open');
-      const noticeText = open.error ? 'Business registration setup is pending.' : open.data ? 'Applications are open. Your business must be approved before products can be published.' : 'Applications are temporarily closed. Contact Mjadala support.';
-      if ($('bizRegistrationNotice')) $('bizRegistrationNotice').textContent = noticeText;
-      if ($('bizSubmitApplication')) $('bizSubmitApplication').disabled = !!open.error || !open.data;
-      if ($('bizRegisterSubtitle')) $('bizRegisterSubtitle').textContent = open.error ? 'Registration is being set up.' : open.data ? 'List your business in the Mjadala directory and reach more customers.' : 'Applications are temporarily closed. Check back soon.';
-      await loadDirectory();
-    } catch (error) {
-      $('bizCreatorAdmin').hidden = true;
-      accessStatus.hidden = false;
-      accessStatus.textContent = `Business administration could not initialize: ${error?.message || String(error)}. Please refresh the page; no admin controls have been exposed.`;
-      console.error('Mjadala business directory initialization failed:', error);
-    } finally {
-      initRunning = false;
-    }
+      $('poolStatus').textContent='Open pool found. Complete checkout to place your order in this pool.';
+      toast('Group-buy pool selected. Complete checkout to join.');
+    } catch(e) { toast('Could not open pool: '+errorText(e)); }
   }
-
-  $('bizDirectorySearch').addEventListener('input', e => loadDirectory(e.target.value.trim()));
-  $('bizExistingSearch').addEventListener('input', e => searchExistingBusinesses(e.target.value.trim()));
-  $('bizSubmitApplication')?.addEventListener('click', async () => {
-    if (!user) { status('Sign in to submit a business application.'); return; }
-    const name = $('bizApplyName').value.trim();
-    if (!name) { status('Enter your business or trading name.'); return; }
-    const open = await sb.rpc('mj_get_business_registration_open');
-    if (open.error || !open.data) { status('Business applications are currently closed.'); return; }
-    const selectedPlan = document.querySelector('input[name="bizSelectedPlan"]:checked')?.value;
-    if (!selectedPlan) { status('Choose a business plan before submitting.'); return; }
-    const {error} = await sb.from('mj_business_applications').insert({user_id:user.id,business_name:name,description:$('bizApplyDescription').value.trim(),location_text:$('bizApplyLocation').value.trim(),contact_phone:$('bizApplyPhone').value.trim(),selected_plan_id:selectedPlan});
-    status(error ? error.message : 'Application submitted. You can publish products after creator approval and plan activation.');
-    if (!error) ['bizApplyName','bizApplyDescription','bizApplyLocation','bizApplyPhone'].forEach(id=>$(id).value='');
-  });
-  $('bizRegistrationSwitch').onchange = async () => {
-    const {error} = await sb.rpc('mj_creator_set_registration',{p_open:$('bizRegistrationSwitch').checked});
-    if (error) { $('bizRegistrationSwitch').checked = !$('bizRegistrationSwitch').checked; alert(error.message); }
-  };
-  $('bizSavePlan').onclick = async () => {
-    const name=$('bizPlanName').value.trim(), price=Number($('bizPlanPrice').value), days=Number($('bizPlanDays').value), trial=Number($('bizPlanTrial').value);
-    if (!name || !Number.isFinite(price) || price<0 || days<1 || trial<0) { alert('Enter a plan name, valid price, access days and trial days.'); return; }
-    const key=name.toLowerCase().replace(/[^a-z0-9_-]+/g,'-');
-    const {error}=await sb.rpc('mj_creator_save_plan',{p_id:editingPlanId,p_key:key,p_name:name,p_description:$('bizPlanDescription').value,p_price:price,p_days:days,p_trial:trial,p_free:price===0,p_active:editingPlanId ? !!plans.find(p=>p.id===editingPlanId)?.is_active : true});
-    if (error) { alert(error.message); return; }
-    resetPlanForm(); await loadAdmin();
-  };
-  function resetPlanForm() { editingPlanId=null; $('bizPlanFormTitle').textContent='Add a business plan'; $('bizSavePlan').textContent='Add plan'; $('bizCancelPlanEdit').hidden=true; ['bizPlanName','bizPlanPrice','bizPlanDescription'].forEach(id=>$(id).value=''); $('bizPlanDays').value=30; $('bizPlanTrial').value=0; }
-  $('bizCancelPlanEdit').onclick = resetPlanForm;
-
-  document.addEventListener('touchstart', e => { if (e.target.closest('.biz-table-wrap,.biz-plan-grid')) e.stopPropagation(); }, {capture:true,passive:true});
-  document.addEventListener('touchmove', e => { if (e.target.closest('.biz-table-wrap')) e.stopPropagation(); }, {capture:true,passive:true});
   document.addEventListener('click', async e => {
-    const cardToggle = e.target.closest('[data-expand-card]');
-    if (cardToggle) { const expanded = cardToggle.getAttribute('aria-expanded') !== 'true'; cardToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false'); const body = cardToggle.nextElementSibling; if (body) body.hidden = !expanded; return; }
-    const store = e.target.closest('[data-storefront]');
-    if (store) { storefront(store.dataset.storefront, store.dataset.businessName); return; }
-    if (e.target.closest('#bizBackToAll')) { allProducts(); return; }
-    const edit = e.target.closest('[data-edit-plan]');
-    if (edit) { const p=plans.find(x=>x.id===edit.dataset.editPlan); if(p){editingPlanId=p.id;$('bizPlanFormTitle').textContent='Edit business plan';$('bizSavePlan').textContent='Save plan changes';$('bizCancelPlanEdit').hidden=false;$('bizPlanName').value=p.plan_name;$('bizPlanPrice').value=p.price_kes;$('bizPlanDays').value=p.billing_days;$('bizPlanTrial').value=p.trial_days;$('bizPlanDescription').value=p.description;} return; }
-    const togglePlan = e.target.closest('[data-toggle-plan]');
-    if (togglePlan) {
-      const planId=togglePlan.dataset.togglePlan, next=togglePlan.dataset.nextActive==='true', plan=plans.find(p=>p.id===planId);
-      if (!plan) return;
-      const verb=next?'reactivate':'suspend';
-      if (!confirm(`${verb[0].toUpperCase()+verb.slice(1)} the ${plan.plan_name} plan? ${next?'It will become available for new assignments.':'It will no longer be available for new assignments.'}`)) return;
-      togglePlan.disabled=true;
-      const {error}=await sb.from('mj_business_plans').update({is_active:next,updated_at:new Date().toISOString()}).eq('id',planId);
-      togglePlan.disabled=false;
-      if (error) alert('Could not update plan: '+error.message); else await loadAdmin();
-      return;
-    }
-    const deletePlan = e.target.closest('[data-delete-plan]');
-    if (deletePlan) {
-      const planId=deletePlan.dataset.deletePlan, plan=plans.find(p=>p.id===planId);
-      if (!plan) return;
-      const usage=await sb.from('mj_business_subscriptions').select('id',{count:'exact',head:true}).eq('plan_id',planId);
-      if (usage.error) { alert('Could not check whether this plan is assigned: '+usage.error.message); return; }
-      if ((usage.count||0)>0) { alert('This plan has already been assigned to a business and cannot be deleted safely. Suspend it instead; existing subscription records will be preserved.'); return; }
-      if (!confirm(`Permanently delete the ${plan.plan_name} plan? This cannot be undone.`)) return;
-      deletePlan.disabled=true;
-      const {error}=await sb.from('mj_business_plans').delete().eq('id',planId);
-      deletePlan.disabled=false;
-      if (error) alert('Could not delete plan: '+error.message); else { if(editingPlanId===planId) resetPlanForm(); await loadAdmin(); }
-      return;
-    }
-    const assign = e.target.closest('[data-assign-existing]');
-    if (assign) {
-      const uid=assign.dataset.assignExisting;
-      const selector=document.querySelector(`[data-existing-plan="${uid}"]`), plan=selector?.value;
-      const days=Number(document.querySelector(`[data-existing-days="${uid}"]`)?.value || 30);
-      if (!selector || !plan) { alert(plans.some(p=>p.is_active===true) ? 'Choose an active plan for this business.' : 'There are no active plans. Reactivate a plan under Plans and Pricing first.'); return; }
-      if (!Number.isInteger(days) || days < 1) { alert('Enter a valid access duration of at least one day.'); return; }
-      assign.disabled=true; const oldLabel=assign.textContent; assign.textContent='Assigning…';
+    const unpublishButton = e.target.closest('[data-unpublish-product]');
+    const publishAgainButton = e.target.closest('[data-publish-product]');
+    const deleteButton = e.target.closest('[data-delete-product]');
+    if (deleteButton) {
+      e.preventDefault(); e.stopImmediatePropagation();
+      if (!session?.user?.id) { toast('Sign in as the product owner first.'); return; }
+      const deleteId = deleteButton.dataset.deleteProduct;
+      const deleteName = deleteButton.closest('.owner-product-row')?.querySelector('strong')?.textContent || 'this product';
+      if (!confirm(`Delete “${deleteName}” permanently? This cannot be undone. Products that already have orders cannot be deleted.`)) return;
+      deleteButton.disabled = true; deleteButton.textContent = 'Deleting…';
       try {
-        const {error}=await sb.rpc('mj_creator_assign_plan',{p_user:uid,p_plan:plan,p_days:days,p_admin_note:'Creator-assigned access'});
-        if (error) { console.error('Plan assignment failed:',error); alert('Plan assignment failed: '+error.message+(error.code?'\nCode: '+error.code:'')); }
-        else { alert('Plan assigned successfully.'); await loadAdmin(); await loadDirectory(); }
-      } catch(err) { console.error('Plan assignment exception:',err); alert('Plan assignment could not complete: '+(err.message||String(err))); }
-      finally { assign.disabled=false; assign.textContent=oldLabel; }
+        const { error } = await sb.rpc('delete_business_product', { p_product_id: deleteId });
+        if (error) throw error;
+        await loadProduct(); await loadOwnerInventory();
+        toast('Product deleted permanently.');
+      } catch (err) {
+        toast(errorText(err));
+        deleteButton.disabled = false; deleteButton.textContent = 'Delete';
+      }
       return;
     }
-    const review = e.target.closest('[data-review]');
-    if (review) {
-      const app=review.dataset.review, approve=review.dataset.approve==='true', plan=document.querySelector(`[data-plan-for="${app}"]`)?.value, trial=Number(document.querySelector(`[data-trial-for="${app}"]`)?.value || 0);
-      if (approve && !plan) { alert('Create or select an active plan first.'); return; }
-      review.disabled=true;
-      const {error}=await sb.rpc('mj_creator_review_business',{p_application:app,p_approve:approve,p_plan:approve?plan:null,p_trial_days:trial,p_admin_note:''});
-      review.disabled=false;
-      if (error) alert(error.message); else { await loadAdmin(); await loadDirectory(); }
+    if (unpublishButton || publishAgainButton) {
+      e.preventDefault(); e.stopImmediatePropagation();
+      if (!session?.user?.id) { toast('Sign in as the product owner first.'); return; }
+      const button = unpublishButton || publishAgainButton;
+      const productId = button.dataset.unpublishProduct || button.dataset.publishProduct;
+      const product = catalogProducts.find(p => String(p.id) === String(productId));
+      const inventoryRow = button.closest('.owner-product-row');
+      // Inventory may include unpublished products not present in the public catalogue;
+      // seller_id is enforced in the database update filter as well.
+      if (product && String(product.seller_id) !== String(session.user.id)) { toast('You can manage only products belonging to your account.'); return; }
+      const shouldPublish = !!publishAgainButton;
+      const name = product?.product_name || inventoryRow?.querySelector('strong')?.textContent || 'this product';
+      // Republishing asks for the quantity available now, because stock changes between listings.
+      let newStock = null;
+      if (shouldPublish) {
+        const entered = prompt(`How many units of “${name}” are available now? (whole number, 1 or more)`, '');
+        if (entered === null) return;
+        newStock = Number(String(entered).trim());
+        if (!Number.isInteger(newStock) || newStock < 1) { toast('Enter a whole-number quantity of 1 or more to publish.'); return; }
+      } else if (!confirm(`Remove “${name}” from the marketplace? Its order history will be preserved.`)) return;
+      button.disabled = true; button.textContent = shouldPublish ? 'Publishing…' : 'Removing…';
+      try {
+        // Republish goes through the database function (checks owner + quantity); removing just hides the product.
+        const { data, error } = shouldPublish
+          ? await sb.rpc('republish_business_product', { p_product_id: productId, p_quantity: newStock }).then(r => ({ data: r.error ? null : [r.data], error: r.error }))
+          : await sb.from('business_products').update({published: false}).eq('id', productId).eq('seller_id', session.user.id).select('id');
+        if (error) throw error;
+        if (!data?.length) throw new Error('No product was updated. Check that you are signed in as its owner.');
+        if (!shouldPublish && activeProduct?.id === productId) activeProduct = null;
+        await loadProduct(); await loadOwnerInventory();
+        toast(shouldPublish ? 'Product published.' : 'Product removed from the marketplace. Order history is preserved.');
+      } catch (err) {
+        toast('Could not update this product. Your database may restrict owner updates. ' + errorText(err));
+        button.disabled = false; button.textContent = shouldPublish ? 'Publish' : 'Remove';
+      }
+      return;
     }
+    const backButton = e.target.closest('#backToMarketplace');
+    if (backButton) {
+      e.preventDefault(); productDetailOpen = false; activeProduct = null; poolId = null; poolOfferOpen = false;
+      const detailCard = document.querySelector('.product-card'); if (detailCard) detailCard.style.display = 'none';
+      if ($('customerTermsPanel')) $('customerTermsPanel').style.display = 'none';
+      if ($('customerTermsContent')) $('customerTermsContent').style.display = 'none';
+      if ($('toggleWarrantyDetails')) $('toggleWarrantyDetails').setAttribute('aria-expanded','false');
+      if ($('toggleCheckoutPanel')) { $('toggleCheckoutPanel').style.display = 'none'; $('toggleCheckoutPanel').setAttribute('aria-expanded','false'); }
+      if ($('poolPanel')) $('poolPanel').style.display = 'none';
+      if ($('poolSectionHeading')) $('poolSectionHeading').style.display = 'none';
+      if ($('viewPoolOfferButton')) { $('viewPoolOfferButton').style.display = 'none'; $('viewPoolOfferButton').textContent = 'View Pool Offer'; $('viewPoolOfferButton').setAttribute('aria-expanded','false'); }
+      if ($('businessCartPanel')) $('businessCartPanel').style.display = 'none';
+      const qtyControls = document.querySelector('.product-card .qty-controls'); if (qtyControls) qtyControls.style.display = '';
+      const catalog = $('businessProductCatalog'); catalog?.scrollIntoView({behavior:'smooth',block:'start'});
+      return;
+    }
+    const poolOfferButton = e.target.closest('#viewPoolOfferButton');
+    if (poolOfferButton) {
+      e.preventDefault();
+      if (!activeProduct?.pooling_enabled) return;
+      poolOfferOpen = !poolOfferOpen;
+      $('poolSectionHeading').style.display = poolOfferOpen ? '' : 'none';
+      $('poolPanel').style.display = poolOfferOpen ? '' : 'none';
+      poolOfferButton.setAttribute('aria-expanded', poolOfferOpen ? 'true' : 'false');
+      poolOfferButton.innerHTML = poolOfferOpen ? 'Pool Offer <span aria-hidden="true">⌃</span>' : 'Pool Offer <span aria-hidden="true">⌄</span>'; 
+      if (poolOfferOpen) $('poolPanel')?.scrollIntoView({behavior:'smooth',block:'start'});
+      return;
+    }
+    const warrantyToggle = e.target.closest('#toggleWarrantyDetails');
+    if (warrantyToggle) {
+      e.preventDefault();
+      const expanded = warrantyToggle.getAttribute('aria-expanded') !== 'true';
+      warrantyToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      if ($('customerTermsContent')) $('customerTermsContent').style.display = expanded ? 'block' : 'none';
+      return;
+    }
+    const checkoutToggle = e.target.closest('#toggleCheckoutPanel');
+    if (checkoutToggle) {
+      e.preventDefault();
+      const expanded = checkoutToggle.getAttribute('aria-expanded') !== 'true';
+      checkoutToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      if ($('businessCartPanel')) $('businessCartPanel').style.display = expanded ? 'block' : 'none';
+      return;
+    }
+    const productButton = e.target.closest('[data-open-product]');
+    if (productButton) {
+      e.preventDefault();
+      const selected = catalogProducts.find(p => String(p.id) === String(productButton.dataset.openProduct));
+      if (selected) {
+        renderProduct(selected, true);
+        const detailCard = document.querySelector('.product-card');
+        detailCard?.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+      return;
+    }
+    const publishButton = e.target.closest('#publishProduct');
+    if (publishButton) { e.preventDefault(); e.stopImmediatePropagation(); publish(); return; }
+    const checkoutButton = e.target.closest('#stkButton');
+    if (checkoutButton) { e.preventDefault(); e.stopImmediatePropagation(); checkout(); return; }
+    const joinButton = e.target.closest('#joinPoolButton');
+    if (joinButton) { e.preventDefault(); e.stopImmediatePropagation(); handleJoinPool(); return; }
+  }, true);
+  $('sellerPoolEnabled')?.addEventListener('change', () => {
+    const enabled = $('sellerPoolEnabled').checked;
+    if ($('sellerPoolSettings')) $('sellerPoolSettings').style.display = enabled ? 'block' : 'none';
+    if ($('poolStatus')) $('poolStatus').textContent = enabled ? 'Group buying is enabled for this product. Publish/save the product to apply it.' : 'Group buying is disabled for this product.';
+    if (!enabled && $('poolPanel')) $('poolPanel').style.display = 'none';
   });
-  sb.auth.onAuthStateChange((_event, session) => { user=session?.user || null; window.setTimeout(() => init(session || null), 0); });
-  init();
+  $('backToMarketplace')?.addEventListener('click', () => {
+    productDetailOpen = false; activeProduct = null; poolId = null; poolOfferOpen = false;
+    const detailCard = document.querySelector('.product-card'); if (detailCard) detailCard.style.display = 'none';
+    if ($('customerTermsPanel')) $('customerTermsPanel').style.display = 'none';
+    if ($('customerTermsContent')) $('customerTermsContent').style.display = 'none';
+    if ($('toggleWarrantyDetails')) $('toggleWarrantyDetails').setAttribute('aria-expanded','false');
+    if ($('toggleCheckoutPanel')) { $('toggleCheckoutPanel').style.display = 'none'; $('toggleCheckoutPanel').setAttribute('aria-expanded','false'); }
+    if ($('poolPanel')) $('poolPanel').style.display = 'none';
+    if ($('poolSectionHeading')) $('poolSectionHeading').style.display = 'none';
+    if ($('viewPoolOfferButton')) { $('viewPoolOfferButton').style.display = 'none'; $('viewPoolOfferButton').innerHTML = 'Pool Offer <span aria-hidden="true">⌄</span>'; $('viewPoolOfferButton').setAttribute('aria-expanded','false'); }
+    if ($('businessCartPanel')) $('businessCartPanel').style.display = 'none';
+    const qtyControls = document.querySelector('.product-card .qty-controls'); if (qtyControls) qtyControls.style.display = '';
+    $('businessProductCatalog')?.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  const photoInput = $('productPhotos');
+  photoInput.addEventListener('change',()=>{ selectedImages=[...(photoInput.files||[])]; });
+  $('resetProductForm')?.addEventListener('click',()=>{ selectedImages=[]; if(photoInput) photoInput.value=''; if($('productPhotoNames')) $('productPhotoNames').textContent='No product photos selected'; });
+  const drop = $('productPhotoDrop');
+  drop.addEventListener('drop',e=>{ selectedImages=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/')); });
+  $('deliveryMethod').addEventListener('change',updateCartUI);
+  $('qtyPlus').addEventListener('click',()=>setTimeout(updateCartUI,0));
+  $('qtyMinus').addEventListener('click',()=>setTimeout(updateCartUI,0));
+  let marketplaceChannel = null;
+  function startMarketplaceRealtime(){ if(marketplaceChannel)sb.removeChannel(marketplaceChannel); marketplaceChannel=sb.channel('mjadala-marketplace').on('postgres_changes',{event:'*',schema:'public',table:'business_products'},()=>loadProduct()).subscribe(); }
+  sb.auth.getSession().then(({data})=>{ session=data.session; if (!session) addAuthUI(); else if($('businessAuthPanel'))$('businessAuthPanel').style.display='none'; if(session){loadBusinessProfile(); if($('ownerPanel') && getComputedStyle($('ownerPanel')).display!=='none') loadOwnerInventory();} loadProduct(); startMarketplaceRealtime(); });
+  sb.auth.onAuthStateChange((_event,newSession)=>{session=newSession;if(session){if($('businessAuthPanel'))$('businessAuthPanel').style.display='none';loadBusinessProfile(); if($('ownerPanel') && getComputedStyle($('ownerPanel')).display!=='none') loadOwnerInventory();}else{addAuthUI();$('myBusinessTitle').textContent='My Business';$('myBusinessOwner').textContent='Sign in to manage your business.';}loadProduct();});
 })();
