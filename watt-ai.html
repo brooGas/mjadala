@@ -116,6 +116,31 @@ body[data-theme="violet"] .privacy .privacy-note{color:#6840a6}
 .chat{padding-bottom:118px}
 .messages{overflow-y:auto;flex:1;padding-bottom:12px}
 
+
+/* Privacy guidance: retain the original soft-green panel and compact footprint. */
+.privacy{align-items:flex-start!important;background:#eef8ed!important;border:1px solid #d2ebc8!important;border-radius:15px!important;padding:12px!important;gap:10px!important;box-shadow:none!important;color:#174b27!important}
+.privacy .shield{width:32px!important;height:32px!important;min-width:32px;border-radius:50%!important;background:#d8f0d0!important;color:#174b27!important;box-shadow:none!important;font-size:17px!important}
+.privacy-copy{flex:1;min-width:0}
+.privacy-copy>b{font-size:12px!important;color:#174b27!important}
+.privacy-copy>p{font-size:10px!important;line-height:1.45!important;color:#46694c!important;margin:3px 0 8px!important}
+.privacy-features{display:grid;gap:7px}
+.privacy-feature{display:flex;align-items:flex-start;gap:8px;min-width:0}
+.privacy-feature-icon{width:19px;height:19px;flex:none;display:grid;place-items:center;border-radius:50%;background:#d8f0d0;color:#28633f;font-size:12px;font-weight:800}
+.privacy-feature strong{display:block;font-size:10px;line-height:1.25;color:#285b3d}
+.privacy-feature small{display:block;margin-top:1px;font-size:9px;line-height:1.35;color:#52745d}
+.privacy-more{margin-top:8px;padding-top:7px;border-top:1px solid #d2e7d3}
+.privacy-more summary{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;list-style:none;font-size:10px;font-weight:750;color:#28633f}
+.privacy-more summary::-webkit-details-marker{display:none}
+.privacy-more summary span{font-size:14px;line-height:1}
+.privacy-more[open] summary span{transform:rotate(45deg)}
+.privacy-more>p{font-size:9px!important;line-height:1.45!important;color:#52745d!important;margin:6px 0 1px!important}
+body[data-theme="violet"] .privacy{background:#f0eafa!important;border-color:#e0d3f3!important;color:#553b80!important}
+body[data-theme="violet"] .privacy .shield,body[data-theme="violet"] .privacy-feature-icon{background:#e4d6ff!important;color:#6840a6!important}
+body[data-theme="violet"] .privacy-copy>b,body[data-theme="violet"] .privacy-feature strong{color:#553b80!important}
+body[data-theme="violet"] .privacy-copy>p,body[data-theme="violet"] .privacy-feature small,body[data-theme="violet"] .privacy-more>p{color:#776493!important}
+body[data-theme="violet"] .privacy-more{border-color:#e0d3f3!important}
+body[data-theme="violet"] .privacy-more summary{color:#6840a6!important}
+
 </style>
 </head>
 <body>
@@ -159,7 +184,19 @@ body[data-theme="violet"] .privacy .privacy-note{color:#6840a6}
      </div>
     </details>
    </section>
-   <section class="privacy"><div class="shield" aria-hidden="true">✓</div><div class="privacy-copy"><b>Your privacy matters</b><p>You’re in control of what you share with Watt AI. Avoid sharing passwords, payment details or other sensitive information.</p><span class="privacy-note">Share only what’s needed · You choose what to include · You can keep personal details private.</span></div></section>
+   <section class="privacy" aria-labelledby="privacyTitle">
+    <div class="shield" aria-hidden="true">✓</div>
+    <div class="privacy-copy">
+     <b id="privacyTitle">Your privacy matters</b>
+     <p>Watt AI is here to help you explore ideas, learn and get things done while keeping your personal information in mind.</p>
+     <div class="privacy-features">
+      <div class="privacy-feature"><span class="privacy-feature-icon" aria-hidden="true">⌑</span><span><strong>Private conversations</strong><small>Your chats are not public posts on Mjadala.</small></span></div>
+      <div class="privacy-feature"><span class="privacy-feature-icon" aria-hidden="true">☑</span><span><strong>You stay in control</strong><small>Share only the details needed for the task.</small></span></div>
+      <div class="privacy-feature"><span class="privacy-feature-icon" aria-hidden="true">!</span><span><strong>Protect sensitive information</strong><small>Never share passwords, PINs or payment details.</small></span></div>
+     </div>
+     <details class="privacy-more"><summary>Learn about privacy <span aria-hidden="true">＋</span></summary><p>Before sending a message, check whether it contains personal or confidential information. You can usually describe a situation without including account numbers, passwords, private contact details or other identifying information.</p></details>
+    </div>
+   </section>
   </div>
  </main>
  <section class="chat" id="chat">
