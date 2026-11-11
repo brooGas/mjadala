@@ -117,28 +117,32 @@ body[data-theme="violet"] .privacy .privacy-note{color:#6840a6}
 .messages{overflow-y:auto;flex:1;padding-bottom:12px}
 
 
-/* Privacy guidance: retain the original soft-green panel and compact footprint. */
-.privacy{align-items:flex-start!important;background:#eef8ed!important;border:1px solid #d2ebc8!important;border-radius:15px!important;padding:12px!important;gap:10px!important;box-shadow:none!important;color:#174b27!important}
-.privacy .shield{width:32px!important;height:32px!important;min-width:32px;border-radius:50%!important;background:#d8f0d0!important;color:#174b27!important;box-shadow:none!important;font-size:17px!important}
+/* Privacy panel: keep the approved soft-green surface, with a clear tip-style trust mark and roomier feature rows. */
+.privacy{align-items:flex-start!important;background:#eef8ed!important;border:1px solid #d2ebc8!important;border-radius:15px!important;padding:14px!important;gap:12px!important;box-shadow:none!important;color:#174b27!important}
+.privacy .shield{width:42px!important;height:42px!important;min-width:42px;border-radius:13px!important;background:linear-gradient(145deg,#e1f5e5,#c9e9d2)!important;color:#236b42!important;display:grid!important;place-items:center!important;box-shadow:inset 0 0 0 1px #b9dfc3,0 3px 8px #28633f18!important;font-size:0!important}
+.privacy .shield svg{width:25px;height:25px;display:block}
 .privacy-copy{flex:1;min-width:0}
-.privacy-copy>b{font-size:12px!important;color:#174b27!important}
-.privacy-copy>p{font-size:10px!important;line-height:1.45!important;color:#46694c!important;margin:3px 0 8px!important}
-.privacy-features{display:grid;gap:7px}
-.privacy-feature{display:flex;align-items:flex-start;gap:8px;min-width:0}
-.privacy-feature-icon{width:19px;height:19px;flex:none;display:grid;place-items:center;border-radius:50%;background:#d8f0d0;color:#28633f;font-size:12px;font-weight:800}
-.privacy-feature strong{display:block;font-size:10px;line-height:1.25;color:#285b3d}
-.privacy-feature small{display:block;margin-top:1px;font-size:9px;line-height:1.35;color:#52745d}
-.privacy-more{margin-top:8px;padding-top:7px;border-top:1px solid #d2e7d3}
-.privacy-more summary{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;list-style:none;font-size:10px;font-weight:750;color:#28633f}
+.privacy-copy>b{font-size:13px!important;color:#174b27!important}
+.privacy-copy>p{font-size:11px!important;line-height:1.5!important;color:#46694c!important;margin:4px 0 10px!important}
+.privacy-features{display:grid;gap:9px}
+.privacy-feature{display:flex;align-items:center;gap:11px;min-width:0;min-height:58px;padding:10px 11px;border:1px solid #d6e9d8;border-radius:12px;background:#f8fcf7;box-shadow:0 1px 2px #245a3510}
+.privacy-feature-icon{width:29px;height:29px;flex:none;display:grid;place-items:center;border-radius:9px;background:#e2f2e3;color:#28633f;font-size:16px;font-weight:800}
+.privacy-feature strong{display:block;font-size:12px;line-height:1.3;color:#285b3d}
+.privacy-feature small{display:block;margin-top:3px;font-size:10px;line-height:1.4;color:#52745d}
+.privacy-more{margin-top:10px;padding:0;border:1px solid #d2e7d3;border-radius:11px;background:#f6fbf5;overflow:hidden}
+.privacy-more summary{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:10px 12px;cursor:pointer;list-style:none;font-size:11px;font-weight:750;color:#28633f}
 .privacy-more summary::-webkit-details-marker{display:none}
-.privacy-more summary span{font-size:14px;line-height:1}
+.privacy-more summary span{font-size:15px;line-height:1}
 .privacy-more[open] summary span{transform:rotate(45deg)}
-.privacy-more>p{font-size:9px!important;line-height:1.45!important;color:#52745d!important;margin:6px 0 1px!important}
+.privacy-more>p{font-size:10px!important;line-height:1.5!important;color:#52745d!important;margin:0!important;padding:0 12px 12px!important}
 body[data-theme="violet"] .privacy{background:#f0eafa!important;border-color:#e0d3f3!important;color:#553b80!important}
-body[data-theme="violet"] .privacy .shield,body[data-theme="violet"] .privacy-feature-icon{background:#e4d6ff!important;color:#6840a6!important}
+body[data-theme="violet"] .privacy .shield{background:linear-gradient(145deg,#f0e7ff,#dfd0fa)!important;color:#6840a6!important;box-shadow:inset 0 0 0 1px #d5c3f1,0 3px 8px #6840a618!important}
+body[data-theme="violet"] .privacy-feature{background:#fbf9ff;border-color:#e6dcf4}
+body[data-theme="violet"] .privacy .shield svg,body[data-theme="violet"] .privacy-feature-icon{color:#6840a6!important}
+body[data-theme="violet"] .privacy-feature-icon{background:#eee5fb}
 body[data-theme="violet"] .privacy-copy>b,body[data-theme="violet"] .privacy-feature strong{color:#553b80!important}
 body[data-theme="violet"] .privacy-copy>p,body[data-theme="violet"] .privacy-feature small,body[data-theme="violet"] .privacy-more>p{color:#776493!important}
-body[data-theme="violet"] .privacy-more{border-color:#e0d3f3!important}
+body[data-theme="violet"] .privacy-more{border-color:#e0d3f3!important;background:#faf7ff}
 body[data-theme="violet"] .privacy-more summary{color:#6840a6!important}
 
 </style>
@@ -185,14 +189,14 @@ body[data-theme="violet"] .privacy-more summary{color:#6840a6!important}
     </details>
    </section>
    <section class="privacy" aria-labelledby="privacyTitle">
-    <div class="shield" aria-hidden="true">✓</div>
+    <div class="shield" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2 19 6v5.2c0 4.5-2.9 7.8-7 9.6-4.1-1.8-7-5.1-7-9.6V6l7-2.8Z"/><path d="m8.5 12.1 2.3 2.3 4.8-5"/></svg></div>
     <div class="privacy-copy">
      <b id="privacyTitle">Your privacy matters</b>
      <p>Watt AI is here to help you explore ideas, learn and get things done while keeping your personal information in mind.</p>
      <div class="privacy-features">
-      <div class="privacy-feature"><span class="privacy-feature-icon" aria-hidden="true">⌑</span><span><strong>Private conversations</strong><small>Your chats are not public posts on Mjadala.</small></span></div>
-      <div class="privacy-feature"><span class="privacy-feature-icon" aria-hidden="true">☑</span><span><strong>You stay in control</strong><small>Share only the details needed for the task.</small></span></div>
-      <div class="privacy-feature"><span class="privacy-feature-icon" aria-hidden="true">!</span><span><strong>Protect sensitive information</strong><small>Never share passwords, PINs or payment details.</small></span></div>
+      <div class="privacy-feature"><span class="privacy-feature-icon" aria-hidden="true">✓</span><span><strong>Private conversations</strong><small>Your chats are not public posts on Mjadala.</small></span></div>
+      <div class="privacy-feature"><span class="privacy-feature-icon" aria-hidden="true">✓</span><span><strong>You stay in control</strong><small>Share only the details needed for the task.</small></span></div>
+      <div class="privacy-feature"><span class="privacy-feature-icon" aria-hidden="true">✓</span><span><strong>Protect sensitive information</strong><small>Never share passwords, PINs or payment details.</small></span></div>
      </div>
      <details class="privacy-more"><summary>Learn about privacy <span aria-hidden="true">＋</span></summary><p>Before sending a message, check whether it contains personal or confidential information. You can usually describe a situation without including account numbers, passwords, private contact details or other identifying information.</p></details>
     </div>
