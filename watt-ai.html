@@ -91,6 +91,28 @@ html,body{height:100%;overflow:hidden}
 body[data-theme="violet"] .privacy{background:linear-gradient(135deg,#f0eafa,#fff);border-color:#dfd0f4}
 body[data-theme="violet"] .shield{background:#6840a6;color:#fff}
 @media(min-width:600px){.shell{height:calc(100svh - 44px);min-height:0}}
+
+/* Keep the original privacy surface appearance; enrich only its useful guidance. */
+.privacy{margin:15px 0 4px;padding:12px;border-radius:15px;display:flex;align-items:flex-start;gap:10px;background:#eef8ed;border:1px solid #d2ebc8;box-shadow:none;color:#174b27}
+.shield{width:32px;height:32px;border-radius:50%;background:#d8f0d0;color:#174b27;display:grid;place-items:center;font-size:17px;flex:none;box-shadow:none}
+.privacy-copy{min-width:0}
+.privacy b{font-size:12px;display:block;color:#174b27}
+.privacy p{font-size:10px;line-height:1.45;color:#46694c;margin:3px 0 5px}
+.privacy .privacy-note{font-size:10px;font-weight:700;color:#28633f}
+body[data-theme="violet"] .privacy{background:#f0eafa;border:1px solid #e0d3f3;color:#553b80}
+body[data-theme="violet"] .shield{background:#e4d6ff;color:#553b80}
+body[data-theme="violet"] .privacy b{color:#553b80}
+body[data-theme="violet"] .privacy p{color:#776493}
+body[data-theme="violet"] .privacy .privacy-note{color:#6840a6}
+/* The prompt stays visible on both the home and chat views while content scrolls. */
+.shell{height:100svh;min-height:0;max-height:100svh}
+.home{padding-bottom:0}
+.home .content{padding-bottom:150px}
+.composer{position:absolute!important;left:0;right:0;bottom:0;z-index:40;flex:none;margin:0;padding:8px 12px calc(8px + env(safe-area-inset-bottom));border-radius:0;border-left:0;border-right:0;border-bottom:0;box-shadow:0 -5px 18px var(--shadow);background:var(--panel)}
+.disclaimer{position:absolute;left:0;right:0;bottom:58px;z-index:39;padding:5px 12px 4px;background:var(--panel)}
+.chat{padding-bottom:118px}
+.messages{overflow-y:auto;flex:1;padding-bottom:12px}
+
 </style>
 </head>
 <body>
@@ -134,7 +156,7 @@ body[data-theme="violet"] .shield{background:#6840a6;color:#fff}
      </div>
     </details>
    </section>
-   <section class="privacy"><div class="shield" aria-hidden="true">⌑</div><div class="privacy-copy"><b>Your privacy matters</b><p>You’re in control of what you share with Watt AI. Keep passwords, payment details and other sensitive information to yourself.</p><span class="privacy-note">Share only what’s needed for the help you want.</span></div></section>
+   <section class="privacy"><div class="shield" aria-hidden="true">✓</div><div class="privacy-copy"><b>Your privacy matters</b><p>You’re in control of what you share with Watt AI. Avoid sharing passwords, payment details or other sensitive information.</p><span class="privacy-note">Share only what’s needed · You choose what to include · You can keep personal details private.</span></div></section>
   </div>
  </main>
  <section class="chat" id="chat">
