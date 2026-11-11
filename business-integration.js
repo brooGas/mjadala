@@ -167,10 +167,11 @@
       const image = Array.isArray(p.image_urls) ? p.image_urls.find(url => typeof url === 'string' && url.trim()) : null;
       const isOwner = !!session?.user?.id && String(p.seller_id) === String(session.user.id);
       const initials = escapeHTML((p.product_name || 'P').trim().slice(0,2).toUpperCase());
-      const imageMarkup = image
-        ? `<div class="market-image-wrap"><img loading="lazy" src="${escapeHTML(image)}" alt="${escapeHTML(p.product_name)}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="market-image-fallback" hidden>${initials}</div></div>`
+      const imagePart = image
+        ? `<img loading="lazy" src="${escapeHTML(image)}" alt="${escapeHTML(p.product_name)}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="market-image-fallback" hidden>${initials}</div>`
         : `<div class="market-image-fallback">${initials}</div>`;
-      return `<article class="market-item">${imageMarkup}<h4>${escapeHTML(p.product_name)}</h4><strong>${money(p.price)}</strong><p class="subtle">Available quantity: ${Number.isFinite(Number(p.stock_quantity)) ? Number(p.stock_quantity) : 'Check with seller'}</p><p>Standard delivery ${money(p.standard_delivery_fee || 0)} · Express ${money(p.express_delivery_fee || 0)}</p><button type="button" data-open-product="${escapeHTML(p.id)}">View Product</button>${isOwner ? `<button type="button" class="market-remove" data-unpublish-product="${escapeHTML(p.id)}">Remove from marketplace</button>` : ''}</article>`;
+      const qty = Number.isFinite(Number(p.stock_quantity)) ? Number(p.stock_quantity) : null;
+      return `<article class="market-item" data-open-product="${escapeHTML(p.id)}"><div class="market-image-wrap">${imagePart}<button type="button" class="market-fav" aria-pressed="false" aria-label="Save to favourites" data-fav-toggle onclick="event.stopPropagation();this.setAttribute('aria-pressed', this.getAttribute('aria-pressed')!=='true')"><svg class="std-icon"><use href="#i-heart"/></svg></button>${qty !== null && qty <= 5 ? `<span class="market-badge">${qty === 0 ? 'Out of stock' : qty + ' left'}</span>` : ''}</div><div class="market-body"><h4>${escapeHTML(p.product_name)}</h4><strong>${money(p.price)}</strong><p class="market-meta"><svg class="std-icon"><use href="#i-truck"/></svg> ${money(p.standard_delivery_fee || 0)} delivery</p></div><button type="button" class="market-cart" data-open-product="${escapeHTML(p.id)}" aria-label="View product"><svg class="std-icon"><use href="#i-cart"/></svg></button>${isOwner ? `<button type="button" class="market-remove" data-unpublish-product="${escapeHTML(p.id)}" onclick="event.stopPropagation()">Remove from marketplace</button>` : ''}</article>`;
     }).join('') + '</div>';
   }
   async function loadOwnerInventory() {
@@ -202,6 +203,7 @@
     $('cartCount').textContent = q; $('cartSubtotal').textContent = money(q * Number(activeProduct.price));
     $('cartDelivery').textContent = money(fee); $('cartTotal').textContent = money(q * Number(activeProduct.price) + fee);
     $('deliveryAddressWrap').style.display = method === 'pickup' ? 'none' : '';
+    window.mjSetCartBadge && window.mjSetCartBadge(q);
   }
   async function publish() {
     if (!requireSession()) return;
