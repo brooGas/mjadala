@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mjadala Business Dashboard</title>
+<title>Mjadala Business - Amina's Store</title>
 
 <style>
 :root {
@@ -934,22 +934,48 @@ button {
   }
 }
 
-/* Mjadala embedded workspace: retain the dashboard layout and its responsive drawer. */
-body.business-embedded{min-height:100dvh;background:#f5f6ef;overflow:hidden}
-body.business-embedded .app{min-height:100dvh;height:100dvh;padding-bottom:0}
-body.business-embedded .workspace{min-height:100dvh;height:100dvh;max-width:none}
-body.business-embedded .main{min-height:0;height:100dvh;overflow-y:auto}
-body.business-embedded .bottom-nav{display:none!important}
-body.business-embedded .sidebar{max-height:100dvh}
-.business-close{width:38px;height:38px;border:1px solid #e2e8df;border-radius:12px;background:#fff;color:#174b35;display:grid;place-items:center;font-size:22px;line-height:1;flex:0 0 auto}
-@media(max-width:780px){body.business-embedded .workspace{min-height:100dvh;height:100dvh}body.business-embedded .main{height:100dvh}}
+/* Real-data panels + registration (added) */
+.panel-view[hidden] { display: none; }
+.biz-note { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.field { margin: 10px 0; }
+.field label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--ink); }
+.field input, .field textarea {
+  width: 100%; box-sizing: border-box; border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 12px; font: inherit; font-size: 13px; background: #fff; color: var(--ink);
+}
+.owner-actions { margin-top: 12px; }
+.owner-actions button, #regSubmit {
+  background: var(--forest); color: #fff; border: none; border-radius: 10px;
+  padding: 11px 18px; font-weight: 700; font-size: 13px;
+}
+.owner-actions button:disabled, #regSubmit:disabled { opacity: .6; cursor: default; }
+.biz-plan-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 9px; margin: 10px 0; }
+.biz-plan-card {
+  position: relative; display: block; border: 1px solid var(--line); border-radius: 12px;
+  padding: 11px; background: var(--pale-light); cursor: pointer;
+}
+.biz-plan-card:has(input:checked) { border: 2px solid var(--green); background: var(--pale); }
+.biz-plan-card input { position: absolute; right: 9px; top: 9px; }
+.biz-plan-card b { display: block; font-size: 13px; padding-right: 18px; }
+.biz-plan-card .biz-plan-price { display: block; font-size: 17px; font-weight: 800; color: var(--forest); margin: 6px 0 2px; }
+.real-product-row, .real-order-row {
+  display: flex; align-items: center; gap: 12px; padding: 11px 2px; border-bottom: 1px solid var(--line);
+}
+.real-product-row:last-child, .real-order-row:last-child { border-bottom: none; }
+.real-badge {
+  display: inline-block; font-size: 10px; font-weight: 800; border-radius: 999px; padding: 3px 9px;
+  background: var(--pale); color: var(--forest);
+}
+.real-badge.off { background: #f3eeea; color: var(--muted); }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
 
 <svg style="display:none" aria-hidden="true">
   <symbol id="i-menu" viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
   <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.2 8.8 13 13l-4.2 2.2L11 11z"/></symbol>
   <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M9.5 20a2.5 2.5 0 0 0 5 0"/></symbol>
@@ -994,13 +1020,13 @@ body.business-embedded .sidebar{max-height:100dvh}
   </div>
 
   <div class="store-switch">
-    <img class="store-photo"
+    <img class="store-photo" id="storePhoto"
       src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=120&h=120&fit=crop"
-      alt="Kijani store">
+      alt="Store photo">
 
     <div>
-      <div class="store-name">Kijani Home &amp; Living</div>
-      <div class="verified">● Verified Store</div>
+      <div class="store-name" id="storeNameLabel">Loading…</div>
+      <div class="verified" id="storeStatusLabel">●&nbsp;Checking status…</div>
     </div>
 
     <span style="margin-left:auto"><svg class="std-icon"><use href="#i-chevron-down"/></svg></span>
@@ -1009,36 +1035,36 @@ body.business-embedded .sidebar{max-height:100dvh}
   <div class="nav-label">Manage your business</div>
 
   <nav class="side-nav">
-    <a class="nav-item active" href="#overview">
+    <a class="nav-item active" href="#overview" data-panel="overview">
       <span class="nav-icon"><svg class="std-icon"><use href="#i-home"/></svg></span>Overview
     </a>
 
-    <a class="nav-item" href="#storefront">
+    <a class="nav-item" href="#storefront" data-panel="storefront">
       <span class="nav-icon"><svg class="std-icon"><use href="#i-storefront"/></svg></span>Storefront
     </a>
 
-    <a class="nav-item" href="#products">
+    <a class="nav-item" href="#products" data-panel="products">
       <span class="nav-icon"><svg class="std-icon"><use href="#i-box"/></svg></span>Products
+      <span class="count" id="navProductCount" hidden>0</span>
     </a>
 
-    <a class="nav-item" href="#orders">
+    <a class="nav-item" href="#orders" data-panel="orders">
       <span class="nav-icon"><svg class="std-icon"><use href="#i-cart"/></svg></span>Orders
-      <span class="count">3</span>
     </a>
 
-    <a class="nav-item" href="#customers">
+    <a class="nav-item" href="#customers" data-panel="customers">
       <span class="nav-icon"><svg class="std-icon"><use href="#i-users"/></svg></span>Customers
     </a>
 
-    <a class="nav-item" href="#promotions">
+    <a class="nav-item" href="#promotions" data-panel="promotions">
       <span class="nav-icon"><svg class="std-icon"><use href="#i-megaphone"/></svg></span>Promotions
     </a>
 
-    <a class="nav-item" href="#analytics">
+    <a class="nav-item" href="#analytics" data-panel="analytics">
       <span class="nav-icon"><svg class="std-icon"><use href="#i-bar-chart"/></svg></span>Analytics
     </a>
 
-    <a class="nav-item" href="#settings">
+    <a class="nav-item" href="#settings" data-panel="settings">
       <span class="nav-icon"><svg class="std-icon"><use href="#i-settings"/></svg></span>Website settings
     </a>
   </nav>
@@ -1059,11 +1085,13 @@ body.business-embedded .sidebar{max-height:100dvh}
 
 <!-- MAIN BUSINESS DASHBOARD -->
 
-<main class="main" id="overview">
+<main class="main">
 
 <header class="topbar">
 
   <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Open business menu" aria-expanded="false"><svg class="std-icon"><use href="#i-menu"/></svg></button>
+
+  <button class="icon-btn" id="storeManagerClose" aria-label="Close store manager" title="Back to Mjadala"><svg class="std-icon"><use href="#i-close"/></svg></button>
 
   <label class="search">
     <span><svg class="std-icon"><use href="#i-search"/></svg></span>
@@ -1072,17 +1100,16 @@ body.business-embedded .sidebar{max-height:100dvh}
   </label>
 
   <div class="top-actions">
-    <button class="business-close" id="businessClose" type="button" aria-label="Close business dashboard" title="Back to Mjadala">×</button>
 
     <button class="icon-btn"
       aria-label="Notifications"
-      onclick="notify('You have 2 new notifications.')">
-      <svg class="std-icon"><use href="#i-bell"/></svg><span class="dot">2</span>
+      onclick="notify('No new notifications.')">
+      <svg class="std-icon"><use href="#i-bell"/></svg><span class="dot" id="notifDot" hidden>0</span>
     </button>
 
     <div class="profile">
-      <div class="profile-avatar" aria-hidden="true">BO</div>
-      <span>Business Owner</span>
+      <div class="profile-avatar" id="profileAvatar" aria-hidden="true">BO</div>
+      <span id="profileNameLabel">Business Owner</span>
       <span><svg class="std-icon"><use href="#i-chevron-down"/></svg></span>
     </div>
 
@@ -1091,17 +1118,48 @@ body.business-embedded .sidebar{max-height:100dvh}
 
 <section class="content">
 
+  <!-- GATE: shown while checking session / when signed out / when no store exists yet -->
+  <div class="panel-view" id="view-gate">
+    <section class="card panel" id="gateCard" style="text-align:center;padding:34px 20px">
+      <div class="store-illustration" style="margin:0 auto 14px"><svg class="std-icon"><use href="#i-storefront"/></svg></div>
+      <h2 id="gateTitle" style="margin:0 0 8px">Checking your business account…</h2>
+      <p id="gateMessage" class="biz-note" style="max-width:420px;margin:0 auto 16px;color:var(--muted)"></p>
+      <div id="gateAction"></div>
+    </section>
+
+    <!-- Registration form: reuses the same Mjadala business-application flow, so it is approved
+         by the Mjadala team exactly like applying inside the main app. -->
+    <section class="card panel" id="registerCard" hidden>
+      <div class="panel-head">
+        <div class="panel-title">
+          <span class="panel-icon"><svg class="std-icon"><use href="#i-storefront"/></svg></span>
+          Register your business
+        </div>
+      </div>
+      <p class="biz-note" style="color:var(--muted)">Your application is reviewed by the Mjadala team before your store goes live. This is the same registration used across Mjadala.</p>
+      <div id="registerPlans"><p class="biz-note">Loading available plans…</p></div>
+      <div class="field"><label for="regName">Business or trading name</label><input id="regName" maxlength="100" placeholder="e.g. Kijani Home &amp; Living"></div>
+      <div class="field"><label for="regDescription">What do you sell or offer?</label><textarea id="regDescription" rows="2" maxlength="500" placeholder="Brief description"></textarea></div>
+      <div class="field"><label for="regLocation">Location (area / estate / market)</label><input id="regLocation" maxlength="140" placeholder="e.g. Gikomba, Nairobi"></div>
+      <div class="field"><label for="regPhone">Contact phone (optional)</label><input id="regPhone" maxlength="30" placeholder="Phone number"></div>
+      <div class="owner-actions"><button type="button" id="regSubmit">Submit application</button></div>
+      <p class="biz-note" id="regStatus" aria-live="polite"></p>
+    </section>
+  </div>
+
+  <div class="panel-view" id="view-overview" hidden>
+
   <!-- WELCOME -->
 
   <div class="welcome">
 
-    <img class="welcome-photo"
+    <img class="welcome-photo" id="welcomePhoto"
       src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=180&h=180&fit=crop"
-      alt="Kijani Home and Living storefront">
+      alt="Storefront">
 
     <div>
-      <h1>Good morning, Business Owner</h1>
-      <p>Your store at a glance</p>
+      <h1 id="welcomeHeading">Good morning, Business Owner</h1>
+      <p id="welcomeSub">Your store at a glance</p>
     </div>
 
     <button class="date-select"
@@ -1152,12 +1210,13 @@ body.business-embedded .sidebar{max-height:100dvh}
     </article>
 
   </div>
+  <small style="display:block;margin:-10px 0 14px;color:var(--muted)">Sales, visitor and conversion figures above are illustrative — connect real analytics later. Product counts below are real.</small>
 
   <!-- SALES AND ORDERS -->
 
   <div class="middle">
 
-    <section class="card panel" id="analytics">
+    <section class="card panel" id="salesPerformanceCard">
 
       <div class="panel-head">
         <div class="panel-title">
@@ -1237,7 +1296,7 @@ body.business-embedded .sidebar{max-height:100dvh}
 
     </section>
 
-    <section class="card panel" id="orders">
+    <section class="card panel" id="recentOrdersCard">
 
       <div class="panel-head">
         <div class="panel-title">
@@ -1246,7 +1305,7 @@ body.business-embedded .sidebar{max-height:100dvh}
         </div>
 
         <button class="link-btn"
-          onclick="notify('Opening all orders — demo')">
+          onclick="goToPanel('orders')">
           View all <svg class="std-icon"><use href="#i-chevron-right"/></svg>
         </button>
       </div>
@@ -1313,28 +1372,28 @@ body.business-embedded .sidebar{max-height:100dvh}
       <div class="quick-grid">
 
         <button class="quick"
-          onclick="notify('Add product flow — demo')">
+          onclick="goToPanel('products')">
           <div class="qicon"><svg class="std-icon"><use href="#i-box"/></svg></div>
           <strong>Add product</strong>
           <small>List new items</small>
         </button>
 
         <button class="quick"
-          onclick="notify('Promotion builder — demo')">
+          onclick="goToPanel('promotions')">
           <div class="qicon"><svg class="std-icon"><use href="#i-flag"/></svg></div>
           <strong>Create promotion</strong>
           <small>Boost your store</small>
         </button>
 
         <button class="quick"
-          onclick="notify('Website editor — demo')">
+          onclick="goToPanel('settings')">
           <div class="qicon"><svg class="std-icon"><use href="#i-globe"/></svg></div>
           <strong>Edit website</strong>
           <small>Update your site</small>
         </button>
 
         <button class="quick"
-          onclick="notify('Order manager — demo')">
+          onclick="goToPanel('orders')">
           <div class="qicon"><svg class="std-icon"><use href="#i-list"/></svg></div>
           <strong>View orders</strong>
           <small>Manage orders</small>
@@ -1343,7 +1402,7 @@ body.business-embedded .sidebar{max-height:100dvh}
       </div>
     </section>
 
-    <section class="card panel" id="settings">
+    <section class="card panel" id="storeHealthCard">
 
       <div class="panel-head">
         <div class="panel-title">
@@ -1352,7 +1411,7 @@ body.business-embedded .sidebar{max-height:100dvh}
         </div>
 
         <button class="link-btn"
-          onclick="notify('Store health details — demo')">
+          onclick="goToPanel('settings')">
           View details <svg class="std-icon"><use href="#i-chevron-right"/></svg>
         </button>
       </div>
@@ -1390,6 +1449,64 @@ body.business-embedded .sidebar{max-height:100dvh}
 
   </div>
 
+  </div><!-- /view-overview -->
+
+  <div class="panel-view" id="view-storefront" hidden>
+    <section class="card panel">
+      <div class="panel-head"><div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-storefront"/></svg></span>Storefront</div></div>
+      <div id="storefrontInfo"><p class="biz-note">Loading…</p></div>
+    </section>
+  </div>
+
+  <div class="panel-view" id="view-products" hidden>
+    <section class="card panel">
+      <div class="panel-head">
+        <div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-box"/></svg></span>Products</div>
+        <button class="link-btn" onclick="window.open('index.html','_blank')">Add product in Mjadala <svg class="std-icon"><use href="#i-chevron-right"/></svg></button>
+      </div>
+      <p class="biz-note" style="color:var(--muted)">Products are added and edited from "Open My Business" in the main Mjadala app. They appear here once saved.</p>
+      <div id="productsList"><p class="biz-note">Loading your products…</p></div>
+    </section>
+  </div>
+
+  <div class="panel-view" id="view-orders" hidden>
+    <section class="card panel">
+      <div class="panel-head"><div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-clock"/></svg></span>Orders</div></div>
+      <div id="ordersListFull"><p class="biz-note">Loading your orders…</p></div>
+    </section>
+  </div>
+
+  <div class="panel-view" id="view-customers" hidden>
+    <section class="card panel" style="text-align:center;padding:30px 20px">
+      <div class="store-illustration" style="margin:0 auto 12px"><svg class="std-icon"><use href="#i-users"/></svg></div>
+      <h3 style="margin:0 0 6px">Customers</h3>
+      <p class="biz-note" style="color:var(--muted)">A customer list is coming soon. For now, you can see buyers on each order.</p>
+    </section>
+  </div>
+
+  <div class="panel-view" id="view-promotions" hidden>
+    <section class="card panel" style="text-align:center;padding:30px 20px">
+      <div class="store-illustration" style="margin:0 auto 12px"><svg class="std-icon"><use href="#i-megaphone"/></svg></div>
+      <h3 style="margin:0 0 6px">Promotions</h3>
+      <p class="biz-note" style="color:var(--muted)">Promotion tools aren't built yet. Advertising for your store can already be managed from the main Mjadala app.</p>
+    </section>
+  </div>
+
+  <div class="panel-view" id="view-analytics" hidden>
+    <section class="card panel" style="text-align:center;padding:30px 20px">
+      <div class="store-illustration" style="margin:0 auto 12px"><svg class="std-icon"><use href="#i-bar-chart"/></svg></div>
+      <h3 style="margin:0 0 6px">Analytics</h3>
+      <p class="biz-note" style="color:var(--muted)">Detailed analytics are coming soon. The Sales performance chart on Overview is illustrative for now.</p>
+    </section>
+  </div>
+
+  <div class="panel-view" id="view-settings" hidden>
+    <section class="card panel">
+      <div class="panel-head"><div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-settings"/></svg></span>Website settings</div></div>
+      <div id="settingsInfo"><p class="biz-note">Loading…</p></div>
+    </section>
+  </div>
+
 </section>
 </main>
 </div>
@@ -1425,8 +1542,6 @@ body.business-embedded .sidebar{max-height:100dvh}
 </div>
 
 <script>
-if (new URLSearchParams(location.search).has('embed')) document.body.classList.add('business-embedded');
-
 let toastTimer;
 
 function notify(message) {
@@ -1441,24 +1556,24 @@ function notify(message) {
   }, 2300);
 }
 
+function goToPanel(name) {
+  document.querySelectorAll('.panel-view').forEach(p => {
+    if (p.id === 'view-gate') return; // gate hides/shows itself based on auth state
+    p.hidden = (p.id !== 'view-' + name);
+  });
+  document.querySelectorAll('.side-nav .nav-item').forEach(x => {
+    x.classList.toggle('active', x.getAttribute('data-panel') === name);
+  });
+}
+
 document.querySelectorAll('.side-nav .nav-item').forEach(item => {
-  item.addEventListener('click', () => {
-
-    document.querySelectorAll('.side-nav .nav-item')
-      .forEach(x => x.classList.remove('active'));
-
-    item.classList.add('active');
-
-    if (item.getAttribute('href') !== '#overview') {
-      notify(item.textContent.trim() + ' section — preview only');
-    }
-
+  item.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (!window.bizStoreReady) { showOnlyPanel('view-gate'); closeSidebar(); return; }
+    const panel = item.getAttribute('data-panel') || 'overview';
+    goToPanel(panel);
     closeSidebar();
   });
-});
-
-document.getElementById('businessClose')?.addEventListener('click',()=>{
-  if (new URLSearchParams(location.search).has('embed')) parent.postMessage({type:'MJADALA_BUSINESS_CLOSE'}, location.origin);
 });
 
 const businessSidebar = document.getElementById('businessSidebar');
@@ -1488,6 +1603,239 @@ if (menuToggle) {
 if (sidebarBackdrop) {
   sidebarBackdrop.addEventListener('click', closeSidebar);
 }
+
+const storeManagerClose = document.getElementById('storeManagerClose');
+if (storeManagerClose) {
+  storeManagerClose.addEventListener('click', () => {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'MJADALA_STORE_CLOSE' }, location.origin);
+    } else {
+      window.location.href = 'index.html';
+    }
+  });
+}
+
+/* ===================== Real data: Supabase wiring ===================== */
+
+const SUPABASE_URL = 'https://olqwfscmhtdseljvfqvm.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_Ay8LXBjvNhXQJDKQMF_Etw_SMb6_z4M';
+let sb = null;
+try {
+  sb = window.mjadalaSupabaseClient || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  });
+  window.mjadalaSupabaseClient = sb;
+} catch (e) {
+  console.error('Supabase client could not be created:', e);
+}
+
+function bizEsc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+const bz = id => document.getElementById(id);
+
+let bizUser = null;
+let bizStore = null;      // row from business_profiles, or null
+let bizPlans = [];
+
+function showOnlyPanel(viewId) {
+  document.querySelectorAll('.panel-view').forEach(p => { p.hidden = (p.id !== viewId); });
+}
+
+function setGate(state, opts) {
+  opts = opts || {};
+  showOnlyPanel('view-gate');
+  const title = bz('gateTitle'), msg = bz('gateMessage'), action = bz('gateAction'), registerCard = bz('registerCard');
+  registerCard.hidden = true;
+  action.innerHTML = '';
+  if (state === 'loading') {
+    title.textContent = 'Checking your business account…';
+    msg.textContent = '';
+  } else if (state === 'signedOut') {
+    title.textContent = 'Sign in to Mjadala first';
+    msg.textContent = 'This dashboard is tied to your Mjadala account. Sign in on the main app, then reopen this page.';
+    action.innerHTML = '<a href="index.html" style="color:var(--forest-dark);font-weight:800;text-decoration:underline">Open Mjadala to sign in</a>';
+  } else if (state === 'noStore') {
+    title.textContent = "You don't have a registered store yet";
+    msg.textContent = 'Fill in the form below to apply. The Mjadala team reviews every application before a store goes live.';
+    registerCard.hidden = false;
+    loadRegistrationForm();
+  } else if (state === 'pending') {
+    title.textContent = 'Your application is pending review';
+    msg.textContent = 'Thanks for applying as "' + bizEsc(opts.name || '') + '". The Mjadala team is reviewing it — check back soon.';
+  } else if (state === 'rejected') {
+    title.textContent = 'Your last application needs attention';
+    msg.textContent = 'Your application for "' + bizEsc(opts.name || '') + '" was not approved. You can contact Mjadala support, or apply again below.';
+    registerCard.hidden = false;
+    loadRegistrationForm();
+  } else if (state === 'error') {
+    title.textContent = 'Could not load your business account';
+    msg.textContent = opts.message || 'Please refresh this page and try again.';
+  }
+}
+
+async function loadRegistrationForm() {
+  const host = bz('registerPlans');
+  const submitBtn = bz('regSubmit');
+  const statusEl = bz('regStatus');
+  try {
+    if (!bizPlans.length) {
+      const { data, error } = await sb.from('mj_business_plans').select('*').eq('is_active', true).order('sort_order');
+      if (error) throw error;
+      bizPlans = data || [];
+    }
+    if (!bizPlans.length) {
+      host.innerHTML = '<p class="biz-note">No business plans are available to choose right now. Please check back soon.</p>';
+    } else {
+      host.innerHTML = '<div class="biz-plan-grid">' + bizPlans.map(p => (
+        '<label class="biz-plan-card"><input type="radio" name="regPlan" value="' + bizEsc(p.id) + '">' +
+        '<b>' + bizEsc(p.plan_name) + '</b>' +
+        '<span class="biz-plan-price">' + (Number(p.price_kes) === 0 ? 'Free' : 'KSh ' + Number(p.price_kes).toLocaleString('en-KE')) + '</span>' +
+        '<small>Per ' + Number(p.billing_days) + ' days · ' + bizEsc(p.description || 'Business listing and product tools') + '</small></label>'
+      )).join('') + '</div>';
+    }
+  } catch (e) {
+    host.innerHTML = '<p class="biz-note">Plans could not load: ' + bizEsc(e.message) + '</p>';
+  }
+
+  if (submitBtn && !submitBtn.dataset.wired) {
+    submitBtn.dataset.wired = '1';
+    submitBtn.addEventListener('click', async () => {
+      const name = bz('regName').value.trim();
+      if (!name) { statusEl.textContent = 'Enter your business or trading name.'; return; }
+      const selectedPlan = document.querySelector('input[name="regPlan"]:checked')?.value;
+      if (bizPlans.length && !selectedPlan) { statusEl.textContent = 'Choose a business plan before submitting.'; return; }
+      submitBtn.disabled = true;
+      statusEl.textContent = 'Submitting…';
+      try {
+        const open = await sb.rpc('mj_get_business_registration_open');
+        if (open.error || !open.data) { statusEl.textContent = 'Business applications are currently closed. Please check back later.'; submitBtn.disabled = false; return; }
+        const { error } = await sb.from('mj_business_applications').insert({
+          user_id: bizUser.id,
+          business_name: name,
+          description: bz('regDescription').value.trim(),
+          location_text: bz('regLocation').value.trim(),
+          contact_phone: bz('regPhone').value.trim(),
+          selected_plan_id: selectedPlan || null
+        });
+        if (error) { statusEl.textContent = 'Could not submit: ' + error.message; submitBtn.disabled = false; return; }
+        statusEl.textContent = 'Application submitted. You can publish products after approval.';
+        setGate('pending', { name });
+      } catch (e) {
+        statusEl.textContent = 'Could not submit: ' + e.message;
+        submitBtn.disabled = false;
+      }
+    });
+  }
+}
+
+function initials(text) {
+  return String(text || '').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || 'MJ';
+}
+
+async function loadBusinessDashboard() {
+  setGate('loading');
+  try {
+    if (!sb) throw new Error('Connection to Mjadala could not be set up. Check your internet connection and reload.');
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { setGate('signedOut'); return; }
+    bizUser = session.user;
+
+    const profileRes = await sb.from('profiles').select('nickname,avatar_url').eq('id', bizUser.id).maybeSingle();
+    const ownerName = (profileRes.data && profileRes.data.nickname) || bizUser.email?.split('@')[0] || 'Business owner';
+    bz('profileNameLabel').textContent = 'Business Owner';
+    bz('profileAvatar').textContent = initials(ownerName);
+    bz('welcomeHeading').textContent = 'Good morning, ' + bizEsc(ownerName);
+
+    const storeRes = await sb.from('business_profiles').select('*').eq('user_id', bizUser.id).maybeSingle();
+    if (storeRes.error) throw storeRes.error;
+
+    if (storeRes.data) {
+      bizStore = storeRes.data;
+      window.bizStoreReady = true;
+      renderStoreIdentity(bizStore);
+      showOnlyPanel('view-overview');
+      document.querySelectorAll('.side-nav .nav-item').forEach(x => x.classList.toggle('active', x.getAttribute('data-panel') === 'overview'));
+      loadProducts();
+      loadOrdersPreview();
+    } else {
+      const appRes = await sb.from('mj_business_applications')
+        .select('business_name,status,created_at')
+        .eq('user_id', bizUser.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const latest = appRes.data;
+      if (latest && String(latest.status).toLowerCase() === 'pending') {
+        setGate('pending', { name: latest.business_name });
+      } else if (latest && String(latest.status).toLowerCase() !== 'approved') {
+        setGate('rejected', { name: latest.business_name });
+      } else {
+        setGate('noStore');
+      }
+    }
+  } catch (e) {
+    console.error('Business dashboard could not load:', e);
+    setGate('error', { message: e.message });
+  }
+}
+
+function renderStoreIdentity(store) {
+  const name = store.business_name || 'Your store';
+  bz('storeNameLabel').textContent = name;
+  const status = (store.directory_status || 'pending').toLowerCase();
+  const statusLabel = status === 'approved' ? '● Verified Store' : status === 'suspended' ? '● Suspended' : '● Pending approval';
+  bz('storeStatusLabel').textContent = statusLabel;
+  bz('welcomeSub').textContent = name + ' — your store at a glance';
+}
+
+async function loadProducts() {
+  const host = bz('productsList');
+  try {
+    const { data, error } = await sb.from('business_products').select('id,product_name,price,published,created_at').eq('seller_id', bizUser.id).order('created_at', { ascending: false });
+    if (error) throw error;
+    const rows = data || [];
+    const countBadge = bz('navProductCount');
+    if (countBadge) { countBadge.hidden = rows.length === 0; countBadge.textContent = rows.length; }
+    if (!rows.length) {
+      host.innerHTML = '<p class="biz-note">No products yet. Add your first product from "Open My Business" in the main Mjadala app.</p>';
+      return;
+    }
+    host.innerHTML = rows.map(p =>
+      '<div class="real-product-row"><div style="flex:1"><strong>' + bizEsc(p.product_name || 'Untitled product') + '</strong><br>' +
+      '<small class="biz-note">KSh ' + (Number(p.price) || 0).toLocaleString('en-KE') + '</small></div>' +
+      '<span class="real-badge' + (p.published ? '' : ' off') + '">' + (p.published ? 'Published' : 'Unpublished') + '</span></div>'
+    ).join('');
+  } catch (e) {
+    host.innerHTML = '<p class="biz-note">Products could not load: ' + bizEsc(e.message) + '</p>';
+  }
+}
+
+async function loadOrdersPreview() {
+  const fullHost = bz('ordersListFull');
+  try {
+    const { data, error } = await sb.from('business_orders').select('*').eq('seller_id', bizUser.id).order('created_at', { ascending: false }).limit(20);
+    if (error) throw error;
+    const rows = data || [];
+    if (!rows.length) {
+      fullHost.innerHTML = '<p class="biz-note">No orders yet. They will appear here once customers start buying from your store.</p>';
+      return;
+    }
+    fullHost.innerHTML = rows.map(o => {
+      const amount = o.total_amount ?? o.amount ?? o.total ?? null;
+      const status = o.payment_status ?? o.status ?? 'unknown';
+      const when = o.created_at ? new Date(o.created_at).toLocaleDateString() : '';
+      return '<div class="real-order-row"><div style="flex:1"><strong>Order ' + bizEsc(String(o.id).slice(0, 8)) + '</strong><br>' +
+        '<small class="biz-note">' + when + '</small></div>' +
+        (amount != null ? '<span>KSh ' + Number(amount).toLocaleString('en-KE') + '</span>' : '') +
+        '<span class="real-badge">' + bizEsc(status) + '</span></div>';
+    }).join('');
+  } catch (e) {
+    fullHost.innerHTML = '<p class="biz-note">Order history isn\'t available here yet' + (e.message ? ' (' + bizEsc(e.message) + ')' : '') + '.</p>';
+  }
+}
+
+loadBusinessDashboard();
 </script>
 
 </body>

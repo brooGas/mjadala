@@ -250,7 +250,7 @@ button,input{font:inherit}button{cursor:pointer}
 </style>
 
 <style id="mjadala-watt-ai-entry-style">
-#wattAiLaunch{position:fixed;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:8500;width:58px;height:58px;border:2px solid #8ce9d1;border-radius:50%;background:radial-gradient(circle at 32% 25%,#35d9c0 0,#087e70 48%,#082f32 100%);color:#eafffb;box-shadow:0 0 0 4px #35d9c022,0 8px 24px #062f2b66;display:grid;place-items:center;cursor:pointer}#wattAiLaunch .watt-ai-face{position:relative;width:31px;height:25px;border:2px solid #d9fff4;border-radius:11px 11px 9px 9px;background:linear-gradient(145deg,#eafffb,#a8f5e2);box-shadow:inset 0 -3px 5px #2b9d88}#wattAiLaunch .watt-ai-face:before{content:"";position:absolute;left:6px;top:7px;width:4px;height:5px;border-radius:50%;background:#07534d;box-shadow:12px 0 #07534d}#wattAiLaunch .watt-ai-face:after{content:"";position:absolute;left:11px;bottom:4px;width:6px;height:2px;border-radius:2px;background:#168879}#wattAiLaunch .watt-ai-face i{position:absolute;width:5px;height:7px;left:-6px;top:8px;border-radius:4px 0 0 4px;background:#9cf0dd;box-shadow:33px 0 #9cf0dd}#wattAiLaunch .watt-ai-face b{position:absolute;width:2px;height:6px;left:13px;top:-8px;background:#baffed;border-radius:2px}#wattAiLaunch .watt-ai-face b:after{content:"";position:absolute;width:6px;height:6px;left:-2px;top:-4px;border-radius:50%;background:#c8fff1;box-shadow:0 0 7px #8ffff0}#wattAiOverlay{position:fixed;inset:0;z-index:20000;background:#f3f7f5;display:none}#wattAiOverlay.open{display:block}#wattAiFrame{display:block;width:100%;height:100%;border:0;background:#f3f7f5}@media(min-width:700px){#wattAiLaunch{right:25px;bottom:25px}}
+#wattAiLaunch{position:fixed;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:8500;width:58px;height:58px;border:2px solid #8ce9d1;border-radius:50%;background:radial-gradient(circle at 32% 25%,#35d9c0 0,#087e70 48%,#082f32 100%);color:#eafffb;box-shadow:0 0 0 4px #35d9c022,0 8px 24px #062f2b66;display:grid;place-items:center;cursor:pointer}#wattAiLaunch .watt-ai-face{position:relative;width:31px;height:25px;border:2px solid #d9fff4;border-radius:11px 11px 9px 9px;background:linear-gradient(145deg,#eafffb,#a8f5e2);box-shadow:inset 0 -3px 5px #2b9d88}#wattAiLaunch .watt-ai-face:before{content:"";position:absolute;left:6px;top:7px;width:4px;height:5px;border-radius:50%;background:#07534d;box-shadow:12px 0 #07534d}#wattAiLaunch .watt-ai-face:after{content:"";position:absolute;left:11px;bottom:4px;width:6px;height:2px;border-radius:2px;background:#168879}#wattAiLaunch .watt-ai-face i{position:absolute;width:5px;height:7px;left:-6px;top:8px;border-radius:4px 0 0 4px;background:#9cf0dd;box-shadow:33px 0 #9cf0dd}#wattAiLaunch .watt-ai-face b{position:absolute;width:2px;height:6px;left:13px;top:-8px;background:#baffed;border-radius:2px}#wattAiLaunch .watt-ai-face b:after{content:"";position:absolute;width:6px;height:6px;left:-2px;top:-4px;border-radius:50%;background:#c8fff1;box-shadow:0 0 7px #8ffff0}#wattAiOverlay{position:fixed;inset:0;z-index:20000;background:#f3f7f5;display:none}#wattAiOverlay.open{display:block}#wattAiFrame{display:block;width:100%;height:100%;border:0;background:#f3f7f5}@media(min-width:700px){#wattAiLaunch{right:25px;bottom:25px}}#storeManagerOverlay{position:fixed;inset:0;z-index:20000;background:#f3f7f5;display:none}#storeManagerOverlay.open{display:block}#storeManagerFrame{display:block;width:100%;height:100%;border:0;background:#f3f7f5}
 body.mj-on-reels #wattAiLaunch{display:none}
 </style>
 </head>
@@ -324,30 +324,7 @@ body.mj-on-reels #wattAiLaunch{display:none}
      <div class="section-title">Browse by topic</div><div class="category-grid"><div class="category"><span><svg class="std-icon"><use href="#i-settings"/></svg></span>Engineering</div><div class="category"><span><svg class="std-icon"><use href="#i-briefcase"/></svg></span>Business</div><div class="category"><span><svg class="std-icon"><use href="#i-sparkles"/></svg></span>Innovation</div><div class="category"><span><svg class="std-icon"><use href="#i-book"/></svg></span>Education</div></div>
      <div class="section-title">Business workspace <span class="subtle">Manage your presence</span></div>
      <div class="row-card"><div class="thumb"><svg class="std-icon"><use href="#i-briefcase"/></svg></div><div class="grow"><h4 id="myBusinessTitle">My Business</h4><p id="myBusinessOwner">Create your business profile and manage your products.</p></div><button class="mini-btn" id="openMyBusiness" type="button">Open</button></div>
-
-     <style id="mjadala-manage-business-launcher-style">
-      #manageBusinessLauncher{margin:14px 0 18px;padding:14px 16px;border:1px solid #dce7d8;border-radius:16px;background:linear-gradient(110deg,#174b35,#0f3b2a);color:#fff;display:flex;align-items:center;gap:13px;box-shadow:0 8px 22px rgba(23,75,53,.10)}
-      #manageBusinessLauncher .manage-business-icon{width:42px;height:42px;flex:0 0 42px;border-radius:13px;background:rgba(255,255,255,.13);display:grid;place-items:center}
-      #manageBusinessLauncher .manage-business-icon svg{width:23px;height:23px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-      #manageBusinessLauncher .manage-business-copy{min-width:0;flex:1}
-      #manageBusinessLauncher strong{display:block;font-size:15px}
-      #manageBusinessLauncher small{display:block;margin-top:3px;color:#dcebdc;font-size:11px}
-      #manageBusinessOpen{border:1px solid rgba(255,255,255,.35);border-radius:10px;background:#fff;color:#174b35;font-weight:800;padding:10px 15px;min-height:40px;cursor:pointer;white-space:nowrap}
-      #manageBusinessScreen{position:fixed;inset:0;z-index:15000;background:#f5f6ef;display:none;overflow:hidden}
-      #manageBusinessScreen.open{display:block}
-      #manageBusinessScreen iframe{display:block;width:100%;height:100%;border:0;background:#f5f6ef}
-      body.business-dashboard-open{overflow:hidden!important}
-      @media(max-width:480px){#manageBusinessLauncher{padding:12px;gap:10px}#manageBusinessLauncher .manage-business-icon{width:38px;height:38px;flex-basis:38px}#manageBusinessOpen{padding:9px 12px}}
-     </style>
-     <div id="manageBusinessLauncher">
-      <div class="manage-business-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 8h8M8 12h5M8 16h8"/></svg></div>
-      <div class="manage-business-copy"><strong>Manage My Business</strong><small>Open your business dashboard</small></div>
-      <button id="manageBusinessOpen" type="button">Open</button>
-     </div>
-     <section id="manageBusinessScreen" aria-label="Manage My Business dashboard" aria-hidden="true">
-      <iframe id="manageBusinessFrame" src="business-dashboard.html?embed=1" title="Mjadala Business dashboard" loading="lazy"></iframe>
-     </section>
-
+     <div class="row-card"><div class="thumb"><svg class="std-icon"><use href="#i-grid"/></svg></div><div class="grow"><h4>Manage my store</h4><p>Your full dashboard — orders, products, storefront and more.</p></div><button class="mini-btn" id="openStoreManager" type="button">Open</button></div>
      <div class="section-title">Business owner tools <span class="subtle">Seller workspace</span></div>
      <div class="owner-panel" id="ownerPanel">
       <h4>My Business</h4><p id="businessProfileStatus">Set up your seller profile once. Your published products will appear in the marketplace.</p><div class="field"><label for="sellerBusinessName">Business name</label><input id="sellerBusinessName" maxlength="100" placeholder="Your registered or trading name"></div><p class="subtle" id="businessOwnerLabel">Owner: signed-in account</p>
@@ -645,38 +622,14 @@ updateHeaderActions();
 <section id="wattAiOverlay" aria-label="Watt AI full-screen assistant" aria-hidden="true">
  <iframe id="wattAiFrame" src="/watt-ai.html" title="Watt AI"></iframe>
 </section>
+<section id="storeManagerOverlay" aria-label="Manage my store" aria-hidden="true">
+ <iframe id="storeManagerFrame" src="/business-dashboard.html" title="Manage my store"></iframe>
+</section>
 <script id="mjadala-watt-ai-entry">
 (()=>{const launch=document.getElementById('wattAiLaunch'),overlay=document.getElementById('wattAiOverlay'),frame=document.getElementById('wattAiFrame');if(!launch||!overlay||!frame)return;let previousY=0,previousFocus=null;async function sendGreeting(){let name='';let signedIn=false;try{const client=window.mjadalaSupabaseClient;if(client?.auth?.getUser){const {data}=await client.auth.getUser();const user=data?.user;if(user){signedIn=true;name=user.user_metadata?.nickname||user.user_metadata?.display_name||user.user_metadata?.full_name||document.getElementById('liveProfileName')?.textContent?.trim()||user.email?.split('@')[0]||'';}}}catch(e){}if(!name||name==='Your profile')signedIn=false;frame.contentWindow?.postMessage({type:'MJADALA_WATT_GREETING',signedIn,name},location.origin)}function open(){previousY=window.scrollY;previousFocus=document.activeElement;overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';launch.style.visibility='hidden';if(frame.contentDocument?.readyState==='complete')sendGreeting();else frame.addEventListener('load',sendGreeting,{once:true});frame.focus()}function shut(){overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');document.body.style.overflow='';launch.style.visibility='visible';window.scrollTo(0,previousY);if(previousFocus?.focus)previousFocus.focus()}launch.addEventListener('click',open);window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data?.type==='MJADALA_WATT_CLOSE')shut()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('open'))shut()});frame.addEventListener('load',()=>{if(overlay.classList.contains('open'))sendGreeting()});})();
+(()=>{const btn=document.getElementById('openStoreManager'),overlay=document.getElementById('storeManagerOverlay'),frame=document.getElementById('storeManagerFrame');if(!btn||!overlay||!frame)return;let previousY=0,previousFocus=null;function open(){previousY=window.scrollY;previousFocus=document.activeElement;overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';frame.focus()}function shut(){overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');document.body.style.overflow='';window.scrollTo(0,previousY);if(previousFocus?.focus)previousFocus.focus()}btn.addEventListener('click',open);window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data?.type==='MJADALA_STORE_CLOSE')shut()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('open'))shut()});})();
 </script>
 
-
-<script id="mjadala-manage-business-fullscreen-entry">
-(()=>{
- const screen=document.getElementById('manageBusinessScreen');
- const openButton=document.getElementById('manageBusinessOpen');
- if(!screen||!openButton)return;
- let previousY=0;
- function openDashboard(){
-   previousY=window.scrollY;
-   screen.classList.add('open');
-   screen.setAttribute('aria-hidden','false');
-   document.body.classList.add('business-dashboard-open');
- }
- function closeDashboard(){
-   screen.classList.remove('open');
-   screen.setAttribute('aria-hidden','true');
-   document.body.classList.remove('business-dashboard-open');
-   window.scrollTo(0,previousY);
- }
- openButton.addEventListener('click',openDashboard);
- window.addEventListener('message',event=>{
-   if(event.origin===location.origin&&event.data?.type==='MJADALA_BUSINESS_CLOSE')closeDashboard();
- });
- document.addEventListener('keydown',event=>{
-   if(event.key==='Escape'&&screen.classList.contains('open'))closeDashboard();
- });
-})();
-</script>
 </body></html>
 <style>
 .live-auth-btn{width:42px!important;height:42px!important;flex:0 0 42px!important;padding:0!important;overflow:hidden;border-radius:50%!important;background:#fff!important;border:2px solid #fff!important;box-shadow:0 0 0 1px var(--line)}.live-auth-btn img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}.account-avatar-fallback{display:grid;place-items:center;width:100%;height:100%;font-size:12px;font-weight:900;color:var(--green);background:var(--ivory);border-radius:50%}.reel-trim-panel{border:1px solid var(--line);border-radius:14px;padding:10px;margin:8px 0;background:var(--soft)}.reel-trim-panel[hidden]{display:none}.reel-trim-panel video{width:100%;height:210px;max-height:34dvh;min-height:150px;object-fit:contain;background:#111;border-radius:10px;display:block;visibility:visible;opacity:1}.reel-trim-panel label{display:flex;justify-content:space-between;font-size:12px;font-weight:750;margin-top:8px}.reel-trim-panel input[type=range]{width:100%;accent-color:var(--green)}.reel-trim-panel p{font-size:11px;margin:6px 0;color:var(--muted)}
