@@ -324,6 +324,18 @@ body.mj-on-reels #wattAiLaunch{display:none}
      <div class="section-title">Browse by topic</div><div class="category-grid"><div class="category"><span><svg class="std-icon"><use href="#i-settings"/></svg></span>Engineering</div><div class="category"><span><svg class="std-icon"><use href="#i-briefcase"/></svg></span>Business</div><div class="category"><span><svg class="std-icon"><use href="#i-sparkles"/></svg></span>Innovation</div><div class="category"><span><svg class="std-icon"><use href="#i-book"/></svg></span>Education</div></div>
      <div class="section-title">Business workspace <span class="subtle">Manage your presence</span></div>
      <div class="row-card"><div class="thumb"><svg class="std-icon"><use href="#i-briefcase"/></svg></div><div class="grow"><h4 id="myBusinessTitle">My Business</h4><p id="myBusinessOwner">Create your business profile and manage your products.</p></div><button class="mini-btn" id="openMyBusiness" type="button">Open</button></div>
+     <style id="mjadala-manage-business-accordion-style">
+      #manageBusinessAccordion{margin:14px 0 18px;border:1px solid #dce7d8;border-radius:16px;overflow:hidden;background:#174b35;box-shadow:0 8px 22px rgba(23,75,53,.10)}
+      #manageBusinessToggle{width:100%;min-height:66px;padding:13px 16px;border:0;background:linear-gradient(110deg,#174b35,#0f3b2a);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;font:inherit;cursor:pointer}
+      #manageBusinessToggle strong{display:block;font-size:15px;letter-spacing:.1px}#manageBusinessToggle small{display:block;margin-top:3px;color:#dcebdc;font-size:11px}
+      #manageBusinessToggle .manage-chevron{font-size:20px;transition:transform .2s ease}#manageBusinessAccordion[open] #manageBusinessToggle .manage-chevron{transform:rotate(180deg)}
+      #manageBusinessFrameWrap{background:#f5f6ef;padding:0}#manageBusinessFrame{display:block;width:100%;height: min(900px, 105vh);min-height:680px;border:0;background:#f5f6ef}
+      @media(max-width:650px){#manageBusinessFrame{height:820px;min-height:720px}}
+     </style>
+     <details id="manageBusinessAccordion">
+      <summary id="manageBusinessToggle"><span><strong>Manage My Business</strong><small>Open your business dashboard</small></span><span class="manage-chevron" aria-hidden="true">⌄</span></summary>
+      <div id="manageBusinessFrameWrap"><iframe id="manageBusinessFrame" src="business-dashboard.html?embed=1" title="Mjadala Business dashboard" loading="lazy"></iframe></div>
+     </details>
      <div class="section-title">Business owner tools <span class="subtle">Seller workspace</span></div>
      <div class="owner-panel" id="ownerPanel">
       <h4>My Business</h4><p id="businessProfileStatus">Set up your seller profile once. Your published products will appear in the marketplace.</p><div class="field"><label for="sellerBusinessName">Business name</label><input id="sellerBusinessName" maxlength="100" placeholder="Your registered or trading name"></div><p class="subtle" id="businessOwnerLabel">Owner: signed-in account</p>
@@ -626,27 +638,21 @@ updateHeaderActions();
 </script>
 
 
-<style id="mjadala-business-dashboard-integration">
-#businessDashboardOverlay{position:fixed;inset:0 0 calc(62px + env(safe-area-inset-bottom));z-index:15000;background:#f5f6ef;display:none;overflow:hidden}
-#businessDashboardOverlay.open{display:block}
-#businessDashboardFrame{display:block;width:100%;height:100%;border:0;background:#f5f6ef}
-@media(min-width:781px){#businessDashboardOverlay{inset:0 0 70px}}
-</style>
-<section id="businessDashboardOverlay" aria-label="Mjadala Business dashboard" aria-hidden="true">
- <iframe id="businessDashboardFrame" src="business-dashboard.html?embed=1" title="Mjadala Business dashboard"></iframe>
-</section>
-<script id="mjadala-business-dashboard-entry">
+<script id="mjadala-manage-business-accordion-entry">
 (()=>{
+ const accordion=document.getElementById('manageBusinessAccordion');
  const openButton=document.getElementById('openMyBusiness');
- const overlay=document.getElementById('businessDashboardOverlay');
- const frame=document.getElementById('businessDashboardFrame');
- if(!openButton||!overlay||!frame)return;
- let previousFocus=null;
- function open(){previousFocus=document.activeElement;overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';frame.focus();}
- function close(){overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');document.body.style.overflow='';if(previousFocus?.focus)previousFocus.focus();}
- openButton.addEventListener('click',open);
- window.addEventListener('message',event=>{if(event.origin===location.origin&&event.data?.type==='MJADALA_BUSINESS_CLOSE')close();});
- document.addEventListener('keydown',event=>{if(event.key==='Escape'&&overlay.classList.contains('open'))close();});
+ if(!accordion)return;
+ openButton?.addEventListener('click',()=>{
+   accordion.open=true;
+   accordion.scrollIntoView({behavior:'smooth',block:'start'});
+ });
+ window.addEventListener('message',event=>{
+   if(event.origin===location.origin&&event.data?.type==='MJADALA_BUSINESS_CLOSE'){
+     accordion.open=false;
+     accordion.scrollIntoView({behavior:'smooth',block:'center'});
+   }
+ });
 })();
 </script>
 </body></html>
