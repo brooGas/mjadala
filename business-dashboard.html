@@ -1710,16 +1710,24 @@ async function loadRegistrationForm() {
       try {
         const open = await sb.rpc('mj_get_business_registration_open');
         if (open.error || !open.data) { statusEl.textContent = 'Business applications are currently closed. Please check back later.'; submitBtn.disabled = false; return; }
-        const { error } = await sb.from('mj_business_applications').insert({
+        const basePayload = {
           user_id: bizUser.id,
           business_name: name,
           description: bz('regDescription').value.trim(),
           location_text: bz('regLocation').value.trim(),
-          contact_phone: bz('regPhone').value.trim(),
-          selected_plan_id: selectedPlan || null
-        });
+          contact_phone: bz('regPhone').value.trim()
+        };
+        let { error } = await sb.from('mj_business_applications').insert({ ...basePayload, selected_plan_id: selectedPlan || null });
+        let planColumnMissing = false;
+        if (error && /selected_plan_id/.test(error.message || '')) {
+          // Column not present on this database yet — resubmit without it so the applicant isn't blocked.
+          planColumnMissing = true;
+          ({ error } = await sb.from('mj_business_applications').insert(basePayload));
+        }
         if (error) { statusEl.textContent = 'Could not submit: ' + error.message; submitBtn.disabled = false; return; }
-        statusEl.textContent = 'Application submitted. You can publish products after approval.';
+        statusEl.textContent = planColumnMissing
+          ? 'Submitted without a plan selection — ask the Mjadala admin to add the plan column, then applicants can pick one.'
+          : 'Application submitted. You can publish products after approval.';
         setGate('pending', { name });
       } catch (e) {
         statusEl.textContent = 'Could not submit: ' + e.message;
