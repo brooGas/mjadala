@@ -625,6 +625,30 @@ updateHeaderActions();
 (()=>{const launch=document.getElementById('wattAiLaunch'),overlay=document.getElementById('wattAiOverlay'),frame=document.getElementById('wattAiFrame');if(!launch||!overlay||!frame)return;let previousY=0,previousFocus=null;async function sendGreeting(){let name='';let signedIn=false;try{const client=window.mjadalaSupabaseClient;if(client?.auth?.getUser){const {data}=await client.auth.getUser();const user=data?.user;if(user){signedIn=true;name=user.user_metadata?.nickname||user.user_metadata?.display_name||user.user_metadata?.full_name||document.getElementById('liveProfileName')?.textContent?.trim()||user.email?.split('@')[0]||'';}}}catch(e){}if(!name||name==='Your profile')signedIn=false;frame.contentWindow?.postMessage({type:'MJADALA_WATT_GREETING',signedIn,name},location.origin)}function open(){previousY=window.scrollY;previousFocus=document.activeElement;overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';launch.style.visibility='hidden';if(frame.contentDocument?.readyState==='complete')sendGreeting();else frame.addEventListener('load',sendGreeting,{once:true});frame.focus()}function shut(){overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');document.body.style.overflow='';launch.style.visibility='visible';window.scrollTo(0,previousY);if(previousFocus?.focus)previousFocus.focus()}launch.addEventListener('click',open);window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data?.type==='MJADALA_WATT_CLOSE')shut()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('open'))shut()});frame.addEventListener('load',()=>{if(overlay.classList.contains('open'))sendGreeting()});})();
 </script>
 
+
+<style id="mjadala-business-dashboard-integration">
+#businessDashboardOverlay{position:fixed;inset:0 0 calc(62px + env(safe-area-inset-bottom));z-index:15000;background:#f5f6ef;display:none;overflow:hidden}
+#businessDashboardOverlay.open{display:block}
+#businessDashboardFrame{display:block;width:100%;height:100%;border:0;background:#f5f6ef}
+@media(min-width:781px){#businessDashboardOverlay{inset:0 0 70px}}
+</style>
+<section id="businessDashboardOverlay" aria-label="Mjadala Business dashboard" aria-hidden="true">
+ <iframe id="businessDashboardFrame" src="business-dashboard.html?embed=1" title="Mjadala Business dashboard"></iframe>
+</section>
+<script id="mjadala-business-dashboard-entry">
+(()=>{
+ const openButton=document.getElementById('openMyBusiness');
+ const overlay=document.getElementById('businessDashboardOverlay');
+ const frame=document.getElementById('businessDashboardFrame');
+ if(!openButton||!overlay||!frame)return;
+ let previousFocus=null;
+ function open(){previousFocus=document.activeElement;overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';frame.focus();}
+ function close(){overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');document.body.style.overflow='';if(previousFocus?.focus)previousFocus.focus();}
+ openButton.addEventListener('click',open);
+ window.addEventListener('message',event=>{if(event.origin===location.origin&&event.data?.type==='MJADALA_BUSINESS_CLOSE')close();});
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&overlay.classList.contains('open'))close();});
+})();
+</script>
 </body></html>
 <style>
 .live-auth-btn{width:42px!important;height:42px!important;flex:0 0 42px!important;padding:0!important;overflow:hidden;border-radius:50%!important;background:#fff!important;border:2px solid #fff!important;box-shadow:0 0 0 1px var(--line)}.live-auth-btn img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}.account-avatar-fallback{display:grid;place-items:center;width:100%;height:100%;font-size:12px;font-weight:900;color:var(--green);background:var(--ivory);border-radius:50%}.reel-trim-panel{border:1px solid var(--line);border-radius:14px;padding:10px;margin:8px 0;background:var(--soft)}.reel-trim-panel[hidden]{display:none}.reel-trim-panel video{width:100%;height:210px;max-height:34dvh;min-height:150px;object-fit:contain;background:#111;border-radius:10px;display:block;visibility:visible;opacity:1}.reel-trim-panel label{display:flex;justify-content:space-between;font-size:12px;font-weight:750;margin-top:8px}.reel-trim-panel input[type=range]{width:100%;accent-color:var(--green)}.reel-trim-panel p{font-size:11px;margin:6px 0;color:var(--muted)}

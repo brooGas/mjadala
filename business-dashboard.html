@@ -1,0 +1,1494 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mjadala Business Dashboard</title>
+
+<style>
+:root {
+  --forest: #174b35;
+  --forest-dark: #0f3b2a;
+  --green: #2f8054;
+  --pale: #e5f1df;
+  --pale-light: #f0f6eb;
+  --cream: #fbfaf5;
+  --ink: #17251f;
+  --muted: #718078;
+  --line: #e8e9df;
+  --white: #fff;
+  --gold: #e6b64e;
+  --red: #d94b4b;
+  --shadow: 0 8px 28px rgba(25,61,43,.055);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f5f6ef;
+  color: var(--ink);
+  font: 15px/1.45 Inter, system-ui, sans-serif;
+}
+
+button, input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.app {
+  min-height: 100vh;
+  padding-bottom: 76px;
+}
+
+.workspace {
+  max-width: 1600px;
+  margin: auto;
+  min-height: calc(100vh - 76px);
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  background: var(--cream);
+  box-shadow: 0 0 40px rgba(20,50,35,.05);
+}
+
+/* LEFT DASHBOARD */
+
+.sidebar {
+  background: linear-gradient(180deg, var(--forest), var(--forest-dark));
+  color: white;
+  padding: 24px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 7px 4px;
+  font-weight: 800;
+  font-size: 19px;
+}
+
+.brand-mark {
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--gold);
+  font-family: Georgia, serif;
+}
+
+.store-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px;
+  background: rgba(255,255,255,.09);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 17px;
+}
+
+.store-photo {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #d7e8d1;
+}
+
+.store-name {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.verified {
+  font-size: 11px;
+  color: #cce9bd;
+  margin-top: 3px;
+}
+
+.nav-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  color: #a9c6b5;
+  padding: 0 12px;
+  margin-bottom: -12px;
+}
+
+.side-nav {
+  display: grid;
+  gap: 5px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  color: #edf6ef;
+  text-decoration: none;
+  font-size: 14px;
+  transition: .18s;
+}
+
+.nav-item:hover {
+  background: rgba(255,255,255,.1);
+}
+
+.nav-item.active {
+  background: #dcebd2;
+  color: var(--forest-dark);
+  font-weight: 750;
+}
+
+.nav-icon {
+  width: 21px;
+  text-align: center;
+  font-size: 17px;
+}
+
+.count {
+  margin-left: auto;
+  background: #e54e4e;
+  color: white;
+  border-radius: 20px;
+  padding: 1px 7px;
+  font-size: 11px;
+}
+
+.grow-card {
+  margin-top: auto;
+  border: 1px solid rgba(230,182,78,.45);
+  border-radius: 17px;
+  padding: 16px 14px;
+  background: linear-gradient(
+    145deg,
+    rgba(230,182,78,.13),
+    rgba(255,255,255,.04)
+  );
+  text-align: center;
+}
+
+.crown {
+  font-size: 21px;
+  color: var(--gold);
+}
+
+.grow-card strong {
+  display: block;
+  margin: 5px 0;
+}
+
+.grow-card p {
+  font-size: 12px;
+  color: #d8e8dc;
+  margin: 0 0 12px;
+}
+
+.gold-btn {
+  background: var(--gold);
+  color: #30260e;
+  border: 0;
+  border-radius: 10px;
+  padding: 9px 15px;
+  font-weight: 750;
+  font-size: 12px;
+}
+
+.help {
+  color: #e8f2eb;
+  text-decoration: none;
+  font-size: 13px;
+  padding: 8px 10px;
+}
+
+/* MAIN CONTENT */
+
+.main {
+  min-width: 0;
+}
+
+.topbar {
+  height: 78px;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255,255,255,.55);
+}
+
+.search {
+  height: 46px;
+  max-width: 700px;
+  flex: 1;
+  border: 1px solid #dedfd5;
+  border-radius: 14px;
+  background: white;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 15px;
+  color: var(--muted);
+}
+
+.search input {
+  border: 0;
+  outline: 0;
+  width: 100%;
+  background: transparent;
+}
+
+.top-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.icon-btn {
+  border: 0;
+  background: transparent;
+  color: var(--forest);
+  font-size: 20px;
+  position: relative;
+}
+
+.menu-toggle {
+  display: none;
+  flex: 0 0 auto;
+}
+
+.sidebar-backdrop {
+  display: none;
+}
+
+.dot {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  background: var(--red);
+  color: white;
+  font-size: 10px;
+  border-radius: 20px;
+  padding: 2px 5px;
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.profile img {
+  width: 39px;
+  height: 39px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.content {
+  padding: 27px 30px 34px;
+  max-width: 1450px;
+  margin: auto;
+}
+
+.welcome {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.welcome-photo {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #e5eddd;
+}
+
+.welcome h1 {
+  font: 700 31px/1.15 Georgia, serif;
+  color: var(--forest);
+  margin: 0 0 5px;
+}
+
+.welcome p {
+  margin: 0;
+  color: #52645a;
+}
+
+.date-select {
+  margin-left: auto;
+  border: 1px solid #d9ded3;
+  background: white;
+  border-radius: 25px;
+  padding: 11px 15px;
+  color: var(--forest);
+  font-weight: 650;
+}
+
+/* STATISTICS */
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 13px;
+  margin-bottom: 16px;
+}
+
+.card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 19px;
+  box-shadow: var(--shadow);
+}
+
+.kpi {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 112px;
+  overflow: hidden;
+}
+
+.kpi-icon {
+  width: 51px;
+  height: 51px;
+  flex: 0 0 51px;
+  border-radius: 50%;
+  background: var(--pale);
+  display: grid;
+  place-items: center;
+  color: var(--forest);
+  font-size: 22px;
+}
+
+.kpi-label {
+  font-size: 12px;
+  color: #6e7c73;
+}
+
+.kpi-value {
+  font-size: 23px;
+  font-weight: 800;
+  margin: 1px 0;
+}
+
+.change {
+  font-size: 12px;
+  color: #27834c;
+  font-weight: 700;
+}
+
+.spark {
+  width: 70px;
+  height: 42px;
+  margin-left: auto;
+  align-self: flex-end;
+}
+
+/* CHART AND ORDERS */
+
+.middle {
+  display: grid;
+  grid-template-columns: minmax(0,1.65fr) minmax(320px,.95fr);
+  gap: 14px;
+  margin-bottom: 15px;
+}
+
+.panel {
+  padding: 19px;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.panel-title {
+  font-weight: 800;
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.panel-title .symbol {
+  color: var(--green);
+  font-size: 20px;
+}
+
+.legend {
+  display: flex;
+  gap: 15px;
+  font-size: 11px;
+  color: #66736b;
+}
+
+.legend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.key {
+  width: 10px;
+  height: 7px;
+  border-radius: 5px;
+  background: var(--forest);
+}
+
+.key.light {
+  background: #c9dfc0;
+}
+
+.chart {
+  width: 100%;
+  height: 235px;
+  display: block;
+}
+
+.orders {
+  display: grid;
+}
+
+.order {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 0;
+  border-bottom: 1px solid #edf0e9;
+}
+
+.order:last-child {
+  border: 0;
+}
+
+.order img {
+  width: 53px;
+  height: 53px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.order-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.order-info strong {
+  font-size: 13px;
+}
+
+.order-info small {
+  display: block;
+  color: #7a847e;
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+.status {
+  font-size: 10px;
+  font-weight: 750;
+  padding: 6px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+  background: #fff0ce;
+  color: #79530b;
+}
+
+.status.ready {
+  background: #e2f0dc;
+  color: #28613d;
+}
+
+.status.done {
+  background: #e8eee9;
+  color: #496255;
+}
+
+.link-btn {
+  border: 0;
+  background: transparent;
+  color: var(--forest);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+/* QUICK ACTIONS AND STORE HEALTH */
+
+.bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0,1.65fr) minmax(320px,.95fr);
+  gap: 14px;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 10px;
+}
+
+.quick {
+  background: var(--pale-light);
+  border: 1px solid transparent;
+  border-radius: 16px;
+  padding: 17px 10px;
+  text-align: center;
+  color: var(--forest-dark);
+  transition: .18s;
+}
+
+.quick:hover {
+  border-color: #b8d3b1;
+  transform: translateY(-2px);
+}
+
+.quick .qicon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.quick strong {
+  display: block;
+  font-size: 13px;
+}
+
+.quick small {
+  display: block;
+  color: #688072;
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+.health-list {
+  display: grid;
+  gap: 13px;
+}
+
+.health-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.check {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  background: #dff0d9;
+  color: #277443;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 12px;
+}
+
+.health-row strong {
+  display: block;
+  font-size: 12px;
+}
+
+.health-row small {
+  font-size: 11px;
+  color: #78847c;
+}
+
+.store-illustration {
+  float: right;
+  font-size: 40px;
+  margin: -5px 4px 0 8px;
+}
+
+/* EXISTING MJADALA BOTTOM NAVIGATION */
+
+.bottom-nav {
+  position: fixed;
+  z-index: 5;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 76px;
+  background: rgba(255,255,255,.97);
+  border-top: 1px solid #e3e8df;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(16px,5vw,72px);
+  backdrop-filter: blur(14px);
+}
+
+.bottom-link {
+  color: #718078;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  min-width: 48px;
+}
+
+.bottom-link .bicon {
+  font-size: 19px;
+}
+
+.bottom-link.active {
+  color: var(--forest);
+  font-weight: 800;
+}
+
+.toast {
+  position: fixed;
+  bottom: 91px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--forest-dark);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  opacity: 0;
+  pointer-events: none;
+  transition: .2s;
+}
+
+.toast.show {
+  opacity: 1;
+}
+
+/* STANDARD ICONS */
+
+.std-icon {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.14em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.panel-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 11px;
+  background: var(--pale);
+  color: var(--forest);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+}
+
+.qicon {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: var(--white);
+  color: var(--forest);
+  display: grid;
+  place-items: center;
+  margin: 0 auto 9px;
+  font-size: 19px;
+  box-shadow: 0 3px 9px rgba(23,75,53,.1);
+}
+
+.store-illustration {
+  width: 62px;
+  height: 62px;
+  border-radius: 18px;
+  background: var(--pale);
+  color: var(--forest);
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+}
+
+.check {
+  font-size: 12px;
+}
+
+.profile-avatar {
+  width: 39px;
+  height: 39px;
+  border-radius: 50%;
+  background: var(--pale);
+  color: var(--forest-dark);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 13px;
+  flex: 0 0 39px;
+}
+
+/* RESPONSIVE */
+
+@media(max-width:1050px) {
+  .workspace {
+    grid-template-columns: 218px minmax(0,1fr);
+  }
+
+  .content {
+    padding: 23px 20px;
+  }
+
+  .topbar {
+    padding: 0 20px;
+  }
+
+  .kpis {
+    grid-template-columns: repeat(2,1fr);
+  }
+
+  .middle,
+  .bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media(max-width:680px) {
+  .app {
+    padding-bottom: 68px;
+  }
+
+  .workspace {
+    display: block;
+    min-height: calc(100vh - 68px);
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 250px;
+    max-width: 82vw;
+    z-index: 40;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    box-shadow: 0 0 40px rgba(10,30,20,.35);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    background: rgba(10,20,15,.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease;
+  }
+
+  .sidebar-backdrop.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .topbar {
+    height: 64px;
+    padding: 0 13px;
+    gap: 10px;
+  }
+
+  .search {
+    height: 41px;
+  }
+
+  .profile span {
+    display: none;
+  }
+
+  .profile img {
+    width: 34px;
+    height: 34px;
+  }
+
+  .top-actions {
+    gap: 12px;
+  }
+
+  .content {
+    padding: 19px 13px 24px;
+  }
+
+  .welcome {
+    gap: 11px;
+  }
+
+  .welcome-photo {
+    width: 59px;
+    height: 59px;
+  }
+
+  .welcome h1 {
+    font-size: 23px;
+  }
+
+  .welcome p {
+    font-size: 12px;
+  }
+
+  .date-select {
+    font-size: 10px;
+    padding: 8px;
+  }
+
+  .kpis {
+    gap: 8px;
+  }
+
+  .kpi {
+    padding: 11px;
+    min-height: 94px;
+    gap: 8px;
+  }
+
+  .kpi-icon {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+    font-size: 17px;
+  }
+
+  .kpi-value {
+    font-size: 18px;
+  }
+
+  .spark {
+    display: none;
+  }
+
+  .panel {
+    padding: 14px;
+  }
+
+  .panel-title {
+    font-size: 15px;
+  }
+
+  .chart {
+    height: 190px;
+  }
+
+  .quick-grid {
+    grid-template-columns: repeat(2,1fr);
+  }
+
+  .quick {
+    padding: 14px 7px;
+  }
+
+  .bottom-nav {
+    height: 68px;
+    gap: 0;
+    justify-content: space-around;
+  }
+
+  .bottom-link {
+    font-size: 9px;
+  }
+
+  .bottom-link .bicon {
+    font-size: 18px;
+  }
+
+  .legend {
+    gap: 8px;
+    font-size: 9px;
+  }
+}
+
+/* Mjadala embedded workspace: retain the dashboard layout and its responsive drawer. */
+body.business-embedded{min-height:100dvh;background:#f5f6ef;overflow:hidden}
+body.business-embedded .app{min-height:100dvh;height:100dvh;padding-bottom:0}
+body.business-embedded .workspace{min-height:100dvh;height:100dvh;max-width:none}
+body.business-embedded .main{min-height:0;height:100dvh;overflow-y:auto}
+body.business-embedded .bottom-nav{display:none!important}
+body.business-embedded .sidebar{max-height:100dvh}
+.business-close{width:38px;height:38px;border:1px solid #e2e8df;border-radius:12px;background:#fff;color:#174b35;display:grid;place-items:center;font-size:22px;line-height:1;flex:0 0 auto}
+@media(max-width:780px){body.business-embedded .workspace{min-height:100dvh;height:100dvh}body.business-embedded .main{height:100dvh}}
+</style>
+</head>
+
+<body>
+
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-menu" viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+  <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.2 8.8 13 13l-4.2 2.2L11 11z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M9.5 20a2.5 2.5 0 0 0 5 0"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h4v-6h2v6h4a1 1 0 0 0 1-1v-9"/></symbol>
+  <symbol id="i-storefront" viewBox="0 0 24 24"><path d="M4 9l1-5h14l1 5"/><path d="M4 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/><path d="M5 9v10h14V9"/><path d="M9 19v-5h6v5"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/><path d="M2 3h2l2.6 12.4a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 2-1.6L21 7H6"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.3c2.6.3 4.5 2.4 4.5 5.7"/></symbol>
+  <symbol id="i-megaphone" viewBox="0 0 24 24"><path d="M3 10v4a1 1 0 0 0 1 1h2l9 4V5L6 9H4a1 1 0 0 0-1 1z"/><path d="M19 9a4 4 0 0 1 0 6"/></symbol>
+  <symbol id="i-bar-chart" viewBox="0 0 24 24"><line x1="5" y1="20" x2="5" y2="11"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="19" y1="20" x2="19" y2="14"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.9 7.9 0 0 0 0-2l2-1.5-2-3.4-2.4 1a8 8 0 0 0-1.7-1l-.4-2.6h-4l-.4 2.6a8 8 0 0 0-1.7 1l-2.4-1-2 3.4L6.4 11a7.9 7.9 0 0 0 0 2l-2 1.5 2 3.4 2.4-1a8 8 0 0 0 1.7 1l.4 2.6h4l.4-2.6a8 8 0 0 0 1.7-1l2.4 1 2-3.4z"/></symbol>
+  <symbol id="i-crown" viewBox="0 0 24 24"><path d="M3 17h18l-1.5-8-4 3-2.5-6-2.5 6-4-3z"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="7.6" r="0.9" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="2"/><line x1="3.5" y1="10" x2="20.5" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 10-12h-7z"/></symbol>
+  <symbol id="i-shield-check" viewBox="0 0 24 24"><path d="M12 3.2 19 6v5.2c0 4.5-2.9 7.8-7 9.6-4.1-1.8-7-5.1-7-9.6V6l7-2.8Z"/><path d="m8.5 12.1 2.3 2.3 4.8-5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><polyline points="5 13 10 18 19 7"/></symbol>
+  <symbol id="i-trend-up" viewBox="0 0 24 24"><polyline points="4 17 10 11 14 15 20 7"/><polyline points="14 7 20 7 20 13"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 3v18"/><path d="M5 4h12l-3 4 3 4H5"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3c2.5 2.5 2.5 15.5 0 18M12 3c-2.5 2.5-2.5 15.5 0 18"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-user-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.5 18.5a6 6 0 0 1 11 0"/></symbol>
+</svg>
+
+<div class="app">
+
+<div class="workspace">
+
+<!-- LEFT BUSINESS MANAGEMENT SIDEBAR -->
+
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<aside class="sidebar" id="businessSidebar">
+
+  <div class="brand">
+    <div class="brand-mark">MV</div>
+    <div>Mjadala<br>Business</div>
+  </div>
+
+  <div class="store-switch">
+    <img class="store-photo"
+      src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=120&h=120&fit=crop"
+      alt="Kijani store">
+
+    <div>
+      <div class="store-name">Kijani Home &amp; Living</div>
+      <div class="verified">● Verified Store</div>
+    </div>
+
+    <span style="margin-left:auto"><svg class="std-icon"><use href="#i-chevron-down"/></svg></span>
+  </div>
+
+  <div class="nav-label">Manage your business</div>
+
+  <nav class="side-nav">
+    <a class="nav-item active" href="#overview">
+      <span class="nav-icon"><svg class="std-icon"><use href="#i-home"/></svg></span>Overview
+    </a>
+
+    <a class="nav-item" href="#storefront">
+      <span class="nav-icon"><svg class="std-icon"><use href="#i-storefront"/></svg></span>Storefront
+    </a>
+
+    <a class="nav-item" href="#products">
+      <span class="nav-icon"><svg class="std-icon"><use href="#i-box"/></svg></span>Products
+    </a>
+
+    <a class="nav-item" href="#orders">
+      <span class="nav-icon"><svg class="std-icon"><use href="#i-cart"/></svg></span>Orders
+      <span class="count">3</span>
+    </a>
+
+    <a class="nav-item" href="#customers">
+      <span class="nav-icon"><svg class="std-icon"><use href="#i-users"/></svg></span>Customers
+    </a>
+
+    <a class="nav-item" href="#promotions">
+      <span class="nav-icon"><svg class="std-icon"><use href="#i-megaphone"/></svg></span>Promotions
+    </a>
+
+    <a class="nav-item" href="#analytics">
+      <span class="nav-icon"><svg class="std-icon"><use href="#i-bar-chart"/></svg></span>Analytics
+    </a>
+
+    <a class="nav-item" href="#settings">
+      <span class="nav-icon"><svg class="std-icon"><use href="#i-settings"/></svg></span>Website settings
+    </a>
+  </nav>
+
+  <div class="grow-card">
+    <div class="crown"><svg class="std-icon"><use href="#i-crown"/></svg></div>
+    <strong>Grow Your Business</strong>
+    <p>Reach more customers with Mjadala Business.</p>
+    <button class="gold-btn"
+      onclick="notify('Plan options would appear here.')">
+      Explore plans
+    </button>
+  </div>
+
+  <a class="help" href="#help"><svg class="std-icon"><use href="#i-info"/></svg> &nbsp; Help &amp; Support</a>
+
+</aside>
+
+<!-- MAIN BUSINESS DASHBOARD -->
+
+<main class="main" id="overview">
+
+<header class="topbar">
+
+  <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Open business menu" aria-expanded="false"><svg class="std-icon"><use href="#i-menu"/></svg></button>
+
+  <label class="search">
+    <span><svg class="std-icon"><use href="#i-search"/></svg></span>
+    <input aria-label="Search in your store"
+      placeholder="Search in your store...">
+  </label>
+
+  <div class="top-actions">
+    <button class="business-close" id="businessClose" type="button" aria-label="Close business dashboard" title="Back to Mjadala">×</button>
+
+    <button class="icon-btn"
+      aria-label="Notifications"
+      onclick="notify('You have 2 new notifications.')">
+      <svg class="std-icon"><use href="#i-bell"/></svg><span class="dot">2</span>
+    </button>
+
+    <div class="profile">
+      <div class="profile-avatar" aria-hidden="true">BO</div>
+      <span>Business Owner</span>
+      <span><svg class="std-icon"><use href="#i-chevron-down"/></svg></span>
+    </div>
+
+  </div>
+</header>
+
+<section class="content">
+
+  <!-- WELCOME -->
+
+  <div class="welcome">
+
+    <img class="welcome-photo"
+      src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=180&h=180&fit=crop"
+      alt="Kijani Home and Living storefront">
+
+    <div>
+      <h1>Good morning, Business Owner</h1>
+      <p>Your store at a glance</p>
+    </div>
+
+    <button class="date-select"
+      onclick="notify('Date range selector — demo')">
+      <svg class="std-icon"><use href="#i-calendar"/></svg> &nbsp; Last 30 days &nbsp;<svg class="std-icon"><use href="#i-chevron-down"/></svg>
+    </button>
+
+  </div>
+
+  <!-- STATISTICS -->
+
+  <div class="kpis">
+
+    <article class="card kpi">
+      <div class="kpi-icon"><svg class="std-icon"><use href="#i-cart"/></svg></div>
+      <div>
+        <div class="kpi-label">Sales</div>
+        <div class="kpi-value">KSh 84,250</div>
+        <div class="change"><svg class="std-icon"><use href="#i-trend-up"/></svg> 12.8%</div>
+      </div>
+    </article>
+
+    <article class="card kpi">
+      <div class="kpi-icon"><svg class="std-icon"><use href="#i-box"/></svg></div>
+      <div>
+        <div class="kpi-label">Orders</div>
+        <div class="kpi-value">126</div>
+        <div class="change"><svg class="std-icon"><use href="#i-trend-up"/></svg> 8.4%</div>
+      </div>
+    </article>
+
+    <article class="card kpi">
+      <div class="kpi-icon"><svg class="std-icon"><use href="#i-users"/></svg></div>
+      <div>
+        <div class="kpi-label">Visitors</div>
+        <div class="kpi-value">2,840</div>
+        <div class="change"><svg class="std-icon"><use href="#i-trend-up"/></svg> 16.2%</div>
+      </div>
+    </article>
+
+    <article class="card kpi">
+      <div class="kpi-icon"><svg class="std-icon"><use href="#i-trend-up"/></svg></div>
+      <div>
+        <div class="kpi-label">Conversion</div>
+        <div class="kpi-value">4.4%</div>
+        <div class="change"><svg class="std-icon"><use href="#i-trend-up"/></svg> 0.6%</div>
+      </div>
+    </article>
+
+  </div>
+
+  <!-- SALES AND ORDERS -->
+
+  <div class="middle">
+
+    <section class="card panel" id="analytics">
+
+      <div class="panel-head">
+        <div class="panel-title">
+          <span class="panel-icon"><svg class="std-icon"><use href="#i-bar-chart"/></svg></span>
+          Sales performance
+        </div>
+
+        <div class="legend">
+          <span><i class="key"></i>This period</span>
+          <span><i class="key light"></i>Previous period</span>
+        </div>
+      </div>
+
+      <svg class="chart" viewBox="0 0 760 235"
+        preserveAspectRatio="none"
+        role="img"
+        aria-label="Illustrative sales trend line chart">
+
+        <defs>
+          <linearGradient id="area" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#b9d7ae" stop-opacity=".45"/>
+            <stop offset="1" stop-color="#b9d7ae" stop-opacity=".03"/>
+          </linearGradient>
+        </defs>
+
+        <g stroke="#e5e8df" stroke-width="1">
+          <path d="M45 20H745 M45 66H745 M45 112H745 M45 158H745 M45 204H745"/>
+          <path d="M45 20V204 M220 20V204 M395 20V204 M570 20V204 M745 20V204"/>
+        </g>
+
+        <g fill="#6f7b73" font-size="11">
+          <text x="5" y="24">100k</text>
+          <text x="10" y="70">75k</text>
+          <text x="10" y="116">50k</text>
+          <text x="10" y="162">25k</text>
+          <text x="22" y="208">0</text>
+          <text x="45" y="228">Week 1</text>
+          <text x="220" y="228" text-anchor="middle">Week 2</text>
+          <text x="570" y="228" text-anchor="middle">Week 3</text>
+          <text x="745" y="228" text-anchor="end">Week 4</text>
+        </g>
+
+        <path
+          d="M45 142 L165 106 L280 82 L395 102 L510 117 L625 86 L745 48 L745 204 L45 204Z"
+          fill="url(#area)"/>
+
+        <path
+          d="M45 142 L165 106 L280 82 L395 102 L510 117 L625 86 L745 48"
+          fill="none"
+          stroke="#17613d"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+
+        <path
+          d="M45 163 L165 145 L280 126 L395 139 L510 135 L625 120 L745 91"
+          fill="none"
+          stroke="#bdd8b4"
+          stroke-width="2.5"
+          stroke-dasharray="7 6"/>
+
+        <g fill="#17613d">
+          <circle cx="45" cy="142" r="5"/>
+          <circle cx="165" cy="106" r="5"/>
+          <circle cx="280" cy="82" r="5"/>
+          <circle cx="395" cy="102" r="5"/>
+          <circle cx="510" cy="117" r="5"/>
+          <circle cx="625" cy="86" r="5"/>
+          <circle cx="745" cy="48" r="5"/>
+        </g>
+
+      </svg>
+
+      <small style="color:#829087">
+        Demo data for layout preview — connect real store analytics later.
+      </small>
+
+    </section>
+
+    <section class="card panel" id="orders">
+
+      <div class="panel-head">
+        <div class="panel-title">
+          <span class="panel-icon"><svg class="std-icon"><use href="#i-clock"/></svg></span>
+          Recent orders
+        </div>
+
+        <button class="link-btn"
+          onclick="notify('Opening all orders — demo')">
+          View all <svg class="std-icon"><use href="#i-chevron-right"/></svg>
+        </button>
+      </div>
+
+      <div class="orders">
+
+        <div class="order">
+          <img
+            src="https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=100&h=100&fit=crop"
+            alt="Decorative cushion">
+
+          <div class="order-info">
+            <strong>#ORD-1042</strong>
+            <small>KSh 3,850 · 2 mins ago</small>
+          </div>
+
+          <span class="status">Processing</span>
+        </div>
+
+        <div class="order">
+          <img
+            src="https://images.unsplash.com/photo-1490312278390-ab64016e0aa9?w=100&h=100&fit=crop"
+            alt="Indoor plant">
+
+          <div class="order-info">
+            <strong>#ORD-1041</strong>
+            <small>KSh 2,600 · 15 mins ago</small>
+          </div>
+
+          <span class="status ready">Ready</span>
+        </div>
+
+        <div class="order">
+          <img
+            src="https://images.unsplash.com/photo-1509565840034-3c3858b2e5c4?w=100&h=100&fit=crop"
+            alt="Table lamp">
+
+          <div class="order-info">
+            <strong>#ORD-1040</strong>
+            <small>KSh 5,200 · 1 hour ago</small>
+          </div>
+
+          <span class="status done">Delivered</span>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+
+  <!-- QUICK ACTIONS AND STORE HEALTH -->
+
+  <div class="bottom-grid">
+
+    <section class="card panel">
+
+      <div class="panel-head">
+        <div class="panel-title">
+          <span class="panel-icon"><svg class="std-icon"><use href="#i-zap"/></svg></span>
+          Quick actions
+        </div>
+      </div>
+
+      <div class="quick-grid">
+
+        <button class="quick"
+          onclick="notify('Add product flow — demo')">
+          <div class="qicon"><svg class="std-icon"><use href="#i-box"/></svg></div>
+          <strong>Add product</strong>
+          <small>List new items</small>
+        </button>
+
+        <button class="quick"
+          onclick="notify('Promotion builder — demo')">
+          <div class="qicon"><svg class="std-icon"><use href="#i-flag"/></svg></div>
+          <strong>Create promotion</strong>
+          <small>Boost your store</small>
+        </button>
+
+        <button class="quick"
+          onclick="notify('Website editor — demo')">
+          <div class="qicon"><svg class="std-icon"><use href="#i-globe"/></svg></div>
+          <strong>Edit website</strong>
+          <small>Update your site</small>
+        </button>
+
+        <button class="quick"
+          onclick="notify('Order manager — demo')">
+          <div class="qicon"><svg class="std-icon"><use href="#i-list"/></svg></div>
+          <strong>View orders</strong>
+          <small>Manage orders</small>
+        </button>
+
+      </div>
+    </section>
+
+    <section class="card panel" id="settings">
+
+      <div class="panel-head">
+        <div class="panel-title">
+          <span class="panel-icon"><svg class="std-icon"><use href="#i-shield-check"/></svg></span>
+          Store health
+        </div>
+
+        <button class="link-btn"
+          onclick="notify('Store health details — demo')">
+          View details <svg class="std-icon"><use href="#i-chevron-right"/></svg>
+        </button>
+      </div>
+
+      <div class="store-illustration"><svg class="std-icon"><use href="#i-storefront"/></svg></div>
+
+      <div class="health-list">
+
+        <div class="health-row">
+          <span class="check"><svg class="std-icon"><use href="#i-check"/></svg></span>
+          <div>
+            <strong>Website published</strong>
+            <small>Your store is live and accessible</small>
+          </div>
+        </div>
+
+        <div class="health-row">
+          <span class="check"><svg class="std-icon"><use href="#i-check"/></svg></span>
+          <div>
+            <strong>Payment setup</strong>
+            <small>Payment details are configured</small>
+          </div>
+        </div>
+
+        <div class="health-row">
+          <span class="check"><svg class="std-icon"><use href="#i-check"/></svg></span>
+          <div>
+            <strong>Delivery settings</strong>
+            <small>Configure your delivery options</small>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+
+</section>
+</main>
+</div>
+
+<!-- KEEP EXISTING MJADALA BOTTOM NAVIGATION -->
+
+<nav class="bottom-nav" aria-label="Mjadala app navigation">
+
+  <a class="bottom-link" href="#home">
+    <span class="bicon"><svg class="std-icon"><use href="#i-home"/></svg></span>Home
+  </a>
+
+  <a class="bottom-link" href="#explore">
+    <span class="bicon"><svg class="std-icon"><use href="#i-compass"/></svg></span>Explore
+  </a>
+
+  <a class="bottom-link" href="#reels">
+    <span class="bicon"><svg class="std-icon"><use href="#i-play"/></svg></span>Reels
+  </a>
+
+  <a class="bottom-link" href="#communities">
+    <span class="bicon"><svg class="std-icon"><use href="#i-users"/></svg></span>Communities
+  </a>
+
+  <a class="bottom-link" href="#profile">
+    <span class="bicon"><svg class="std-icon"><use href="#i-user-circle"/></svg></span>Profile
+  </a>
+
+</nav>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+</div>
+
+<script>
+if (new URLSearchParams(location.search).has('embed')) document.body.classList.add('business-embedded');
+
+let toastTimer;
+
+function notify(message) {
+  const el = document.getElementById('toast');
+  el.textContent = message;
+  el.classList.add('show');
+
+  clearTimeout(toastTimer);
+
+  toastTimer = setTimeout(() => {
+    el.classList.remove('show');
+  }, 2300);
+}
+
+document.querySelectorAll('.side-nav .nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+
+    document.querySelectorAll('.side-nav .nav-item')
+      .forEach(x => x.classList.remove('active'));
+
+    item.classList.add('active');
+
+    if (item.getAttribute('href') !== '#overview') {
+      notify(item.textContent.trim() + ' section — preview only');
+    }
+
+    closeSidebar();
+  });
+});
+
+document.getElementById('businessClose')?.addEventListener('click',()=>{
+  if (new URLSearchParams(location.search).has('embed')) parent.postMessage({type:'MJADALA_BUSINESS_CLOSE'}, location.origin);
+});
+
+const businessSidebar = document.getElementById('businessSidebar');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+const menuToggle = document.getElementById('menuToggle');
+
+function openSidebar() {
+  if (!businessSidebar) return;
+  businessSidebar.classList.add('open');
+  sidebarBackdrop.classList.add('show');
+  menuToggle.setAttribute('aria-expanded', 'true');
+}
+
+function closeSidebar() {
+  if (!businessSidebar) return;
+  businessSidebar.classList.remove('open');
+  sidebarBackdrop.classList.remove('show');
+  menuToggle.setAttribute('aria-expanded', 'false');
+}
+
+if (menuToggle) {
+  menuToggle.addEventListener('click', () => {
+    businessSidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+  });
+}
+
+if (sidebarBackdrop) {
+  sidebarBackdrop.addEventListener('click', closeSidebar);
+}
+</script>
+
+</body>
+</html>
