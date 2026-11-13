@@ -967,6 +967,12 @@ button {
   background: var(--pale); color: var(--forest);
 }
 .real-badge.off { background: #f3eeea; color: var(--muted); }
+.order-ph {
+  width: 53px; height: 53px; border-radius: 10px; flex: 0 0 53px;
+  background: var(--pale); color: var(--forest); display: grid; place-items: center;
+}
+.change.down { color: #a4452f; }
+.change.down svg { transform: scaleY(-1); }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -1162,10 +1168,16 @@ button {
       <p id="welcomeSub">Your store at a glance</p>
     </div>
 
-    <button class="date-select"
-      onclick="notify('Date range selector — demo')">
-      <svg class="std-icon"><use href="#i-calendar"/></svg> &nbsp; Last 30 days &nbsp;<svg class="std-icon"><use href="#i-chevron-down"/></svg>
-    </button>
+    <label class="date-select" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
+      <svg class="std-icon"><use href="#i-calendar"/></svg>
+      <select id="dateRangeSelect" aria-label="Date range"
+        style="appearance:none;-webkit-appearance:none;border:0;background:transparent;font:inherit;color:inherit;font-weight:650;padding:0;margin:0;cursor:pointer">
+        <option value="7">Last 7 days</option>
+        <option value="30" selected>Last 30 days</option>
+        <option value="90">Last 90 days</option>
+      </select>
+      <svg class="std-icon"><use href="#i-chevron-down"/></svg>
+    </label>
 
   </div>
 
@@ -1177,8 +1189,8 @@ button {
       <div class="kpi-icon"><svg class="std-icon"><use href="#i-cart"/></svg></div>
       <div>
         <div class="kpi-label">Sales</div>
-        <div class="kpi-value">KSh 84,250</div>
-        <div class="change"><svg class="std-icon"><use href="#i-trend-up"/></svg> 12.8%</div>
+        <div class="kpi-value" id="kpiSalesValue">KSh 0</div>
+        <div class="change" id="kpiSalesChange" hidden><svg class="std-icon"><use href="#i-trend-up"/></svg> <span></span></div>
       </div>
     </article>
 
@@ -1186,8 +1198,8 @@ button {
       <div class="kpi-icon"><svg class="std-icon"><use href="#i-box"/></svg></div>
       <div>
         <div class="kpi-label">Orders</div>
-        <div class="kpi-value">126</div>
-        <div class="change"><svg class="std-icon"><use href="#i-trend-up"/></svg> 8.4%</div>
+        <div class="kpi-value" id="kpiOrdersValue">0</div>
+        <div class="change" id="kpiOrdersChange" hidden><svg class="std-icon"><use href="#i-trend-up"/></svg> <span></span></div>
       </div>
     </article>
 
@@ -1247,23 +1259,25 @@ button {
           <path d="M45 20V204 M220 20V204 M395 20V204 M570 20V204 M745 20V204"/>
         </g>
 
-        <g fill="#6f7b73" font-size="11">
+        <g fill="#6f7b73" font-size="11" id="chartYLabels">
           <text x="5" y="24">100k</text>
           <text x="10" y="70">75k</text>
           <text x="10" y="116">50k</text>
           <text x="10" y="162">25k</text>
           <text x="22" y="208">0</text>
+        </g>
+        <g fill="#6f7b73" font-size="11" id="chartXLabels">
           <text x="45" y="228">Week 1</text>
           <text x="220" y="228" text-anchor="middle">Week 2</text>
           <text x="570" y="228" text-anchor="middle">Week 3</text>
           <text x="745" y="228" text-anchor="end">Week 4</text>
         </g>
 
-        <path
+        <path id="chartArea"
           d="M45 142 L165 106 L280 82 L395 102 L510 117 L625 86 L745 48 L745 204 L45 204Z"
           fill="url(#area)"/>
 
-        <path
+        <path id="chartLine"
           d="M45 142 L165 106 L280 82 L395 102 L510 117 L625 86 L745 48"
           fill="none"
           stroke="#17613d"
@@ -1271,14 +1285,14 @@ button {
           stroke-linecap="round"
           stroke-linejoin="round"/>
 
-        <path
+        <path id="chartPrevLine"
           d="M45 163 L165 145 L280 126 L395 139 L510 135 L625 120 L745 91"
           fill="none"
           stroke="#bdd8b4"
           stroke-width="2.5"
           stroke-dasharray="7 6"/>
 
-        <g fill="#17613d">
+        <g fill="#17613d" id="chartDots">
           <circle cx="45" cy="142" r="5"/>
           <circle cx="165" cy="106" r="5"/>
           <circle cx="280" cy="82" r="5"/>
@@ -1290,8 +1304,8 @@ button {
 
       </svg>
 
-      <small style="color:#829087">
-        Demo data for layout preview — connect real store analytics later.
+      <small style="color:#829087" id="chartNote">
+        Loading your sales…
       </small>
 
     </section>
@@ -1310,47 +1324,8 @@ button {
         </button>
       </div>
 
-      <div class="orders">
-
-        <div class="order">
-          <img
-            src="https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=100&h=100&fit=crop"
-            alt="Decorative cushion">
-
-          <div class="order-info">
-            <strong>#ORD-1042</strong>
-            <small>KSh 3,850 · 2 mins ago</small>
-          </div>
-
-          <span class="status">Processing</span>
-        </div>
-
-        <div class="order">
-          <img
-            src="https://images.unsplash.com/photo-1490312278390-ab64016e0aa9?w=100&h=100&fit=crop"
-            alt="Indoor plant">
-
-          <div class="order-info">
-            <strong>#ORD-1041</strong>
-            <small>KSh 2,600 · 15 mins ago</small>
-          </div>
-
-          <span class="status ready">Ready</span>
-        </div>
-
-        <div class="order">
-          <img
-            src="https://images.unsplash.com/photo-1509565840034-3c3858b2e5c4?w=100&h=100&fit=crop"
-            alt="Table lamp">
-
-          <div class="order-info">
-            <strong>#ORD-1040</strong>
-            <small>KSh 5,200 · 1 hour ago</small>
-          </div>
-
-          <span class="status done">Delivered</span>
-        </div>
-
+      <div class="orders" id="recentOrdersList">
+        <p class="biz-note">Loading your recent orders…</p>
       </div>
     </section>
 
@@ -1766,6 +1741,8 @@ async function loadBusinessDashboard() {
       document.querySelectorAll('.side-nav .nav-item').forEach(x => x.classList.toggle('active', x.getAttribute('data-panel') === 'overview'));
       loadProducts();
       loadOrdersPreview();
+      loadRecentOrders();
+      loadSalesPerformance(dateRangeDays);
     } else {
       const appRes = await sb.from('mj_business_applications')
         .select('business_name,status,created_at')
@@ -1819,29 +1796,193 @@ async function loadProducts() {
   }
 }
 
+async function fetchSellerOrders(limit) {
+  // Try with the product name joined in; if the relationship isn't detected by PostgREST, fall back to a plain select.
+  let res = await sb.from('business_orders')
+    .select('id,product_id,quantity,total_amount,order_status,payment_status,created_at,business_products(product_name)')
+    .eq('seller_id', bizUser.id)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (res.error) {
+    res = await sb.from('business_orders')
+      .select('id,product_id,quantity,total_amount,order_status,payment_status,created_at')
+      .eq('seller_id', bizUser.id)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+  }
+  if (res.error) throw res.error;
+  return res.data || [];
+}
+
+function relativeTime(iso) {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const mins = Math.round(diffMs / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return mins + ' min' + (mins === 1 ? '' : 's') + ' ago';
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return hrs + ' hour' + (hrs === 1 ? '' : 's') + ' ago';
+  const days = Math.round(hrs / 24);
+  if (days < 30) return days + ' day' + (days === 1 ? '' : 's') + ' ago';
+  return new Date(iso).toLocaleDateString();
+}
+
+function orderStatusBadge(o) {
+  if (o.payment_status && o.payment_status.toLowerCase() !== 'paid') {
+    return { text: 'Awaiting payment', cls: '' };
+  }
+  const s = (o.order_status || 'processing').toLowerCase();
+  if (s.includes('deliver') || s.includes('complete') || s.includes('done')) return { text: capitalize(o.order_status), cls: 'done' };
+  if (s.includes('ready') || s.includes('dispatch')) return { text: capitalize(o.order_status), cls: 'ready' };
+  return { text: capitalize(o.order_status || 'Processing'), cls: '' };
+}
+function capitalize(s) { s = String(s || ''); return s.charAt(0).toUpperCase() + s.slice(1); }
+
+async function loadRecentOrders() {
+  const host = bz('recentOrdersList');
+  try {
+    const rows = await fetchSellerOrders(3);
+    if (!rows.length) {
+      host.innerHTML = '<p class="biz-note">No orders yet. They will appear here once customers start buying from your store.</p>';
+      return;
+    }
+    host.innerHTML = rows.map(o => {
+      const badge = orderStatusBadge(o);
+      const productName = o.business_products?.product_name || ('Order ' + bizEsc(String(o.id).slice(0, 8)));
+      return '<div class="order"><div class="order-ph"><svg class="std-icon"><use href="#i-cart"/></svg></div>' +
+        '<div class="order-info"><strong>' + bizEsc(productName) + '</strong>' +
+        '<small>KSh ' + (Number(o.total_amount) || 0).toLocaleString('en-KE') + ' · ' + relativeTime(o.created_at) + '</small></div>' +
+        '<span class="status' + (badge.cls ? ' ' + badge.cls : '') + '">' + bizEsc(badge.text) + '</span></div>';
+    }).join('');
+  } catch (e) {
+    host.innerHTML = '<p class="biz-note">Orders could not load: ' + bizEsc(e.message) + '</p>';
+  }
+}
+
 async function loadOrdersPreview() {
   const fullHost = bz('ordersListFull');
   try {
-    const { data, error } = await sb.from('business_orders').select('*').eq('seller_id', bizUser.id).order('created_at', { ascending: false }).limit(20);
-    if (error) throw error;
-    const rows = data || [];
+    const rows = await fetchSellerOrders(50);
     if (!rows.length) {
       fullHost.innerHTML = '<p class="biz-note">No orders yet. They will appear here once customers start buying from your store.</p>';
       return;
     }
     fullHost.innerHTML = rows.map(o => {
-      const amount = o.total_amount ?? o.amount ?? o.total ?? null;
-      const status = o.payment_status ?? o.status ?? 'unknown';
-      const when = o.created_at ? new Date(o.created_at).toLocaleDateString() : '';
-      return '<div class="real-order-row"><div style="flex:1"><strong>Order ' + bizEsc(String(o.id).slice(0, 8)) + '</strong><br>' +
-        '<small class="biz-note">' + when + '</small></div>' +
-        (amount != null ? '<span>KSh ' + Number(amount).toLocaleString('en-KE') + '</span>' : '') +
-        '<span class="real-badge">' + bizEsc(status) + '</span></div>';
+      const badge = orderStatusBadge(o);
+      const productName = o.business_products?.product_name || 'Product';
+      return '<div class="real-order-row"><div style="flex:1"><strong>' + bizEsc(productName) + '</strong>' +
+        (o.quantity ? ' <small class="biz-note">× ' + Number(o.quantity) + '</small>' : '') + '<br>' +
+        '<small class="biz-note">' + relativeTime(o.created_at) + '</small></div>' +
+        '<span>KSh ' + (Number(o.total_amount) || 0).toLocaleString('en-KE') + '</span>' +
+        '<span class="real-badge">' + bizEsc(badge.text) + '</span></div>';
     }).join('');
   } catch (e) {
     fullHost.innerHTML = '<p class="biz-note">Order history isn\'t available here yet' + (e.message ? ' (' + bizEsc(e.message) + ')' : '') + '.</p>';
   }
 }
+
+let dateRangeDays = 30;
+
+async function loadSalesPerformance(days) {
+  const note = bz('chartNote');
+  const salesVal = bz('kpiSalesValue'), ordersVal = bz('kpiOrdersValue');
+  const salesChange = bz('kpiSalesChange'), ordersChange = bz('kpiOrdersChange');
+  try {
+    const since = new Date(Date.now() - days * 86400000);
+    const prevSince = new Date(Date.now() - 2 * days * 86400000);
+    const { data, error } = await sb.from('business_orders')
+      .select('total_amount,payment_status,created_at')
+      .eq('seller_id', bizUser.id)
+      .gte('created_at', prevSince.toISOString())
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    const rows = data || [];
+    const current = rows.filter(r => new Date(r.created_at) >= since);
+    const previous = rows.filter(r => new Date(r.created_at) < since);
+
+    const paidSum = list => list.reduce((sum, r) => sum + (r.payment_status === 'paid' ? Number(r.total_amount) || 0 : 0), 0);
+    const curSales = paidSum(current), prevSales = paidSum(previous);
+    const curOrders = current.length, prevOrders = previous.length;
+
+    salesVal.textContent = 'KSh ' + curSales.toLocaleString('en-KE');
+    ordersVal.textContent = curOrders.toLocaleString('en-KE');
+    setChange(salesChange, prevSales > 0 ? ((curSales - prevSales) / prevSales) * 100 : null);
+    setChange(ordersChange, prevOrders > 0 ? ((curOrders - prevOrders) / prevOrders) * 100 : null);
+
+    // Bucket the paid sales from each period into 7 evenly spaced points for the chart.
+    const bucketCount = 7;
+    function buckets(list, periodStart, periodEnd) {
+      const span = periodEnd - periodStart;
+      const sums = new Array(bucketCount).fill(0);
+      list.forEach(r => {
+        if (r.payment_status !== 'paid') return;
+        const t = new Date(r.created_at).getTime();
+        let idx = span > 0 ? Math.floor(((t - periodStart) / span) * bucketCount) : 0;
+        idx = Math.max(0, Math.min(bucketCount - 1, idx));
+        sums[idx] += Number(r.total_amount) || 0;
+      });
+      return sums;
+    }
+    const curBuckets = buckets(current, since.getTime(), Date.now());
+    const prevBuckets = buckets(previous, prevSince.getTime(), since.getTime());
+    drawChart(curBuckets, prevBuckets, since, new Date());
+
+    if (rows.length === 0) {
+      note.textContent = 'No orders yet in this period — the chart will fill in once you get sales.';
+    } else {
+      note.textContent = 'Live data from your store’s real orders.';
+    }
+  } catch (e) {
+    note.textContent = 'Sales data could not load: ' + e.message;
+  }
+}
+
+function setChange(el, pct) {
+  if (pct == null || !isFinite(pct)) { el.hidden = true; return; }
+  el.hidden = false;
+  el.classList.toggle('down', pct < 0);
+  el.querySelector('span').textContent = Math.abs(pct).toFixed(1) + '%';
+}
+
+function drawChart(curBuckets, prevBuckets, startDate, endDate) {
+  const xs = [45, 161.7, 278.3, 395, 511.7, 628.3, 745];
+  const yTop = 20, yBottom = 204;
+  const maxVal = Math.max(1, ...curBuckets, ...prevBuckets);
+  const toY = v => yBottom - (v / maxVal) * (yBottom - yTop);
+
+  const curPts = curBuckets.map((v, i) => [xs[i], toY(v)]);
+  const prevPts = prevBuckets.map((v, i) => [xs[i], toY(v)]);
+
+  const lineD = curPts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0] + ' ' + p[1].toFixed(1)).join(' ');
+  const areaD = lineD + ' L' + xs[xs.length - 1] + ' ' + yBottom + ' L' + xs[0] + ' ' + yBottom + 'Z';
+  const prevD = prevPts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0] + ' ' + p[1].toFixed(1)).join(' ');
+
+  document.getElementById('chartLine').setAttribute('d', lineD);
+  document.getElementById('chartArea').setAttribute('d', areaD);
+  document.getElementById('chartPrevLine').setAttribute('d', prevD);
+  document.getElementById('chartDots').innerHTML = curPts.map(p => '<circle cx="' + p[0] + '" cy="' + p[1].toFixed(1) + '" r="5"/>').join('');
+
+  const yLabels = document.querySelectorAll('#chartYLabels text');
+  const steps = [1, 0.75, 0.5, 0.25, 0];
+  yLabels.forEach((t, i) => { t.textContent = formatKsh(maxVal * steps[i]); });
+
+  const xLabels = document.querySelectorAll('#chartXLabels text');
+  const fractions = [0, 0.25, 0.75, 1];
+  const span = endDate.getTime() - startDate.getTime();
+  xLabels.forEach((t, i) => {
+    const d = new Date(startDate.getTime() + span * fractions[i]);
+    t.textContent = d.toLocaleDateString('en-KE', { day: 'numeric', month: 'short' });
+  });
+}
+
+function formatKsh(v) {
+  if (v >= 1000) return Math.round(v / 1000).toLocaleString('en-KE') + 'k';
+  return Math.round(v).toLocaleString('en-KE');
+}
+
+document.getElementById('dateRangeSelect')?.addEventListener('change', (e) => {
+  dateRangeDays = Number(e.target.value) || 30;
+  if (window.bizStoreReady) loadSalesPerformance(dateRangeDays);
+});
 
 loadBusinessDashboard();
 </script>
