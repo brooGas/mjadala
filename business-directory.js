@@ -40,6 +40,15 @@
     .biz-public-plans{margin:10px 0 16px;border:1px solid #d8dfd1;border-radius:16px;padding:13px;background:#f6f4e9;color:#203b2b}.biz-public-plans-head strong{font-size:15px;color:#203b2b}.biz-plan-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:11px}.biz-plan-card{position:relative;display:block;border:1px solid #d5ddcf;border-radius:14px;padding:12px;background:#fffdf5;color:#203b2b;cursor:pointer;min-width:0}.biz-plan-card:has(input:checked){border:2px solid #b38a35;background:#fff9e7;box-shadow:0 5px 16px #263b2a16;padding:11px}.biz-plan-card input{position:absolute;right:10px;top:10px;width:17px;height:17px;accent-color:#244b35}.biz-plan-card b{display:block;font-size:13px;padding-right:20px}.biz-plan-card .biz-plan-price{display:block;font-size:20px;font-weight:900;color:#244b35;margin:8px 0 2px}.biz-plan-card small{display:block;font-size:10px;color:#647267;line-height:1.4}.biz-plan-popular{position:absolute;left:9px;top:-8px;background:#b38a35;color:#fff;padding:3px 7px;border-radius:20px;font-size:9px;font-weight:850}.biz-plan-trial{display:inline-block;margin-top:8px;padding:4px 7px;border-radius:20px;background:#e9eee3;color:#31553b;font-size:9px;font-weight:850}.biz-plan-state{display:inline-block;border-radius:20px;padding:4px 8px;font-size:10px;font-weight:800;background:#e8f6ee;color:#187647}.biz-admin details{border:1px solid var(--line);border-radius:12px;margin:9px 0;background:var(--paper);overflow:hidden}.biz-admin details>summary{list-style:none;cursor:pointer;padding:12px 13px;font-size:12px;font-weight:850;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--soft)}.biz-admin details>summary::-webkit-details-marker{display:none}.biz-admin details>summary:after{content:'＋';font-size:16px;color:var(--green)}.biz-admin details[open]>summary:after{content:'−'}.biz-admin details>.biz-admin-section{padding:0 10px 10px}.biz-admin .biz-table-wrap{overscroll-behavior-x:contain;touch-action:pan-x pan-y}
     @media(max-width:520px){.biz-plan-grid{grid-template-columns:1fr 1fr;gap:7px}.biz-plan-card{padding:10px}.biz-plan-card .biz-plan-price{font-size:18px}.biz-admin details>summary{padding:11px}}
     @media(max-width:420px){.biz-metrics{gap:5px}.biz-metric{padding:7px}.biz-metric strong{font-size:16px}}
+    .biz-storefront-banner{position:relative;overflow:hidden;border-radius:18px;padding:18px 16px;margin:10px 0 14px;background:linear-gradient(120deg,#174d35,#2f7757);color:#fff}
+    .biz-storefront-banner:after{content:"";position:absolute;width:150px;height:150px;border:1px solid #ffffff28;border-radius:50%;right:-50px;top:-45px;box-shadow:0 0 0 18px #ffffff0a}
+    .biz-storefront-name{font-size:20px;font-weight:850;line-height:1.15;margin:0 0 6px;max-width:260px;position:relative}
+    .biz-storefront-desc{font-size:12px;line-height:1.5;color:#dcebe0;margin:0 0 13px;max-width:290px;position:relative}
+    .biz-storefront-chips{display:flex;flex-wrap:wrap;gap:7px;position:relative}
+    .biz-storefront-chip{display:inline-flex;align-items:center;gap:6px;background:#ffffff1c;border:1px solid #ffffff33;color:#fff;border-radius:999px;padding:7px 11px;font-size:11px;font-weight:700;text-decoration:none}
+    .biz-storefront-chip svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+    .biz-storefront-chip-website{background:var(--ivory);color:#174d35;border-color:var(--ivory)}
+    .dark .biz-storefront-banner{box-shadow:0 10px 26px #00000040}
   `;
   document.head.append(style);
 
@@ -87,6 +96,7 @@
     catalog.scrollIntoView({behavior:'smooth', block:'start'});
   }
   function storefront(userId, name) {
+    try { sb.from('business_storefront_views').insert({ seller_id: userId, viewer_id: user?.id || null }).then(()=>{}, ()=>{}); } catch (_) {}
     window.mjadalaBusinessSellerFilter = userId;
     if (typeof window.mjadalaBusinessOpenStorefront === 'function') window.mjadalaBusinessOpenStorefront();
     if (typeof window.mjadalaBusinessReloadProducts === 'function') window.mjadalaBusinessReloadProducts();

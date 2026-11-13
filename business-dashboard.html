@@ -1211,8 +1211,8 @@ button {
       <div class="kpi-icon"><svg class="std-icon"><use href="#i-users"/></svg></div>
       <div>
         <div class="kpi-label">Visitors</div>
-        <div class="kpi-value">2,840</div>
-        <div class="change"><svg class="std-icon"><use href="#i-trend-up"/></svg> 16.2%</div>
+        <div class="kpi-value" id="kpiVisitorsValue">0</div>
+        <div class="change" id="kpiVisitorsChange" hidden><svg class="std-icon"><use href="#i-trend-up"/></svg> <span></span></div>
       </div>
     </article>
 
@@ -1220,13 +1220,13 @@ button {
       <div class="kpi-icon"><svg class="std-icon"><use href="#i-trend-up"/></svg></div>
       <div>
         <div class="kpi-label">Conversion</div>
-        <div class="kpi-value">4.4%</div>
-        <div class="change"><svg class="std-icon"><use href="#i-trend-up"/></svg> 0.6%</div>
+        <div class="kpi-value" id="kpiConversionValue">0%</div>
+        <div class="change" id="kpiConversionChange" hidden><svg class="std-icon"><use href="#i-trend-up"/></svg> <span></span></div>
       </div>
     </article>
 
   </div>
-  <small style="display:block;margin:-10px 0 14px;color:var(--muted)">Sales, visitor and conversion figures above are illustrative — connect real analytics later. Product counts below are real.</small>
+  <small style="display:block;margin:-10px 0 14px;color:var(--muted)" id="overviewFootnote">Live figures from your real orders and storefront visits.</small>
 
   <!-- SALES AND ORDERS -->
 
@@ -1489,7 +1489,7 @@ button {
       <div class="panel-head"><div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-users"/></svg></span>Customer loyalty</div></div>
       <div id="analyticsLoyalty"><p class="biz-note">Loading…</p></div>
     </section>
-    <p class="biz-note" style="color:var(--muted);padding:0 2px">Visitor traffic and conversion analytics aren’t built yet — only the Overview chart's sales line is illustrative there; everything on this page is from your real orders.</p>
+    <p class="biz-note" style="color:var(--muted);padding:0 2px">Everything here — including visitors and conversion in the Overview — is calculated from your real orders and storefront visits.</p>
   </div>
 
   <div class="panel-view" id="view-settings" hidden>
@@ -2272,6 +2272,8 @@ async function loadSalesPerformance(days) {
   const note = bz('chartNote');
   const salesVal = bz('kpiSalesValue'), ordersVal = bz('kpiOrdersValue');
   const salesChange = bz('kpiSalesChange'), ordersChange = bz('kpiOrdersChange');
+  const visitorsVal = bz('kpiVisitorsValue'), visitorsChange = bz('kpiVisitorsChange');
+  const conversionVal = bz('kpiConversionValue'), conversionChange = bz('kpiConversionChange');
   try {
     const since = new Date(Date.now() - days * 86400000);
     const prevSince = new Date(Date.now() - 2 * days * 86400000);
@@ -2312,6 +2314,8 @@ async function loadSalesPerformance(days) {
     const prevBuckets = buckets(previous, prevSince.getTime(), since.getTime());
     drawChart(curBuckets, prevBuckets, since, new Date());
 
+    await loadVisitorsConversion(since, prevSince, curOrders, prevOrders, { visitorsVal, visitorsChange, conversionVal, conversionChange });
+
     if (rows.length === 0) {
       note.textContent = 'No orders yet in this period — the chart will fill in once you get sales.';
     } else {
@@ -2319,6 +2323,39 @@ async function loadSalesPerformance(days) {
     }
   } catch (e) {
     note.textContent = 'Sales data could not load: ' + e.message;
+  }
+}
+
+async function loadVisitorsConversion(since, prevSince, curOrders, prevOrders, els) {
+  try {
+    const { data, error } = await sb.from('business_storefront_views')
+      .select('created_at')
+      .eq('seller_id', bizUser.id)
+      .gte('created_at', prevSince.toISOString());
+    if (error) {
+      // Table not created yet — show a dash instead of fabricating a number.
+      els.visitorsVal.textContent = '—';
+      els.conversionVal.textContent = '—';
+      els.visitorsChange.hidden = true;
+      els.conversionChange.hidden = true;
+      return;
+    }
+    const views = data || [];
+    const curViews = views.filter(v => new Date(v.created_at) >= since).length;
+    const prevViews = views.filter(v => new Date(v.created_at) < since).length;
+
+    els.visitorsVal.textContent = curViews.toLocaleString('en-KE');
+    setChange(els.visitorsChange, prevViews > 0 ? ((curViews - prevViews) / prevViews) * 100 : null);
+
+    const curConv = curViews > 0 ? (curOrders / curViews) * 100 : 0;
+    const prevConv = prevViews > 0 ? (prevOrders / prevViews) * 100 : null;
+    els.conversionVal.textContent = curConv.toFixed(1) + '%';
+    setChange(els.conversionChange, (prevConv != null && prevConv > 0) ? ((curConv - prevConv) / prevConv) * 100 : null);
+  } catch (e) {
+    els.visitorsVal.textContent = '—';
+    els.conversionVal.textContent = '—';
+    els.visitorsChange.hidden = true;
+    els.conversionChange.hidden = true;
   }
 }
 
