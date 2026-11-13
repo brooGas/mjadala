@@ -1787,6 +1787,15 @@ function renderStoreIdentity(store) {
   const statusLabel = status === 'approved' ? '● Verified Store' : status === 'suspended' ? '● Suspended' : '● Pending approval';
   bz('storeStatusLabel').textContent = statusLabel;
   bz('welcomeSub').textContent = name + ' — your store at a glance';
+  if (store.logo_url) {
+    const pos = (store.logo_focal_x ?? 50) + '% ' + (store.logo_focal_y ?? 50) + '%';
+    [bz('storePhoto'), bz('welcomePhoto')].forEach(img => {
+      if (!img) return;
+      img.src = store.logo_url;
+      img.style.objectPosition = pos;
+      img.alt = name + ' logo';
+    });
+  }
 }
 
 let bizProducts = [];
@@ -1878,32 +1887,118 @@ async function loadSettings() {
       { key: 'website_url', label: 'Website link' }
     ];
     const available = candidates.filter(c => Object.prototype.hasOwnProperty.call(row, c.key));
-    if (!available.length) {
-      host.innerHTML = '<p class="biz-note">No editable store details were found on your business profile yet.</p>';
-      return;
-    }
-    host.innerHTML = available.map(c =>
+    const hasLogoField = Object.prototype.hasOwnProperty.call(row, 'logo_url');
+
+    const logoHtml = '<div class="field" style="text-align:center">' +
+      '<label>Profile picture</label>' +
+      '<div id="logoPreviewWrap" style="width:128px;height:128px;border-radius:50%;overflow:hidden;position:relative;background:var(--pale);cursor:grab;touch-action:none;user-select:none;margin:6px auto 10px;border:1px solid var(--line)">' +
+      '<div id="logoPlaceholder" class="store-illustration" style="position:absolute;inset:0;width:100%;height:100%;border-radius:0;margin:0"><svg class="std-icon"><use href="#i-storefront"/></svg></div>' +
+      '<img id="logoPreviewImg" alt="Store profile picture" hidden style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none">' +
+      '</div>' +
+      '<p class="biz-note">Drag the circle to reposition the photo. Max 3 MB.</p>' +
+      '<input type="file" id="logoFileInput" accept="image/*" style="display:block;margin:0 auto 8px">' +
+      '<div class="owner-actions"><button type="button" id="logoSaveBtn">Save profile picture</button></div>' +
+      '<p class="biz-note" id="logoStatus" aria-live="polite"></p>' +
+      '</div>';
+
+    host.innerHTML = (hasLogoField ? logoHtml : '') + (available.length ? available.map(c =>
       '<div class="field"><label for="setting_' + c.key + '">' + c.label + '</label>' +
       (c.key === 'description' ? '<textarea id="setting_' + c.key + '" rows="2">' + bizEsc(row[c.key] || '') + '</textarea>'
         : '<input id="setting_' + c.key + '" value="' + bizEsc(row[c.key] || '') + '">') + '</div>'
-    ).join('') +
-      '<div class="owner-actions"><button type="button" id="settingsSave">Save changes</button></div>' +
-      '<p class="biz-note" id="settingsStatus" aria-live="polite"></p>';
-    bz('settingsSave').addEventListener('click', async () => {
-      const statusEl = bz('settingsStatus');
-      const patch = {};
-      available.forEach(c => { patch[c.key] = bz('setting_' + c.key).value.trim(); });
-      statusEl.textContent = 'Saving…';
-      const { error: saveErr } = await sb.from('business_profiles').update(patch).eq('user_id', bizUser.id);
-      if (saveErr) { statusEl.textContent = 'Could not save: ' + saveErr.message; return; }
-      statusEl.textContent = 'Saved.';
-      Object.assign(bizStore, patch);
-      renderStoreIdentity(bizStore);
-      renderStorefront();
-    });
+    ).join('') + '<div class="owner-actions"><button type="button" id="settingsSave">Save changes</button></div><p class="biz-note" id="settingsStatus" aria-live="polite"></p>'
+      : (hasLogoField ? '' : '<p class="biz-note">No editable store details were found on your business profile yet.</p>'));
+
+    if (available.length) {
+      bz('settingsSave').addEventListener('click', async () => {
+        const statusEl = bz('settingsStatus');
+        const patch = {};
+        available.forEach(c => { patch[c.key] = bz('setting_' + c.key).value.trim(); });
+        statusEl.textContent = 'Saving…';
+        const { error: saveErr } = await sb.from('business_profiles').update(patch).eq('user_id', bizUser.id);
+        if (saveErr) { statusEl.textContent = 'Could not save: ' + saveErr.message; return; }
+        statusEl.textContent = 'Saved.';
+        Object.assign(bizStore, patch);
+        renderStoreIdentity(bizStore);
+        renderStorefront();
+      });
+    }
+
+    if (hasLogoField) setupLogoUploader(row);
   } catch (e) {
     host.innerHTML = '<p class="biz-note">Settings could not load: ' + bizEsc(e.message) + '</p>';
   }
+}
+
+function setupLogoUploader(row) {
+  const wrap = bz('logoPreviewWrap'), img = bz('logoPreviewImg'), placeholder = bz('logoPlaceholder');
+  const fileInput = bz('logoFileInput'), saveBtn = bz('logoSaveBtn'), statusEl = bz('logoStatus');
+  const MAX_BYTES = 3 * 1024 * 1024;
+  let focalX = Number(row.logo_focal_x) || 50, focalY = Number(row.logo_focal_y) || 50;
+  let pendingFile = null, previewObjectUrl = null;
+
+  function showImage(src) {
+    img.src = src;
+    img.hidden = false;
+    placeholder.hidden = true;
+  }
+  function applyFocal() { img.style.objectPosition = focalX + '% ' + focalY + '%'; }
+
+  if (row.logo_url) { showImage(row.logo_url); applyFocal(); }
+
+  function dragAt(clientX, clientY) {
+    const r = wrap.getBoundingClientRect();
+    focalX = Math.max(0, Math.min(100, ((clientX - r.left) / r.width) * 100));
+    focalY = Math.max(0, Math.min(100, ((clientY - r.top) / r.height) * 100));
+    applyFocal();
+  }
+  let dragging = false;
+  wrap.addEventListener('pointerdown', e => {
+    if (!img.hidden) { dragging = true; wrap.style.cursor = 'grabbing'; wrap.setPointerCapture(e.pointerId); dragAt(e.clientX, e.clientY); }
+  });
+  wrap.addEventListener('pointermove', e => { if (dragging) dragAt(e.clientX, e.clientY); });
+  ['pointerup', 'pointercancel'].forEach(evt => wrap.addEventListener(evt, () => { dragging = false; wrap.style.cursor = 'grab'; }));
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    statusEl.textContent = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { statusEl.textContent = 'Please choose an image file.'; fileInput.value = ''; return; }
+    if (file.size > MAX_BYTES) { statusEl.textContent = 'That photo is ' + (file.size / (1024 * 1024)).toFixed(1) + ' MB — please choose one under 3 MB.'; fileInput.value = ''; return; }
+    pendingFile = file;
+    if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl);
+    previewObjectUrl = URL.createObjectURL(file);
+    focalX = 50; focalY = 50;
+    showImage(previewObjectUrl);
+    applyFocal();
+  });
+
+  saveBtn.addEventListener('click', async () => {
+    statusEl.textContent = pendingFile ? 'Uploading…' : 'Saving…';
+    saveBtn.disabled = true;
+    try {
+      let logoUrl = row.logo_url || null;
+      if (pendingFile) {
+        const ext = (pendingFile.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+        const path = bizUser.id + '/logo-' + crypto.randomUUID() + '.' + ext;
+        const { error: upErr } = await sb.storage.from('product-images').upload(path, pendingFile, { upsert: false, contentType: pendingFile.type });
+        if (upErr) throw upErr;
+        const { data: pub } = sb.storage.from('product-images').getPublicUrl(path);
+        logoUrl = pub.publicUrl;
+      }
+      const patch = { logo_url: logoUrl, logo_focal_x: Math.round(focalX), logo_focal_y: Math.round(focalY) };
+      const { error: saveErr } = await sb.from('business_profiles').update(patch).eq('user_id', bizUser.id);
+      if (saveErr) throw saveErr;
+      row.logo_url = logoUrl; row.logo_focal_x = patch.logo_focal_x; row.logo_focal_y = patch.logo_focal_y;
+      pendingFile = null;
+      Object.assign(bizStore, patch);
+      renderStoreIdentity(bizStore);
+      statusEl.textContent = 'Saved.';
+    } catch (e) {
+      statusEl.textContent = 'Could not save: ' + e.message;
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
 }
 
 async function loadExplorePlans() {
