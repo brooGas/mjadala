@@ -1105,13 +1105,17 @@ button {
       placeholder="Search in your store...">
   </label>
 
-  <div class="top-actions">
+  <div class="top-actions" style="position:relative">
 
     <button class="icon-btn"
       aria-label="Notifications"
-      onclick="notify('No new notifications.')">
+      id="notifBtn">
       <svg class="std-icon"><use href="#i-bell"/></svg><span class="dot" id="notifDot" hidden>0</span>
     </button>
+
+    <div id="notifPanel" hidden
+      style="position:absolute;top:44px;right:0;width:270px;max-width:80vw;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(23,75,53,.15);padding:10px;z-index:50">
+    </div>
 
     <div class="profile">
       <div class="profile-avatar" id="profileAvatar" aria-hidden="true">BO</div>
@@ -1460,10 +1464,9 @@ button {
   </div>
 
   <div class="panel-view" id="view-customers" hidden>
-    <section class="card panel" style="text-align:center;padding:30px 20px">
-      <div class="store-illustration" style="margin:0 auto 12px"><svg class="std-icon"><use href="#i-users"/></svg></div>
-      <h3 style="margin:0 0 6px">Customers</h3>
-      <p class="biz-note" style="color:var(--muted)">A customer list is coming soon. For now, you can see buyers on each order.</p>
+    <section class="card panel">
+      <div class="panel-head"><div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-users"/></svg></span>Customers</div></div>
+      <div id="customersList"><p class="biz-note">Loading your customers…</p></div>
     </section>
   </div>
 
@@ -1477,11 +1480,16 @@ button {
   </div>
 
   <div class="panel-view" id="view-analytics" hidden>
-    <section class="card panel" style="text-align:center;padding:30px 20px">
-      <div class="store-illustration" style="margin:0 auto 12px"><svg class="std-icon"><use href="#i-bar-chart"/></svg></div>
-      <h3 style="margin:0 0 6px">Analytics</h3>
-      <p class="biz-note" style="color:var(--muted)">Detailed analytics are coming soon. The Sales performance chart on Overview is illustrative for now.</p>
+    <section class="card panel">
+      <div class="panel-head"><div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-bar-chart"/></svg></span>Top products</div></div>
+      <p class="biz-note" style="color:var(--muted)">Ranked by real paid sales, all time.</p>
+      <div id="analyticsTopProducts"><p class="biz-note">Loading…</p></div>
     </section>
+    <section class="card panel">
+      <div class="panel-head"><div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-users"/></svg></span>Customer loyalty</div></div>
+      <div id="analyticsLoyalty"><p class="biz-note">Loading…</p></div>
+    </section>
+    <p class="biz-note" style="color:var(--muted);padding:0 2px">Visitor traffic and conversion analytics aren’t built yet — only the Overview chart's sales line is illustrative there; everything on this page is from your real orders.</p>
   </div>
 
   <div class="panel-view" id="view-settings" hidden>
@@ -1553,6 +1561,8 @@ function goToPanel(name) {
   document.querySelectorAll('.side-nav .nav-item').forEach(x => {
     x.classList.toggle('active', x.getAttribute('data-panel') === name);
   });
+  if (name === 'customers') loadCustomers();
+  else if (name === 'analytics') loadAnalytics();
 }
 
 document.querySelectorAll('.side-nav .nav-item').forEach(item => {
@@ -1758,6 +1768,7 @@ async function loadBusinessDashboard() {
       loadRecentOrders();
       loadSalesPerformance(dateRangeDays);
       loadSettings();
+      loadNotifications();
     } else {
       const appRes = await sb.from('mj_business_applications')
         .select('business_name,status,created_at')
@@ -2047,6 +2058,146 @@ async function fetchSellerOrders(limit) {
   }
   if (res.error) throw res.error;
   return res.data || [];
+}
+
+let bizAllOrders = null;
+async function fetchAllSellerOrders(forceRefresh) {
+  if (bizAllOrders && !forceRefresh) return bizAllOrders;
+  let res = await sb.from('business_orders')
+    .select('id,product_id,buyer_id,customer_name,customer_phone,quantity,total_amount,order_status,payment_status,created_at,business_products(product_name)')
+    .eq('seller_id', bizUser.id)
+    .order('created_at', { ascending: false });
+  if (res.error) {
+    res = await sb.from('business_orders')
+      .select('id,product_id,buyer_id,customer_name,customer_phone,quantity,total_amount,order_status,payment_status,created_at')
+      .eq('seller_id', bizUser.id)
+      .order('created_at', { ascending: false });
+  }
+  if (res.error) throw res.error;
+  bizAllOrders = res.data || [];
+  return bizAllOrders;
+}
+
+async function loadCustomers() {
+  const host = bz('customersList');
+  host.innerHTML = '<p class="biz-note">Loading your customers…</p>';
+  try {
+    const orders = await fetchAllSellerOrders();
+    if (!orders.length) {
+      host.innerHTML = '<p class="biz-note">No customers yet. They’ll show up here once people start ordering from your store.</p>';
+      return;
+    }
+    // orders arrives newest-first, so the first time we see a buyer their row already has the latest name/phone/date.
+    const byBuyer = new Map();
+    orders.forEach(o => {
+      const key = o.buyer_id || o.customer_phone || o.customer_name;
+      if (!byBuyer.has(key)) byBuyer.set(key, { name: o.customer_name, phone: o.customer_phone, orders: 0, spent: 0, last: o.created_at });
+      const c = byBuyer.get(key);
+      c.orders += 1;
+      if (o.payment_status === 'paid') c.spent += Number(o.total_amount) || 0;
+    });
+    const customers = [...byBuyer.values()].sort((a, b) => b.spent - a.spent);
+    host.innerHTML = customers.map(c =>
+      '<div class="real-order-row"><div style="flex:1"><strong>' + bizEsc(c.name || 'Customer') + '</strong><br>' +
+      '<small class="biz-note">' + bizEsc(c.phone || '') + (c.phone ? ' · ' : '') + c.orders + ' order' + (c.orders === 1 ? '' : 's') + ' · last ' + relativeTime(c.last) + '</small></div>' +
+      '<span>KSh ' + c.spent.toLocaleString('en-KE') + '</span></div>'
+    ).join('');
+  } catch (e) {
+    host.innerHTML = '<p class="biz-note">Customers could not load: ' + bizEsc(e.message) + '</p>';
+  }
+}
+
+async function loadAnalytics() {
+  const topHost = bz('analyticsTopProducts'), loyaltyHost = bz('analyticsLoyalty');
+  topHost.innerHTML = '<p class="biz-note">Loading…</p>';
+  loyaltyHost.innerHTML = '<p class="biz-note">Loading…</p>';
+  try {
+    const orders = await fetchAllSellerOrders();
+    const paid = orders.filter(o => o.payment_status === 'paid');
+    if (!paid.length) {
+      topHost.innerHTML = '<p class="biz-note">No paid sales yet — top products will appear once you have some.</p>';
+      loyaltyHost.innerHTML = '<p class="biz-note">No customers yet.</p>';
+      return;
+    }
+    const byProduct = new Map();
+    paid.forEach(o => {
+      const key = o.product_id || 'unknown';
+      const name = o.business_products?.product_name || 'Product';
+      if (!byProduct.has(key)) byProduct.set(key, { name, revenue: 0, units: 0 });
+      const p = byProduct.get(key);
+      p.revenue += Number(o.total_amount) || 0;
+      p.units += Number(o.quantity) || 1;
+    });
+    const topProducts = [...byProduct.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+    topHost.innerHTML = topProducts.map((p, i) =>
+      '<div class="real-product-row"><div style="flex:1"><strong>' + (i + 1) + '. ' + bizEsc(p.name) + '</strong><br>' +
+      '<small class="biz-note">' + p.units + ' sold</small></div><span>KSh ' + p.revenue.toLocaleString('en-KE') + '</span></div>'
+    ).join('');
+
+    const byBuyer = new Map();
+    orders.forEach(o => {
+      const key = o.buyer_id || o.customer_phone || o.customer_name;
+      byBuyer.set(key, (byBuyer.get(key) || 0) + 1);
+    });
+    const totalCustomers = byBuyer.size;
+    const repeatCustomers = [...byBuyer.values()].filter(n => n > 1).length;
+    const pct = totalCustomers ? Math.round((repeatCustomers / totalCustomers) * 100) : 0;
+    loyaltyHost.innerHTML = '<div style="display:flex;gap:18px"><div><strong>' + totalCustomers + '</strong><div class="biz-note">Total customers</div></div>' +
+      '<div><strong>' + repeatCustomers + '</strong><div class="biz-note">Repeat customers</div></div>' +
+      '<div><strong>' + pct + '%</strong><div class="biz-note">Repeat rate</div></div></div>';
+  } catch (e) {
+    topHost.innerHTML = '<p class="biz-note">Analytics could not load: ' + bizEsc(e.message) + '</p>';
+    loyaltyHost.innerHTML = '';
+  }
+}
+
+async function loadNotifications() {
+  const dot = bz('notifDot'), panel = bz('notifPanel');
+  try {
+    const since = new Date(Date.now() - 7 * 86400000).toISOString();
+    const { data, error } = await sb.from('business_orders')
+      .select('id,total_amount,payment_status,created_at,business_products(product_name)')
+      .eq('seller_id', bizUser.id)
+      .gte('created_at', since)
+      .order('created_at', { ascending: false })
+      .limit(10);
+    if (error) throw error;
+    const items = [];
+    (data || []).filter(o => o.payment_status === 'paid').forEach(o => {
+      items.push({
+        text: 'New order: ' + (o.business_products?.product_name || 'a product') + ' — KSh ' + (Number(o.total_amount) || 0).toLocaleString('en-KE'),
+        when: o.created_at
+      });
+    });
+    if (bizStore && bizStore.directory_status && bizStore.directory_status.toLowerCase() === 'pending') {
+      items.push({ text: 'Your business application is still pending review.', when: null });
+    }
+    let lastSeen = 0;
+    try { lastSeen = Number(localStorage.getItem('mjBizNotifSeen') || 0); } catch (e) {}
+    const unread = items.filter(it => it.when && new Date(it.when).getTime() > lastSeen).length;
+    dot.hidden = unread === 0;
+    dot.textContent = unread;
+    panel.innerHTML = items.length
+      ? items.map(it => '<div style="padding:8px 6px;border-bottom:1px solid var(--line)"><small>' + bizEsc(it.text) + '</small></div>').join('')
+      : '<p class="biz-note" style="padding:6px">No new notifications.</p>';
+  } catch (e) {
+    panel.innerHTML = '<p class="biz-note" style="padding:6px">Notifications could not load.</p>';
+  }
+}
+
+const notifBtn = document.getElementById('notifBtn'), notifPanel = document.getElementById('notifPanel');
+if (notifBtn && notifPanel) {
+  notifBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    notifPanel.hidden = !notifPanel.hidden;
+    if (!notifPanel.hidden) {
+      try { localStorage.setItem('mjBizNotifSeen', String(Date.now())); } catch (e2) {}
+      bz('notifDot').hidden = true;
+    }
+  });
+  document.addEventListener('click', (e) => {
+    if (!notifPanel.hidden && !notifPanel.contains(e.target) && e.target !== notifBtn) notifPanel.hidden = true;
+  });
 }
 
 function relativeTime(iso) {
