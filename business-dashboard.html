@@ -1437,10 +1437,18 @@ button {
     <section class="card panel">
       <div class="panel-head">
         <div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-box"/></svg></span>Products</div>
-        <button class="link-btn" onclick="window.open('index.html','_blank')">Add product in Mjadala <svg class="std-icon"><use href="#i-chevron-right"/></svg></button>
+        <button class="link-btn" onclick="openAddProduct()">Add product <svg class="std-icon"><use href="#i-chevron-right"/></svg></button>
       </div>
-      <p class="biz-note" style="color:var(--muted)">Products are added and edited from "Open My Business" in the main Mjadala app. They appear here once saved.</p>
+      <p class="biz-note" style="color:var(--muted)">"Add product" opens the same product form used in "My Business" in the main Mjadala app. New products appear here once saved.</p>
       <div id="productsList"><p class="biz-note">Loading your products…</p></div>
+    </section>
+  </div>
+
+  <div class="panel-view" id="view-plans" hidden>
+    <section class="card panel">
+      <div class="panel-head"><div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-crown"/></svg></span>Business plans</div></div>
+      <p class="biz-note" style="color:var(--muted)">The same plans shown when registering your business.</p>
+      <div id="explorePlansList"><p class="biz-note">Loading plans…</p></div>
     </section>
   </div>
 
@@ -1463,7 +1471,8 @@ button {
     <section class="card panel" style="text-align:center;padding:30px 20px">
       <div class="store-illustration" style="margin:0 auto 12px"><svg class="std-icon"><use href="#i-megaphone"/></svg></div>
       <h3 style="margin:0 0 6px">Promotions</h3>
-      <p class="biz-note" style="color:var(--muted)">Promotion tools aren't built yet. Advertising for your store can already be managed from the main Mjadala app.</p>
+      <p class="biz-note" style="color:var(--muted);max-width:360px;margin:0 auto 16px">Promote your store using Mjadala's existing advertising system — create a campaign, and review how your submissions are doing.</p>
+      <div class="owner-actions"><button type="button" onclick="openAdsDashboard()">Open Business Ads Dashboard</button></div>
     </section>
   </div>
 
@@ -1480,6 +1489,11 @@ button {
       <div class="panel-head"><div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-settings"/></svg></span>Website settings</div></div>
       <div id="settingsInfo"><p class="biz-note">Loading…</p></div>
     </section>
+    <section class="card panel">
+      <div class="panel-head"><div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-crown"/></svg></span>Plan</div></div>
+      <p class="biz-note" style="color:var(--muted)">See or change your business plan.</p>
+      <div class="owner-actions"><button type="button" onclick="goToPanel('plans')">View business plans</button></div>
+    </section>
   </div>
 
 </section>
@@ -1494,7 +1508,7 @@ button {
     <span class="bicon"><svg class="std-icon"><use href="#i-home"/></svg></span>Home
   </a>
 
-  <a class="bottom-link" href="#explore">
+  <a class="bottom-link" href="#explore" id="bottomNavExplore">
     <span class="bicon"><svg class="std-icon"><use href="#i-compass"/></svg></span>Explore
   </a>
 
@@ -1743,6 +1757,7 @@ async function loadBusinessDashboard() {
       loadOrdersPreview();
       loadRecentOrders();
       loadSalesPerformance(dateRangeDays);
+      loadSettings();
     } else {
       const appRes = await sb.from('mj_business_applications')
         .select('business_name,status,created_at')
@@ -1774,27 +1789,152 @@ function renderStoreIdentity(store) {
   bz('welcomeSub').textContent = name + ' — your store at a glance';
 }
 
+let bizProducts = [];
+
 async function loadProducts() {
   const host = bz('productsList');
   try {
     const { data, error } = await sb.from('business_products').select('id,product_name,price,published,created_at').eq('seller_id', bizUser.id).order('created_at', { ascending: false });
     if (error) throw error;
     const rows = data || [];
+    bizProducts = rows;
     const countBadge = bz('navProductCount');
     if (countBadge) { countBadge.hidden = rows.length === 0; countBadge.textContent = rows.length; }
     if (!rows.length) {
-      host.innerHTML = '<p class="biz-note">No products yet. Add your first product from "Open My Business" in the main Mjadala app.</p>';
-      return;
+      host.innerHTML = '<p class="biz-note">No products yet. Tap "Add product" above to create your first one.</p>';
+    } else {
+      host.innerHTML = rows.map(p =>
+        '<div class="real-product-row"><div style="flex:1"><strong>' + bizEsc(p.product_name || 'Untitled product') + '</strong><br>' +
+        '<small class="biz-note">KSh ' + (Number(p.price) || 0).toLocaleString('en-KE') + '</small></div>' +
+        '<span class="real-badge' + (p.published ? '' : ' off') + '">' + (p.published ? 'Published' : 'Unpublished') + '</span></div>'
+      ).join('');
     }
-    host.innerHTML = rows.map(p =>
-      '<div class="real-product-row"><div style="flex:1"><strong>' + bizEsc(p.product_name || 'Untitled product') + '</strong><br>' +
-      '<small class="biz-note">KSh ' + (Number(p.price) || 0).toLocaleString('en-KE') + '</small></div>' +
-      '<span class="real-badge' + (p.published ? '' : ' off') + '">' + (p.published ? 'Published' : 'Unpublished') + '</span></div>'
-    ).join('');
   } catch (e) {
     host.innerHTML = '<p class="biz-note">Products could not load: ' + bizEsc(e.message) + '</p>';
   }
+  renderStorefront();
 }
+
+function openAddProduct() {
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type: 'MJADALA_OPEN_ADD_PRODUCT' }, location.origin);
+  } else {
+    window.location.href = 'index.html?openAddProduct=1';
+  }
+}
+
+function openAdsDashboard() {
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type: 'MJADALA_OPEN_ADS_DASHBOARD' }, location.origin);
+  } else {
+    window.location.href = 'index.html?openAdsDashboard=1';
+  }
+}
+
+function renderStorefront() {
+  const host = bz('storefrontInfo');
+  if (!host || !bizStore) return;
+  const published = bizProducts.filter(p => p.published);
+  const status = (bizStore.directory_status || 'pending').toLowerCase();
+  const statusNote = status === 'approved'
+    ? 'Your store is listed in the Mjadala Business Directory, where customers can find and buy from you.'
+    : status === 'suspended'
+      ? 'Your store is currently suspended from the directory. Contact Mjadala support for help.'
+      : 'Your store will appear in the Mjadala Business Directory once your application is approved.';
+  let html = '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">' +
+    '<div class="store-illustration"><svg class="std-icon"><use href="#i-storefront"/></svg></div>' +
+    '<div><strong style="font-size:15px">' + bizEsc(bizStore.business_name || 'Your store') + '</strong>' +
+    '<div class="biz-note" style="color:var(--muted)">' + statusNote + '</div></div></div>';
+  html += '<div style="display:flex;gap:18px;margin-bottom:12px"><div><strong>' + bizProducts.length + '</strong><div class="biz-note">Total products</div></div>' +
+    '<div><strong>' + published.length + '</strong><div class="biz-note">Published (visible to customers)</div></div></div>';
+  if (!published.length) {
+    html += '<p class="biz-note">No published products yet — customers can’t see your storefront until you publish at least one product.</p>';
+  } else {
+    html += '<div class="panel-head" style="margin-top:4px"><div class="panel-title" style="font-size:13px">What customers see</div></div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px">' +
+      published.slice(0, 12).map(p =>
+        '<div style="border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center">' +
+        '<div class="store-illustration" style="margin:0 auto 6px;width:40px;height:40px"><svg class="std-icon"><use href="#i-box"/></svg></div>' +
+        '<div style="font-size:12px;font-weight:700">' + bizEsc(p.product_name || 'Product') + '</div>' +
+        '<div class="biz-note">KSh ' + (Number(p.price) || 0).toLocaleString('en-KE') + '</div></div>'
+      ).join('') + '</div>';
+  }
+  host.innerHTML = html;
+}
+
+async function loadSettings() {
+  const host = bz('settingsInfo');
+  try {
+    const { data, error } = await sb.from('business_profiles').select('*').eq('user_id', bizUser.id).maybeSingle();
+    if (error) throw error;
+    const row = data || {};
+    const candidates = [
+      { key: 'business_name', label: 'Store name' },
+      { key: 'description', label: 'Description' },
+      { key: 'tagline', label: 'Tagline' },
+      { key: 'location_text', label: 'Location' },
+      { key: 'contact_phone', label: 'Contact phone' },
+      { key: 'whatsapp_number', label: 'WhatsApp number' },
+      { key: 'website_url', label: 'Website link' }
+    ];
+    const available = candidates.filter(c => Object.prototype.hasOwnProperty.call(row, c.key));
+    if (!available.length) {
+      host.innerHTML = '<p class="biz-note">No editable store details were found on your business profile yet.</p>';
+      return;
+    }
+    host.innerHTML = available.map(c =>
+      '<div class="field"><label for="setting_' + c.key + '">' + c.label + '</label>' +
+      (c.key === 'description' ? '<textarea id="setting_' + c.key + '" rows="2">' + bizEsc(row[c.key] || '') + '</textarea>'
+        : '<input id="setting_' + c.key + '" value="' + bizEsc(row[c.key] || '') + '">') + '</div>'
+    ).join('') +
+      '<div class="owner-actions"><button type="button" id="settingsSave">Save changes</button></div>' +
+      '<p class="biz-note" id="settingsStatus" aria-live="polite"></p>';
+    bz('settingsSave').addEventListener('click', async () => {
+      const statusEl = bz('settingsStatus');
+      const patch = {};
+      available.forEach(c => { patch[c.key] = bz('setting_' + c.key).value.trim(); });
+      statusEl.textContent = 'Saving…';
+      const { error: saveErr } = await sb.from('business_profiles').update(patch).eq('user_id', bizUser.id);
+      if (saveErr) { statusEl.textContent = 'Could not save: ' + saveErr.message; return; }
+      statusEl.textContent = 'Saved.';
+      Object.assign(bizStore, patch);
+      renderStoreIdentity(bizStore);
+      renderStorefront();
+    });
+  } catch (e) {
+    host.innerHTML = '<p class="biz-note">Settings could not load: ' + bizEsc(e.message) + '</p>';
+  }
+}
+
+async function loadExplorePlans() {
+  const host = bz('explorePlansList');
+  try {
+    if (!bizPlans.length) {
+      const { data, error } = await sb.from('mj_business_plans').select('*').eq('is_active', true).order('sort_order');
+      if (error) throw error;
+      bizPlans = data || [];
+    }
+    if (!bizPlans.length) {
+      host.innerHTML = '<p class="biz-note">No business plans are available right now.</p>';
+      return;
+    }
+    host.innerHTML = '<div class="biz-plan-grid">' + bizPlans.map(p => (
+      '<div class="biz-plan-card" style="cursor:default">' +
+      '<b>' + bizEsc(p.plan_name) + '</b>' +
+      '<span class="biz-plan-price">' + (Number(p.price_kes) === 0 ? 'Free' : 'KSh ' + Number(p.price_kes).toLocaleString('en-KE')) + '</span>' +
+      '<small>Per ' + Number(p.billing_days) + ' days · ' + bizEsc(p.description || 'Business listing and product tools') + '</small></div>'
+    )).join('') + '</div>';
+  } catch (e) {
+    host.innerHTML = '<p class="biz-note">Plans could not load: ' + bizEsc(e.message) + '</p>';
+  }
+}
+
+document.getElementById('bottomNavExplore')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  if (!window.bizStoreReady) return;
+  goToPanel('plans');
+  loadExplorePlans();
+});
 
 async function fetchSellerOrders(limit) {
   // Try with the product name joined in; if the relationship isn't detected by PostgREST, fall back to a plain select.
