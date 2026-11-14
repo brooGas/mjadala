@@ -15,6 +15,27 @@
   const toast = msg => { if (typeof window.showToast === 'function') window.showToast(msg); else alert(msg); };
   const errorText = e => e?.message || String(e || 'Unknown error');
   const emailFor = nick => nick.trim().toLowerCase().replace(/^@/, '') + '@' + AUTH_DOMAIN;
+  async function mjGetActivePlan(uid) {
+    // Returns the plan whose limits should apply right now: the seller's real active
+    // subscription, or the free Starter plan's limits if none (so Starter is still enforced).
+    try {
+      const { data: sub } = await sb.from('mj_business_subscriptions').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(1).maybeSingle();
+      let plan = null;
+      if (sub && sub.plan_id) {
+        const expired = sub.ends_at && new Date(sub.ends_at) < new Date();
+        const bad = ['suspended', 'cancelled', 'canceled', 'revoked', 'rejected', 'expired'].includes(String(sub.status || '').toLowerCase());
+        if (!expired && !bad) {
+          const { data: p } = await sb.from('mj_business_plans').select('*').eq('id', sub.plan_id).maybeSingle();
+          if (p) plan = p;
+        }
+      }
+      if (!plan) {
+        const { data: starter } = await sb.from('mj_business_plans').select('*').eq('plan_key', 'starter').maybeSingle();
+        plan = starter || null;
+      }
+      return plan;
+    } catch (_) { return null; }
+  }
 
   function addAuthUI() {
     if ($('businessAuthPanel')) return;
@@ -225,6 +246,14 @@
       $('businessProfileStatus').textContent = 'Your business is approved. Your active plan allows product publishing.';
       const { data: ownerProfile } = await sb.from('profiles').select('nickname').eq('id',session.user.id).maybeSingle(); const ownerName=ownerProfile?.nickname||session.user.email?.split('@')[0]||'Account owner'; $('myBusinessOwner').textContent='Owner: '+ownerName; $('businessOwnerLabel').textContent='Owner: '+ownerName;
       const files = selectedImages.length ? selectedImages : [...($('productPhotos').files || [])];
+      const plan = await mjGetActivePlan(session.user.id);
+      if (plan) {
+        if (plan.product_limit != null) {
+          const { count } = await sb.from('business_products').select('id', { count: 'exact', head: true }).eq('seller_id', session.user.id);
+          if ((count || 0) >= Number(plan.product_limit)) throw new Error(`Your ${plan.plan_name} plan allows up to ${plan.product_limit} products. Remove a listing or pick a bigger plan in Business Plans to add more.`);
+        }
+        if (plan.photo_limit != null && files.length > Number(plan.photo_limit)) throw new Error(`Your ${plan.plan_name} plan allows up to ${plan.photo_limit} photo${Number(plan.photo_limit) === 1 ? '' : 's'} per product. You selected ${files.length}.`);
+      }
       payload.image_urls = await uploadPhotos(files);
       let result = await sb.from('business_products').insert(payload).select('*').single();
       // Quantity is required. If the stock migration is missing, fail clearly rather than silently discarding inventory.

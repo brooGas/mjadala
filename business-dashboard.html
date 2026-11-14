@@ -1543,7 +1543,7 @@ button {
     </section>
     <section class="card panel">
       <div class="panel-head"><div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-crown"/></svg></span>Plan</div></div>
-      <p class="biz-note" style="color:var(--muted)">See or change your business plan.</p>
+      <div id="planUsageInfo"><p class="biz-note">Loading…</p></div>
       <div class="owner-actions"><button type="button" onclick="goToPanel('plans')">View business plans</button></div>
     </section>
   </div>
@@ -1718,6 +1718,61 @@ function setGate(state, opts) {
   }
 }
 
+let bizActivePlanCache = null;
+async function mjGetActivePlan(userId) {
+  // Returns { plan, assigned, lapsed, status }. `plan` is always the plan whose limits
+  // should apply right now — the seller's real subscription, or Starter's limits if none,
+  // so Starter is still enforced even with no subscription row.
+  if (bizActivePlanCache && bizActivePlanCache.userId === userId) return bizActivePlanCache.result;
+  let result = { plan: null, assigned: false, lapsed: false, status: null };
+  try {
+    const { data: sub } = await sb.from('mj_business_subscriptions').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(1).maybeSingle();
+    if (sub && sub.plan_id) {
+      const expired = sub.ends_at && new Date(sub.ends_at) < new Date();
+      const bad = ['suspended', 'cancelled', 'canceled', 'revoked', 'rejected', 'expired'].includes(String(sub.status || '').toLowerCase());
+      if (!expired && !bad) {
+        const { data: plan } = await sb.from('mj_business_plans').select('*').eq('id', sub.plan_id).maybeSingle();
+        if (plan) { result.plan = plan; result.assigned = true; result.status = sub.status; }
+      } else {
+        result.lapsed = true; result.status = sub.status;
+      }
+    }
+    if (!result.plan) {
+      const { data: starter } = await sb.from('mj_business_plans').select('*').eq('plan_key', 'starter').maybeSingle();
+      result.plan = starter || null;
+    }
+  } catch (_) { /* leave result as-is */ }
+  bizActivePlanCache = { userId, result };
+  return result;
+}
+
+async function loadPlanUsage() {
+  const host = bz('planUsageInfo');
+  if (!host) return;
+  try {
+    const active = await mjGetActivePlan(bizUser.id);
+    if (!active.plan) {
+      host.innerHTML = '<p class="biz-note">No plan could be found. Request a plan below.</p>';
+      return;
+    }
+    const plan = active.plan;
+    const { count: productCount } = await sb.from('business_products').select('id', { count: 'exact', head: true }).eq('seller_id', bizUser.id);
+    const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+    const { count: adCount } = await sb.from('mj_ad_campaigns').select('id', { count: 'exact', head: true }).eq('user_id', bizUser.id).gte('created_at', monthStart.toISOString());
+    const lines = [];
+    lines.push((plan.product_limit != null ? (productCount || 0) + ' of ' + plan.product_limit : (productCount || 0)) + ' product listings used');
+    if (plan.photo_limit != null) lines.push('Up to ' + plan.photo_limit + ' photo' + (Number(plan.photo_limit) === 1 ? '' : 's') + ' per product');
+    if (plan.ad_credits_per_month != null) lines.push((adCount || 0) + ' of ' + plan.ad_credits_per_month + ' free ad slots used this month');
+    const statusNote = active.lapsed
+      ? 'previous plan ended — back on Starter limits'
+      : (active.assigned ? bizEsc(active.status || 'active') : 'no plan assigned — Starter limits');
+    host.innerHTML = '<p class="biz-note"><b style="color:var(--ink)">' + bizEsc(plan.plan_name) + '</b> · ' + statusNote + '</p>' +
+      '<ul class="biz-plan-limits">' + lines.map(l => '<li>' + bizEsc(l) + '</li>').join('') + '</ul>';
+  } catch (e) {
+    host.innerHTML = '<p class="biz-note">Plan usage could not load: ' + bizEsc(e.message) + '</p>';
+  }
+}
+
 function renderPlanCards(list, opts) {
   opts = opts || {};
   const selectable = !!opts.selectable;
@@ -1837,6 +1892,7 @@ async function loadBusinessDashboard() {
       loadSalesPerformance(dateRangeDays);
       loadSettings();
       loadNotifications();
+      loadPlanUsage();
     } else {
       const appRes = await sb.from('mj_business_applications')
         .select('business_name,status,created_at')
