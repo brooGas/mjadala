@@ -1607,6 +1607,7 @@ function goToPanel(name) {
   });
   if (name === 'customers') loadCustomers();
   else if (name === 'analytics') loadAnalytics();
+  else if (name === 'plans') loadExplorePlans();
 }
 
 document.querySelectorAll('.side-nav .nav-item').forEach(item => {
@@ -2226,7 +2227,6 @@ document.getElementById('bottomNavExplore')?.addEventListener('click', (e) => {
   e.preventDefault();
   if (!window.bizStoreReady) return;
   goToPanel('plans');
-  loadExplorePlans();
 });
 
 async function fetchSellerOrders(limit) {
