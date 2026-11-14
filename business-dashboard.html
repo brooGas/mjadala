@@ -615,6 +615,19 @@ button {
   color: #78847c;
 }
 
+.health-warn .check { background: #fbe6d8; color: #a85a1f; }
+.health-warn small { color: #a85a1f; }
+
+.pay-method-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; margin: 2px 0 14px; }
+.pay-method-btn {
+  border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 10px 6px;
+  text-align: center; cursor: pointer; color: var(--muted);
+}
+.pay-method-btn .std-icon { color: var(--forest); }
+.pay-method-btn.active { border: 2px solid var(--green); background: var(--pale); }
+.pay-method-btn b { display: block; font-size: 11.5px; margin-top: 4px; color: var(--ink); }
+.pay-method-btn small { display: block; font-size: 9.5px; margin-top: 1px; }
+
 .store-illustration {
   float: right;
   font-size: 40px;
@@ -949,15 +962,39 @@ button {
   padding: 11px 18px; font-weight: 700; font-size: 13px;
 }
 .owner-actions button:disabled, #regSubmit:disabled { opacity: .6; cursor: default; }
-.biz-plan-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 9px; margin: 10px 0; }
+.biz-plan-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(215px,1fr)); gap: 10px; margin: 10px 0; }
 .biz-plan-card {
-  position: relative; display: block; border: 1px solid var(--line); border-radius: 12px;
-  padding: 11px; background: var(--pale-light); cursor: pointer;
+  position: relative; display: block; border: 1px solid var(--line); border-radius: 14px;
+  padding: 15px 14px 14px; background: var(--pale-light); cursor: pointer;
 }
 .biz-plan-card:has(input:checked) { border: 2px solid var(--green); background: var(--pale); }
-.biz-plan-card input { position: absolute; right: 9px; top: 9px; }
-.biz-plan-card b { display: block; font-size: 13px; padding-right: 18px; }
-.biz-plan-card .biz-plan-price { display: block; font-size: 17px; font-weight: 800; color: var(--forest); margin: 6px 0 2px; }
+.biz-plan-card input { position: absolute; right: 11px; top: 13px; }
+.biz-plan-card b { display: block; font-size: 15px; padding-right: 18px; }
+.biz-plan-card .biz-plan-price { display: block; font-size: 19px; font-weight: 800; color: var(--forest); margin: 6px 0 1px; }
+.biz-plan-card .biz-plan-price small { font-size: 11px; font-weight: 600; color: var(--muted); }
+.biz-plan-desc { display: block; font-size: 12px; color: var(--muted); margin: 2px 0 10px; line-height: 1.4; }
+.biz-plan-cycle { display: flex; gap: 6px; margin: 2px 0 10px; }
+.biz-plan-cycle button {
+  flex: 1; border: 1px solid var(--line); background: #fff; border-radius: 8px;
+  padding: 6px 4px; font-size: 11px; font-weight: 700; color: var(--muted); cursor: pointer;
+}
+.biz-plan-cycle button.active { border-color: var(--green); background: var(--pale); color: var(--forest-dark); }
+.biz-plan-save {
+  display: inline-block; font-size: 10px; font-weight: 800; color: var(--forest);
+  background: var(--pale); border-radius: 999px; padding: 2px 7px; margin-left: 5px;
+}
+.biz-plan-limits { list-style: none; margin: 0 0 8px; padding: 0; font-size: 12px; color: var(--ink); }
+.biz-plan-limits li { padding: 3px 0 3px 18px; position: relative; }
+.biz-plan-limits li::before { content: '✓'; position: absolute; left: 0; color: var(--green); font-weight: 800; }
+.biz-plan-support { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+.biz-plan-trial-tag {
+  display: inline-block; margin-top: 8px; font-size: 11px; color: var(--forest-dark);
+  font-weight: 700; background: #fff; border: 1px dashed var(--line); border-radius: 999px; padding: 3px 9px;
+}
+.biz-plan-popular {
+  position: absolute; top: -9px; left: 12px; background: var(--forest); color: #fff;
+  font-size: 9px; font-weight: 800; letter-spacing: .04em; padding: 3px 9px; border-radius: 999px;
+}
 .real-product-row, .real-order-row {
   display: flex; align-items: center; gap: 12px; padding: 11px 2px; border-bottom: 1px solid var(--line);
 }
@@ -980,6 +1017,7 @@ button {
 <body>
 
 <svg style="display:none" aria-hidden="true">
+  <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 9h18"/><circle cx="16.5" cy="13.5" r="1.1" fill="currentColor" stroke="none"/></symbol>
   <symbol id="i-menu" viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></symbol>
   <symbol id="i-close" viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
@@ -1407,11 +1445,11 @@ button {
           </div>
         </div>
 
-        <div class="health-row">
+        <div class="health-row" id="healthPaymentRow">
           <span class="check"><svg class="std-icon"><use href="#i-check"/></svg></span>
           <div>
             <strong>Payment setup</strong>
-            <small>Payment details are configured</small>
+            <small>Checking…</small>
           </div>
         </div>
 
@@ -1496,6 +1534,11 @@ button {
     <section class="card panel">
       <div class="panel-head"><div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-settings"/></svg></span>Website settings</div></div>
       <div id="settingsInfo"><p class="biz-note">Loading…</p></div>
+    </section>
+    <section class="card panel">
+      <div class="panel-head"><div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-wallet"/></svg></span>Payment setup</div></div>
+      <p class="biz-note" style="color:var(--muted);margin-top:-4px">Choose how customers pay you with M-Pesa. Only one method is active at a time.</p>
+      <div id="paymentSetupInfo"><p class="biz-note">Loading…</p></div>
     </section>
     <section class="card panel">
       <div class="panel-head"><div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-crown"/></svg></span>Plan</div></div>
@@ -1673,6 +1716,59 @@ function setGate(state, opts) {
   }
 }
 
+function renderPlanCards(list, opts) {
+  opts = opts || {};
+  const selectable = !!opts.selectable;
+  const tag = selectable ? 'label' : 'div';
+  return '<div class="biz-plan-grid">' + list.map(p => {
+    const monthly = Number(p.price_kes) || 0;
+    const freeMonths = Number(p.yearly_free_months) || 0;
+    const hasYearly = p.price_yearly_kes != null && monthly > 0;
+    const yearly = hasYearly ? Number(p.price_yearly_kes) : (monthly > 0 ? monthly * Math.max(1, 12 - freeMonths) : 0);
+    const isFree = monthly === 0;
+    const limits = [];
+    if (p.product_limit != null) limits.push(Number(p.product_limit).toLocaleString('en-KE') + ' product listings');
+    else limits.push('Unlimited product listings');
+    if (p.photo_limit != null) limits.push(Number(p.photo_limit) + ' photo' + (Number(p.photo_limit) === 1 ? '' : 's') + ' per product');
+    if (p.ad_credits_per_month != null && Number(p.ad_credits_per_month) > 0) limits.push(Number(p.ad_credits_per_month) + ' free ad slot' + (Number(p.ad_credits_per_month) === 1 ? '' : 's') + ' every month');
+    const featureLines = (p.features || '').split('\n').map(s => s.trim()).filter(Boolean);
+    const lines = featureLines.length ? featureLines : limits;
+    const radio = selectable ? '<input type="radio" name="' + bizEsc(opts.name || 'planChoice') + '" value="' + bizEsc(p.id) + '">' : '';
+    const priceBlock = isFree
+      ? '<span class="biz-plan-price">Free</span>'
+      : ('<div class="biz-plan-cycle" data-cycle-for="' + bizEsc(p.id) + '">' +
+          '<button type="button" data-cycle="monthly" class="active">Monthly</button>' +
+          '<button type="button" data-cycle="yearly">Yearly' + (freeMonths > 0 ? '<span class="biz-plan-save">' + freeMonths + 'mo free</span>' : '') + '</button>' +
+        '</div>' +
+        '<span class="biz-plan-price" data-monthly="' + monthly + '" data-yearly="' + yearly + '">KSh ' + monthly.toLocaleString('en-KE') + ' <small>/month</small></span>');
+    return '<' + tag + ' class="biz-plan-card" data-cycle="monthly">' +
+      (p.plan_key === 'growth' ? '<span class="biz-plan-popular">MOST POPULAR</span>' : '') +
+      radio +
+      '<b>' + bizEsc(p.plan_name) + '</b>' +
+      '<span class="biz-plan-desc">' + bizEsc(p.description || 'Business listing and product tools') + '</span>' +
+      priceBlock +
+      (lines.length ? '<ul class="biz-plan-limits">' + lines.map(l => '<li>' + bizEsc(l) + '</li>').join('') + '</ul>' : '') +
+      (p.support_level ? '<span class="biz-plan-support">' + bizEsc(p.support_level) + ' support</span>' : '') +
+      (Number(p.trial_days) > 0 ? '<span class="biz-plan-trial-tag">' + Number(p.trial_days) + '-day free trial</span>' : '') +
+      '</' + tag + '>';
+  }).join('') + '</div>';
+}
+
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.biz-plan-cycle button');
+  if (!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const wrap = btn.closest('.biz-plan-cycle');
+  wrap.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+  const card = btn.closest('.biz-plan-card');
+  card.dataset.cycle = btn.dataset.cycle;
+  const priceEl = card.querySelector('.biz-plan-price');
+  const val = btn.dataset.cycle === 'yearly' ? priceEl.dataset.yearly : priceEl.dataset.monthly;
+  const unit = btn.dataset.cycle === 'yearly' ? '/year' : '/month';
+  priceEl.innerHTML = 'KSh ' + Number(val).toLocaleString('en-KE') + ' <small>' + unit + '</small>';
+});
+
 async function loadRegistrationForm() {
   const host = bz('registerPlans');
   const submitBtn = bz('regSubmit');
@@ -1686,12 +1782,7 @@ async function loadRegistrationForm() {
     if (!bizPlans.length) {
       host.innerHTML = '<p class="biz-note">No business plans are available to choose right now. Please check back soon.</p>';
     } else {
-      host.innerHTML = '<div class="biz-plan-grid">' + bizPlans.map(p => (
-        '<label class="biz-plan-card"><input type="radio" name="regPlan" value="' + bizEsc(p.id) + '">' +
-        '<b>' + bizEsc(p.plan_name) + '</b>' +
-        '<span class="biz-plan-price">' + (Number(p.price_kes) === 0 ? 'Free' : 'KSh ' + Number(p.price_kes).toLocaleString('en-KE')) + '</span>' +
-        '<small>Per ' + Number(p.billing_days) + ' days · ' + bizEsc(p.description || 'Business listing and product tools') + '</small></label>'
-      )).join('') + '</div>';
+      host.innerHTML = renderPlanCards(bizPlans, { name: 'regPlan', selectable: true });
     }
   } catch (e) {
     host.innerHTML = '<p class="biz-note">Plans could not load: ' + bizEsc(e.message) + '</p>';
@@ -1702,7 +1793,9 @@ async function loadRegistrationForm() {
     submitBtn.addEventListener('click', async () => {
       const name = bz('regName').value.trim();
       if (!name) { statusEl.textContent = 'Enter your business or trading name.'; return; }
-      const selectedPlan = document.querySelector('input[name="regPlan"]:checked')?.value;
+      const selectedCard = document.querySelector('input[name="regPlan"]:checked')?.closest('.biz-plan-card');
+      const selectedPlan = selectedCard?.querySelector('input')?.value;
+      const selectedCycle = selectedCard?.dataset.cycle || 'monthly';
       if (bizPlans.length && !selectedPlan) { statusEl.textContent = 'Choose a business plan before submitting.'; return; }
       submitBtn.disabled = true;
       statusEl.textContent = 'Submitting…';
@@ -1716,8 +1809,12 @@ async function loadRegistrationForm() {
           location_text: bz('regLocation').value.trim(),
           contact_phone: bz('regPhone').value.trim()
         };
-        let { error } = await sb.from('mj_business_applications').insert({ ...basePayload, selected_plan_id: selectedPlan || null });
+        let { error } = await sb.from('mj_business_applications').insert({ ...basePayload, selected_plan_id: selectedPlan || null, selected_billing_cycle: selectedPlan ? selectedCycle : null });
         let planColumnMissing = false;
+        if (error && /selected_billing_cycle/.test(error.message || '')) {
+          // Billing-cycle column not present yet — resubmit with just the plan id.
+          ({ error } = await sb.from('mj_business_applications').insert({ ...basePayload, selected_plan_id: selectedPlan || null }));
+        }
         if (error && /selected_plan_id/.test(error.message || '')) {
           // Column not present on this database yet — resubmit without it so the applicant isn't blocked.
           planColumnMissing = true;
@@ -1935,9 +2032,107 @@ async function loadSettings() {
     }
 
     if (hasLogoField) setupLogoUploader(row);
+    loadPaymentSetup(row);
   } catch (e) {
     host.innerHTML = '<p class="biz-note">Settings could not load: ' + bizEsc(e.message) + '</p>';
   }
+}
+
+function isPaymentConfigured(row) {
+  const m = row.payment_method;
+  if (m === 'till') return !!row.mpesa_till_number;
+  if (m === 'pochi') return !!row.mpesa_phone_number;
+  if (m === 'paybill') return !!row.mpesa_paybill_number;
+  return false;
+}
+
+function updateHealthPaymentStatus(ok, unavailable) {
+  const rowEl = bz('healthPaymentRow');
+  if (!rowEl) return;
+  const icon = rowEl.querySelector('.check');
+  const sub = rowEl.querySelector('small');
+  if (unavailable) {
+    rowEl.classList.add('health-warn');
+    icon.innerHTML = '<svg class="std-icon"><use href="#i-close"/></svg>';
+    sub.textContent = 'Not set up yet';
+    return;
+  }
+  rowEl.classList.toggle('health-warn', !ok);
+  icon.innerHTML = ok ? '<svg class="std-icon"><use href="#i-check"/></svg>' : '<svg class="std-icon"><use href="#i-close"/></svg>';
+  sub.textContent = ok ? 'Payment details are configured' : 'Add your M-Pesa details in Settings';
+}
+
+async function loadPaymentSetup(row) {
+  const host = bz('paymentSetupInfo');
+  if (!host) return;
+  const has = key => Object.prototype.hasOwnProperty.call(row, key);
+  const hasMethod = has('payment_method'), hasTill = has('mpesa_till_number'), hasPhone = has('mpesa_phone_number'),
+        hasPaybill = has('mpesa_paybill_number'), hasAccount = has('mpesa_account_number'), hasRecipient = has('payment_recipient_name');
+
+  if (!hasMethod && !hasTill && !hasPhone && !hasPaybill && !hasAccount) {
+    host.innerHTML = '<p class="biz-note">Payment setup isn’t available on this database yet. Ask the Mjadala admin to add the M-Pesa payment columns.</p>';
+    updateHealthPaymentStatus(false, true);
+    return;
+  }
+
+  const methods = [
+    { key: 'till', label: 'Till Number', sub: 'Buy Goods', icon: 'i-storefront' },
+    { key: 'pochi', label: 'Send Money', sub: 'Pochi la Biashara', icon: 'i-wallet' },
+    { key: 'paybill', label: 'Paybill', sub: 'Business number', icon: 'i-box' }
+  ];
+  let selectedMethod = row.payment_method || 'till';
+
+  let html = '<div class="pay-method-grid">' + methods.map(m =>
+    '<button type="button" class="pay-method-btn' + (selectedMethod === m.key ? ' active' : '') + '" data-pay-method="' + m.key + '">' +
+      '<svg class="std-icon"><use href="#' + m.icon + '"/></svg><b>' + m.label + '</b><small>' + m.sub + '</small></button>'
+  ).join('') + '</div>';
+
+  if (hasTill) html += '<div class="field" data-pay-fields="till"' + (selectedMethod !== 'till' ? ' hidden' : '') + '>' +
+    '<label for="payTill">Till number</label><input id="payTill" inputmode="numeric" placeholder="e.g. 123456" value="' + bizEsc(row.mpesa_till_number || '') + '"></div>';
+  if (hasPhone) html += '<div class="field" data-pay-fields="pochi"' + (selectedMethod !== 'pochi' ? ' hidden' : '') + '>' +
+    '<label for="payPhone">M-Pesa phone number</label><input id="payPhone" inputmode="tel" placeholder="e.g. 0712345678" value="' + bizEsc(row.mpesa_phone_number || '') + '"></div>';
+  if (hasPaybill || hasAccount) {
+    html += '<div data-pay-fields="paybill"' + (selectedMethod !== 'paybill' ? ' hidden' : '') + '>';
+    if (hasPaybill) html += '<div class="field"><label for="payPaybill">Paybill number</label><input id="payPaybill" inputmode="numeric" placeholder="e.g. 400200" value="' + bizEsc(row.mpesa_paybill_number || '') + '"></div>';
+    if (hasAccount) html += '<div class="field"><label for="payAccount">Account number</label><input id="payAccount" placeholder="e.g. your phone or business name" value="' + bizEsc(row.mpesa_account_number || '') + '"></div>';
+    html += '</div>';
+  }
+  if (hasRecipient) html += '<div class="field"><label for="payRecipient">Name on M-Pesa (optional)</label><input id="payRecipient" placeholder="So customers can confirm it’s you" value="' + bizEsc(row.payment_recipient_name || '') + '"></div>';
+  html += '<div class="owner-actions"><button type="button" id="paymentSaveBtn">Save payment setup</button></div><p class="biz-note" id="paymentStatus" aria-live="polite"></p>';
+  host.innerHTML = html;
+
+  host.querySelectorAll('[data-pay-method]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedMethod = btn.dataset.payMethod;
+      host.querySelectorAll('[data-pay-method]').forEach(b => b.classList.toggle('active', b === btn));
+      host.querySelectorAll('[data-pay-fields]').forEach(f => { f.hidden = (f.dataset.payFields !== selectedMethod); });
+    });
+  });
+
+  bz('paymentSaveBtn')?.addEventListener('click', async () => {
+    const statusEl = bz('paymentStatus');
+    if (selectedMethod === 'till' && hasTill && !bz('payTill').value.trim()) { statusEl.textContent = 'Enter your till number.'; return; }
+    if (selectedMethod === 'pochi' && hasPhone && !bz('payPhone').value.trim()) { statusEl.textContent = 'Enter your M-Pesa phone number.'; return; }
+    if (selectedMethod === 'paybill' && hasPaybill && !bz('payPaybill').value.trim()) { statusEl.textContent = 'Enter your paybill number.'; return; }
+
+    const patch = {};
+    if (hasMethod) patch.payment_method = selectedMethod;
+    if (hasTill) patch.mpesa_till_number = selectedMethod === 'till' ? bz('payTill').value.trim() : row.mpesa_till_number || null;
+    if (hasPhone) patch.mpesa_phone_number = selectedMethod === 'pochi' ? bz('payPhone').value.trim() : row.mpesa_phone_number || null;
+    if (hasPaybill) patch.mpesa_paybill_number = selectedMethod === 'paybill' ? bz('payPaybill').value.trim() : row.mpesa_paybill_number || null;
+    if (hasAccount) patch.mpesa_account_number = selectedMethod === 'paybill' ? bz('payAccount').value.trim() : row.mpesa_account_number || null;
+    if (hasRecipient) patch.payment_recipient_name = bz('payRecipient').value.trim();
+
+    statusEl.textContent = 'Saving…';
+    const { error } = await sb.from('business_profiles').update(patch).eq('user_id', bizUser.id);
+    if (error) { statusEl.textContent = 'Could not save: ' + error.message; return; }
+    statusEl.textContent = 'Saved.';
+    Object.assign(row, patch);
+    Object.assign(bizStore, patch);
+    updateHealthPaymentStatus(isPaymentConfigured(row));
+  });
+
+  updateHealthPaymentStatus(isPaymentConfigured(row));
 }
 
 function setupLogoUploader(row) {
@@ -2024,12 +2219,7 @@ async function loadExplorePlans() {
       host.innerHTML = '<p class="biz-note">No business plans are available right now.</p>';
       return;
     }
-    host.innerHTML = '<div class="biz-plan-grid">' + bizPlans.map(p => (
-      '<div class="biz-plan-card" style="cursor:default">' +
-      '<b>' + bizEsc(p.plan_name) + '</b>' +
-      '<span class="biz-plan-price">' + (Number(p.price_kes) === 0 ? 'Free' : 'KSh ' + Number(p.price_kes).toLocaleString('en-KE')) + '</span>' +
-      '<small>Per ' + Number(p.billing_days) + ' days · ' + bizEsc(p.description || 'Business listing and product tools') + '</small></div>'
-    )).join('') + '</div>';
+    host.innerHTML = renderPlanCards(bizPlans, { selectable: false });
   } catch (e) {
     host.innerHTML = '<p class="biz-note">Plans could not load: ' + bizEsc(e.message) + '</p>';
   }

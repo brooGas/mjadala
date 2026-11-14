@@ -134,12 +134,39 @@
     await searchExistingBusinesses($('bizExistingSearch').value.trim());
     renderPublicPlans();
   }
+  function renderPlanCards(list) {
+    return `<div class="biz-plan-grid">${list.map(p => {
+      const monthly = Number(p.price_kes) || 0;
+      const freeMonths = Number(p.yearly_free_months) || 0;
+      const hasYearly = p.price_yearly_kes != null && monthly > 0;
+      const yearly = hasYearly ? Number(p.price_yearly_kes) : (monthly > 0 ? monthly * Math.max(1, 12 - freeMonths) : 0);
+      const isFree = monthly === 0;
+      const limits = [];
+      if (p.product_limit != null) limits.push(Number(p.product_limit).toLocaleString('en-KE') + ' product listings');
+      else limits.push('Unlimited product listings');
+      if (p.photo_limit != null) limits.push(Number(p.photo_limit) + ' photo' + (Number(p.photo_limit) === 1 ? '' : 's') + ' per product');
+      if (p.ad_credits_per_month != null && Number(p.ad_credits_per_month) > 0) limits.push(Number(p.ad_credits_per_month) + ' free ad slot' + (Number(p.ad_credits_per_month) === 1 ? '' : 's') + ' every month');
+      const featureLines = (p.features || '').split('\n').map(s => s.trim()).filter(Boolean);
+      const lines = featureLines.length ? featureLines : limits;
+      const priceBlock = isFree
+        ? '<span class="biz-plan-price">Free</span>'
+        : (`<div class="biz-plan-cycle" data-cycle-for="${esc(p.id)}"><button type="button" data-cycle="monthly" class="active">Monthly</button><button type="button" data-cycle="yearly">Yearly${freeMonths > 0 ? `<span class="biz-plan-save">${freeMonths}mo free</span>` : ''}</button></div>` +
+           `<span class="biz-plan-price" data-monthly="${monthly}" data-yearly="${yearly}">KSh ${monthly.toLocaleString('en-KE')} <small>/month</small></span>`);
+      return `<label class="biz-plan-card" data-cycle="monthly">${p.plan_key==='growth'?'<span class="biz-plan-popular">MOST POPULAR</span>':''}<input type="radio" name="bizSelectedPlan" value="${esc(p.id)}">` +
+        `<b>${esc(p.plan_name)}</b><span class="biz-plan-desc">${esc(p.description || 'Business listing and product tools')}</span>` +
+        priceBlock +
+        (lines.length ? `<ul class="biz-plan-limits">${lines.map(l=>`<li>${esc(l)}</li>`).join('')}</ul>` : '') +
+        (p.support_level ? `<span class="biz-plan-support">${esc(p.support_level)} support</span>` : '') +
+        (Number(p.trial_days) > 0 ? `<span class="biz-plan-trial-tag">${Number(p.trial_days)}-day free trial</span>` : '') +
+        `</label>`;
+    }).join('')}</div>`;
+  }
   function renderPublicPlans() {
     const host = $('bizPublicPlans');
     if (!host) return;
     const available = plans.filter(p => p.is_active);
     if (!available.length) { host.innerHTML = '<p class="biz-note">Business plans are being updated. Please check again soon.</p>'; return; }
-    const chosen = $('bizSelectedPlan')?.value || (available.find(p=>p.plan_key==='growth')?.id || ''); host.innerHTML = `<div class="biz-plan-grid">${available.map(p=>`<label class="biz-plan-card">${p.plan_key==='growth'?'<span class="biz-plan-popular">MOST POPULAR</span>':''}<input type="radio" name="bizSelectedPlan" id="bizSelectedPlan" value="${p.id}" ${chosen===p.id?'checked':''}><b>${esc(p.plan_name)}</b><span class="biz-plan-price">${Number(p.price_kes)===0?'Free':'KSh '+Number(p.price_kes).toLocaleString('en-KE')}</span><small>Per ${Number(p.billing_days)} days · ${esc(p.description || 'Business listing and product tools')}</small><span class="biz-plan-trial">${Number(p.trial_days)>0?Number(p.trial_days)+'-day trial':'No trial'}</span></label>`).join('')}</div><p class="biz-note">Selecting a plan records your preference only. Paid checkout and verified activation will be completed separately.</p>`;
+    host.innerHTML = renderPlanCards(available) + '<p class="biz-note">Selecting a plan records your preference only. Paid checkout and verified activation will be completed separately.</p>';
   }
   async function searchExistingBusinesses(query = '') {
     const host = $('bizExistingBusinesses'); host.innerHTML = '<p class="biz-note">Loading businesses…</p>';
@@ -209,9 +236,15 @@
     if (!name) { status('Enter your business or trading name.'); return; }
     const open = await sb.rpc('mj_get_business_registration_open');
     if (open.error || !open.data) { status('Business applications are currently closed.'); return; }
-    const selectedPlan = document.querySelector('input[name="bizSelectedPlan"]:checked')?.value;
+    const selectedCard = document.querySelector('input[name="bizSelectedPlan"]:checked')?.closest('.biz-plan-card');
+    const selectedPlan = selectedCard?.querySelector('input')?.value;
     if (!selectedPlan) { status('Choose a business plan before submitting.'); return; }
-    const {error} = await sb.from('mj_business_applications').insert({user_id:user.id,business_name:name,description:$('bizApplyDescription').value.trim(),location_text:$('bizApplyLocation').value.trim(),contact_phone:$('bizApplyPhone').value.trim(),selected_plan_id:selectedPlan});
+    const selectedCycle = selectedCard?.dataset.cycle || 'monthly';
+    const basePayload = {user_id:user.id,business_name:name,description:$('bizApplyDescription').value.trim(),location_text:$('bizApplyLocation').value.trim(),contact_phone:$('bizApplyPhone').value.trim()};
+    let {error} = await sb.from('mj_business_applications').insert({...basePayload, selected_plan_id:selectedPlan, selected_billing_cycle:selectedCycle});
+    if (error && /selected_billing_cycle/.test(error.message || '')) {
+      ({error} = await sb.from('mj_business_applications').insert({...basePayload, selected_plan_id:selectedPlan}));
+    }
     status(error ? error.message : 'Application submitted. You can publish products after creator approval and plan activation.');
     if (!error) ['bizApplyName','bizApplyDescription','bizApplyLocation','bizApplyPhone'].forEach(id=>$(id).value='');
   });
@@ -233,6 +266,19 @@
   document.addEventListener('touchstart', e => { if (e.target.closest('.biz-table-wrap,.biz-plan-grid')) e.stopPropagation(); }, {capture:true,passive:true});
   document.addEventListener('touchmove', e => { if (e.target.closest('.biz-table-wrap')) e.stopPropagation(); }, {capture:true,passive:true});
   document.addEventListener('click', async e => {
+    const cycleBtn = e.target.closest('.biz-plan-cycle button');
+    if (cycleBtn) {
+      e.preventDefault();
+      const wrap = cycleBtn.closest('.biz-plan-cycle');
+      wrap.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === cycleBtn));
+      const card = cycleBtn.closest('.biz-plan-card');
+      card.dataset.cycle = cycleBtn.dataset.cycle;
+      const priceEl = card.querySelector('.biz-plan-price');
+      const val = cycleBtn.dataset.cycle === 'yearly' ? priceEl.dataset.yearly : priceEl.dataset.monthly;
+      const unit = cycleBtn.dataset.cycle === 'yearly' ? '/year' : '/month';
+      priceEl.innerHTML = 'KSh ' + Number(val).toLocaleString('en-KE') + ' <small>' + unit + '</small>';
+      return;
+    }
     const cardToggle = e.target.closest('[data-expand-card]');
     if (cardToggle) { const expanded = cardToggle.getAttribute('aria-expanded') !== 'true'; cardToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false'); const body = cardToggle.nextElementSibling; if (body) body.hidden = !expanded; return; }
     const store = e.target.closest('[data-storefront]');
