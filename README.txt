@@ -1,7 +1,12 @@
-These are the original Promote your business-related files from the earlier Mjadala-Affected-Files-Update.zip (3 November 2026), not the later collapsible patch.
+Watt AI M-Pesa checkout UI refinement
 
-Files:
-- index.html: contains the Explore sponsored-story player mount and loads advertising.js.
-- advertising.js: contains the Promote your business form and advertising functionality.
+Visual-only update. Contains one project file:
+  mjadala-main/watt-ai.html
 
-Important: index.html is the coordinated 3 November version and may contain other app changes from that release. Do not overwrite your current index.html blindly if it has newer changes. Compare/merge the sponsored-story mount and advertising.js script include instead.
+Apply it:
+1. Download and extract this ZIP.
+2. Open your existing Mjadala project folder.
+3. Replace only mjadala-main/watt-ai.html with the file in this ZIP.
+4. Commit/push and redeploy the frontend as usual.
+
+Do not replace index.html, Supabase Edge Functions, SQL, or payment secrets. The existing STK push, callback, payment-status polling, and subscription activation logic are retained.

@@ -146,8 +146,40 @@ body[data-theme="violet"] .privacy-more{border-color:#e0d3f3!important;backgroun
 body[data-theme="violet"] .privacy-more summary{color:#6840a6!important}
 
 
-/* Watt AI subscription checkout */
-.watt-pay-modal{position:fixed;inset:0;z-index:50000;background:#071b49a8;display:none;align-items:flex-end;justify-content:center;padding:16px}.watt-pay-modal.open{display:flex}.watt-pay-panel{width:min(100%,430px);background:#fffaf2;border:1px solid #e5d2b4;border-radius:24px;padding:19px;box-shadow:0 20px 70px #061b3d55;color:#302719}.watt-pay-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.watt-pay-top h3{margin:0;font-size:18px}.watt-pay-close{border:0;background:#f1e2c9;color:#76502b;width:34px;height:34px;border-radius:50%;font-size:20px}.watt-pay-plan{margin:13px 0;padding:13px;border-radius:15px;background:#f1e2c9}.watt-pay-plan b{display:block;font-size:14px}.watt-pay-plan small{display:block;color:#80613c;margin-top:4px}.watt-pay-panel label{display:block;font-size:12px;font-weight:800;margin:13px 0 6px}.watt-pay-panel input{width:100%;border:1px solid #ddc7a7;border-radius:12px;padding:13px;font:inherit;font-size:15px;background:#fff}.watt-pay-submit{width:100%;border:0;border-radius:13px;padding:14px;background:#087e70;color:#fff;font-weight:900;font-size:14px;margin-top:13px}.watt-pay-submit:disabled{opacity:.55}.watt-pay-help{font-size:10px;line-height:1.5;color:#806f59;margin:10px 0 0}.watt-pay-status{font-size:12px;line-height:1.5;color:#087e70;font-weight:700;margin-top:10px;min-height:18px}.watt-plan-state{font-size:10px;font-weight:800;color:#087e70;margin:6px 0}.watt-pay-modal *{box-sizing:border-box}
+/* Watt AI subscription checkout — aligned with Mjadala's business checkout styling */
+.watt-pay-modal{position:fixed;inset:0;z-index:50000;background:rgba(19,39,28,.58);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);display:none;align-items:flex-end;justify-content:center;padding:14px;box-sizing:border-box}
+.watt-pay-modal.open{display:flex}
+.watt-pay-panel{position:relative;width:min(100%,440px);max-height:min(92dvh,720px);overflow:auto;background:#fffdf7;border:1px solid #e4e8dc;border-radius:25px;padding:18px 18px calc(18px + env(safe-area-inset-bottom));box-shadow:0 24px 80px rgba(9,31,19,.28);color:#29332c;box-sizing:border-box;animation:wattPayRise .22s ease-out}
+@keyframes wattPayRise{from{transform:translateY(18px);opacity:.7}to{transform:translateY(0);opacity:1}}
+.watt-pay-handle{width:38px;height:4px;border-radius:99px;background:#dce3d8;margin:0 auto 16px}
+.watt-pay-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.watt-pay-heading{display:flex;align-items:center;gap:10px;min-width:0}
+.watt-pay-mark{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border-radius:13px;background:#eaf2e8;color:#356d49}
+.watt-pay-mark svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.watt-pay-top h3{margin:0;font-size:17px;line-height:1.25;font-weight:850;letter-spacing:-.25px;color:#26372b}
+.watt-pay-kicker{display:block;margin-top:3px;font-size:10px;line-height:1.3;font-weight:750;letter-spacing:.08em;text-transform:uppercase;color:#718071}
+.watt-pay-close{display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;border:1px solid #e5e9e0;border-radius:50%;background:#f7f8f3;color:#566457;font-size:22px;line-height:1;cursor:pointer}
+.watt-pay-plan{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:18px 0 19px;padding:15px;border:1px solid #e4eadf;border-radius:17px;background:linear-gradient(135deg,#f3f7ef,#fbf8ed)}
+.watt-pay-plan-copy{min-width:0}.watt-pay-plan b{display:block;font-size:13px;line-height:1.35;font-weight:850;color:#2e4935}.watt-pay-plan small{display:block;color:#718071;font-size:10px;line-height:1.4;margin-top:4px}
+.watt-pay-amount{text-align:right;flex:0 0 auto}.watt-pay-amount strong{display:block;font-size:20px;line-height:1.15;letter-spacing:-.5px;color:#245d3c;font-weight:900}.watt-pay-amount small{display:block;margin-top:4px;font-size:9px;color:#788578}
+.watt-pay-section-label{display:block;margin:0 0 7px;font-size:11px;font-weight:850;color:#344638}
+.watt-pay-input-wrap{display:flex;align-items:center;gap:9px;min-height:51px;padding:0 12px;border:1px solid #dce5d9;border-radius:13px;background:#fff;transition:border-color .16s,box-shadow .16s}
+.watt-pay-input-wrap:focus-within{border-color:#5d946b;box-shadow:0 0 0 3px rgba(71,123,91,.12)}
+.watt-pay-country{display:flex;align-items:center;gap:6px;flex:0 0 auto;padding-right:10px;border-right:1px solid #e7ece4;color:#425b47;font-size:12px;font-weight:850;white-space:nowrap}
+.watt-pay-country span:first-child{font-size:15px}
+.watt-pay-panel input#wattPayPhone{display:block;width:100%;min-width:0;height:48px;border:0!important;outline:0!important;box-shadow:none!important;border-radius:0!important;padding:0!important;background:transparent!important;color:#27372c!important;font:700 15px/1.2 system-ui,-apple-system,Segoe UI,Roboto,sans-serif!important;letter-spacing:.02em}
+.watt-pay-panel input#wattPayPhone::placeholder{color:#a2aca0;font-weight:500;letter-spacing:0}
+.watt-pay-field-note{margin:6px 1px 0;font-size:10px;line-height:1.45;color:#849083}
+.watt-pay-submit{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:50px;border:0;border-radius:13px;padding:13px 16px;background:linear-gradient(135deg,#397b4e,#23643d);color:#fff;font-weight:850;font-size:13px;margin-top:17px;box-shadow:0 5px 13px rgba(39,104,60,.18);cursor:pointer;transition:transform .15s,filter .15s}
+.watt-pay-submit:active{transform:scale(.99)}.watt-pay-submit:disabled{opacity:.58;cursor:wait;box-shadow:none}
+.watt-pay-submit svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.watt-pay-security{display:flex;align-items:flex-start;gap:8px;margin:13px 1px 0;padding:10px 11px;border:1px solid #e5ecdf;border-radius:12px;background:#f7faf4;color:#657565;font-size:10px;line-height:1.5}
+.watt-pay-security svg{width:15px;height:15px;flex:0 0 15px;margin-top:1px;color:#4c8157;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.watt-pay-status{font-size:11px;line-height:1.5;color:#287448;font-weight:750;margin:10px 2px 0;min-height:0;overflow-wrap:anywhere}
+.watt-pay-status:empty{display:none}
+.watt-plan-state{font-size:10px;font-weight:800;color:#087e70;margin:6px 0}.watt-pay-modal *{box-sizing:border-box}
+@media(min-width:600px){.watt-pay-modal{align-items:center;padding:24px}.watt-pay-panel{border-radius:25px;padding:21px 22px 22px}}
+@media(max-width:380px){.watt-pay-modal{padding:8px}.watt-pay-panel{padding:15px 14px calc(15px + env(safe-area-inset-bottom));border-radius:22px}.watt-pay-plan{padding:12px}.watt-pay-amount strong{font-size:18px}}
 
 </style>
 
@@ -274,11 +306,23 @@ body[data-theme="violet"] .privacy-more summary{color:#6840a6!important}
 </div>
 <div class="watt-pay-modal" id="wattPayModal" aria-hidden="true">
  <section class="watt-pay-panel" role="dialog" aria-modal="true" aria-labelledby="wattPayTitle">
-  <div class="watt-pay-top"><h3 id="wattPayTitle">Unlock your Watt AI plan</h3><button class="watt-pay-close" id="wattPayClose" type="button" aria-label="Close">×</button></div>
-  <div class="watt-pay-plan"><b id="wattPayPlanName">Agent Pro</b><small id="wattPayPlanPrice">KSh 199 · 30 days</small></div>
-  <label for="wattPayPhone">M-Pesa phone number</label><input id="wattPayPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="07XX XXX XXX" maxlength="15">
-  <button class="watt-pay-submit" id="wattPaySubmit" type="button">Pay securely with M-Pesa</button>
-  <p class="watt-pay-help">A Safaricom STK prompt will appear on your phone. Confirm the amount and enter your M-Pesa PIN only on your phone. Watt AI activates access after Safaricom confirms payment. Subscriptions last 30 days and do not renew automatically.</p>
+  <div class="watt-pay-handle" aria-hidden="true"></div>
+  <div class="watt-pay-top">
+   <div class="watt-pay-heading">
+    <span class="watt-pay-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/><path d="M7 7l10 10M17 7 7 17"/></svg></span>
+    <div><h3 id="wattPayTitle">Complete your upgrade</h3><span class="watt-pay-kicker">Secure M-Pesa checkout</span></div>
+   </div>
+   <button class="watt-pay-close" id="wattPayClose" type="button" aria-label="Close">×</button>
+  </div>
+  <div class="watt-pay-plan">
+   <div class="watt-pay-plan-copy"><b id="wattPayPlanName">Agent Pro</b><small>Watt AI subscription · No automatic renewal</small></div>
+   <div class="watt-pay-amount"><strong id="wattPayPlanPrice">KSh 199</strong><small>30-day access</small></div>
+  </div>
+  <label class="watt-pay-section-label" for="wattPayPhone">M-Pesa number</label>
+  <div class="watt-pay-input-wrap"><span class="watt-pay-country"><span aria-hidden="true">🇰🇪</span> KE</span><input id="wattPayPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="07XX XXX XXX" maxlength="15" aria-describedby="wattPayPhoneHint"></div>
+  <p class="watt-pay-field-note" id="wattPayPhoneHint">Enter your Safaricom number, for example 07XX XXX XXX or 2547XX XXX XXX.</p>
+  <button class="watt-pay-submit" id="wattPaySubmit" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v13H4zM7 7V4h10v3M4 11h16M8 15h3"/></svg><span>Pay securely with M-Pesa</span></button>
+  <div class="watt-pay-security"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 20 6v5c0 5-3.4 8.3-8 10-4.6-1.7-8-5-8-10V6z"/><path d="m9 12 2 2 4-4"/></svg><span>A payment prompt will appear on your phone. Confirm the amount and enter your M-Pesa PIN only on your phone. Watt AI activates your plan after Safaricom confirms payment.</span></div>
   <div class="watt-pay-status" id="wattPayStatus" role="status" aria-live="polite"></div>
 
 <script>
@@ -339,7 +383,7 @@ const WATT_PAYMENT_ENDPOINT=WATT_SUPABASE_URL+'/functions/v1/watt-subscription-s
 const WATT_STATUS_ENDPOINT=WATT_SUPABASE_URL+'/functions/v1/watt-subscription-status';
 let selectedWattPlan='',pendingWattPayment='',wattPollTimer=null;
 const payModal=document.getElementById('wattPayModal'),payStatus=document.getElementById('wattPayStatus'),paySubmit=document.getElementById('wattPaySubmit');
-function openWattCheckout(code){const plan=WATT_PLAN_CATALOG[code];if(!plan)return;if(!wattAccessToken){document.getElementById('planFeedback').textContent='Please sign in to Mjadala before purchasing a Watt AI subscription.';return}selectedWattPlan=code;document.getElementById('wattPayPlanName').textContent=plan.title;document.getElementById('wattPayPlanPrice').textContent='KSh '+plan.price.toLocaleString('en-KE')+' · '+(plan.days||30)+' days';payStatus.textContent='';document.getElementById('wattPayPhone').value='';paySubmit.disabled=false;paySubmit.textContent='Pay securely with M-Pesa';payModal.classList.add('open');payModal.setAttribute('aria-hidden','false');setTimeout(()=>document.getElementById('wattPayPhone').focus(),80)}
+function openWattCheckout(code){const plan=WATT_PLAN_CATALOG[code];if(!plan)return;if(!wattAccessToken){document.getElementById('planFeedback').textContent='Please sign in to Mjadala before purchasing a Watt AI subscription.';return}selectedWattPlan=code;document.getElementById('wattPayPlanName').textContent=plan.title;document.getElementById('wattPayPlanPrice').textContent='KSh '+plan.price.toLocaleString('en-KE');payStatus.textContent='';document.getElementById('wattPayPhone').value='';paySubmit.disabled=false;paySubmit.textContent='Pay securely with M-Pesa';payModal.classList.add('open');payModal.setAttribute('aria-hidden','false');setTimeout(()=>document.getElementById('wattPayPhone').focus(),80)}
 function closeWattCheckout(){payModal.classList.remove('open');payModal.setAttribute('aria-hidden','true');if(wattPollTimer){clearInterval(wattPollTimer);wattPollTimer=null}}
 document.querySelectorAll('[data-plan-code]').forEach(btn=>btn.addEventListener('click',()=>openWattCheckout(btn.dataset.planCode)));
 document.getElementById('wattPayClose').addEventListener('click',closeWattCheckout);
