@@ -111,7 +111,7 @@ Deno.serve(async (req: Request) => {
     return jsonResponse(401, { error: "Your Mjadala session has expired. Close Watt AI, sign in again, and reopen it." }, headers);
   }
 
-  let payload: { messages?: unknown; agent?: unknown };
+  let payload: { messages?: unknown; agent?: unknown; task?: unknown; prompt?: unknown };
   try {
     const raw = await req.text();
     if (raw.length > 30000) return jsonResponse(413, { error: "That conversation is too large. Please start a new chat." }, headers);
@@ -121,6 +121,65 @@ Deno.serve(async (req: Request) => {
   }
 
   const agent = typeof payload.agent === "string" && AGENTS[payload.agent] ? payload.agent : "general";
+
+  // Image creation is routed through the same authenticated Edge Function.
+  // The OpenAI API key remains server-side and is never sent to the browser.
+  if (payload.task === "image") {
+    const prompt = typeof payload.prompt === "string" ? payload.prompt.trim() : "";
+    if (!prompt || prompt.length > 4000) {
+      return jsonResponse(400, { error: "Please provide an image description of up to 4,000 characters." }, headers);
+    }
+    try {
+      const imageResponse = await fetch("https://api.openai.com/v1/images/generations", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gpt-image-2.5-flare",
+          prompt,
+          size: "1024x1024",
+          quality: "high",
+          output_format: "webp",
+          output_compression: 85,
+          n: 1,
+        }),
+        signal: AbortSignal.timeout(120000),
+      });
+      const imageRaw = await imageResponse.text();
+      let imageResult: any = {};
+      try { imageResult = imageRaw ? JSON.parse(imageRaw) : {}; } catch { imageResult = {}; }
+      if (!imageResponse.ok) {
+        const providerError = imageResult?.error ?? {};
+        console.error("Watt AI image provider error", JSON.stringify({
+          status: imageResponse.status,
+          code: typeof providerError.code === "string" ? providerError.code : null,
+          type: typeof providerError.type === "string" ? providerError.type : null,
+          message: typeof providerError.message === "string" ? providerError.message.slice(0, 250) : null,
+        }));
+        let message = "Watt AI could not create the image. Please try again.";
+        if (imageResponse.status === 401 || imageResponse.status === 403) {
+          message = "The image provider rejected the API key or image-generation access. The administrator needs to check OpenAI permissions and organization verification.";
+        } else if (imageResponse.status === 429) {
+          message = "Image generation has reached a temporary usage limit. Please try again shortly.";
+        } else if (imageResponse.status === 400) {
+          message = "The image request was rejected. Try a clearer or simpler image description.";
+        }
+        return jsonResponse(502, { error: message, diagnostic_code: providerError.code ?? `image_provider_${imageResponse.status}` }, headers);
+      }
+      const imageData = imageResult?.data?.[0]?.b64_json;
+      if (typeof imageData !== "string" || !imageData) {
+        console.error("Watt AI image response missing image data", JSON.stringify({ hasData: Array.isArray(imageResult?.data), model: "gpt-image-2.5-flare" }));
+        return jsonResponse(502, { error: "The image provider returned no picture. Please try again." }, headers);
+      }
+      return jsonResponse(200, { image_data: imageData, mime_type: "image/webp", model: "gpt-image-2.5-flare" }, headers);
+    } catch (error) {
+      const message = error instanceof Error ? error.message.slice(0, 180) : String(error).slice(0, 180);
+      console.error("Watt AI image generation exception", JSON.stringify({ message }));
+      return jsonResponse(502, { error: "Image generation timed out or could not connect. Please try again." }, headers);
+    }
+  }
   if (!Array.isArray(payload.messages) || payload.messages.length < 1 || payload.messages.length > 12) {
     return jsonResponse(400, { error: "Please send a conversation with 1 to 12 messages." }, headers);
   }
