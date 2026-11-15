@@ -181,6 +181,32 @@ body[data-theme="violet"] .privacy-more summary{color:#6840a6!important}
 @media(min-width:600px){.watt-pay-modal{align-items:center;padding:24px}.watt-pay-panel{border-radius:25px;padding:21px 22px 22px}}
 @media(max-width:380px){.watt-pay-modal{padding:8px}.watt-pay-panel{padding:15px 14px calc(15px + env(safe-area-inset-bottom));border-radius:22px}.watt-pay-plan{padding:12px}.watt-pay-amount strong{font-size:18px}}
 
+
+
+/* Watt AI focused chat-surface refinement: dashboard-style enclosure and M-Pesa greens. */
+.hero{width:calc(100% - 28px)!important;margin:14px auto 0!important;border:1px solid #cfe1d2!important;border-radius:20px!important;box-shadow:0 7px 20px rgba(31,83,53,.12)!important;overflow:hidden!important}
+.hero .bot{display:none!important}
+/* Keep the conversation area distinct, like a dashboard card. */
+.chat{margin:12px 12px 0!important;padding:14px 12px 12px!important;border:1px solid #cfe1d2!important;border-radius:19px 19px 0 0!important;background:#f8fbf7!important;box-shadow:0 5px 18px rgba(31,83,53,.09)!important;color:#263b2d!important}
+.chat .chathead{color:#294632!important}
+.chat .active-agent-label{background:#eaf2e8!important;border-color:#cbdcc9!important;color:#397b4e!important}
+.chat .messages{padding:8px 2px 14px!important}
+.chat .msg.ai{background:#fff!important;border-color:#d9e6d8!important;color:#263b2d!important}
+.chat .msg.user{background:#397b4e!important;color:#fff!important}
+.chat .typing{color:#647b68!important}
+/* The dock below the conversation uses the same green as the M-Pesa action button. */
+.composer{position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;z-index:40!important;display:flex!important;align-items:center!important;gap:8px!important;margin:0!important;padding:10px 12px calc(10px + env(safe-area-inset-bottom))!important;border:0!important;border-radius:0 0 17px 17px!important;background:#23643d!important;box-shadow:0 -2px 12px rgba(22,67,39,.12)!important}
+.composer textarea{display:block!important;flex:1!important;min-width:0!important;min-height:44px!important;max-height:116px!important;resize:none!important;overflow-y:auto!important;padding:10px 12px!important;border:1px solid #cbdcc9!important;border-radius:13px!important;outline:0!important;background:#fff!important;color:#263b2d!important;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif!important;font-size:15px!important;font-weight:400!important;line-height:1.45!important}
+.composer textarea::placeholder{color:#7a897d!important;font-size:14px!important;font-weight:400!important}
+.composer textarea:focus{border-color:#b8edda!important;box-shadow:0 0 0 3px rgba(184,237,218,.22)!important}
+.composer .round{width:40px!important;height:40px!important;flex:0 0 40px!important;display:grid!important;place-items:center!important;border:1px solid #b8d5bf!important;border-radius:12px!important;background:#eaf2e8!important;color:#397b4e!important}
+.composer .round.send{background:#eaf2e8!important;color:#23643d!important;border-color:#c9dfcd!important}
+.composer .round svg{width:20px!important;height:20px!important}
+.disclaimer{position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;z-index:39!important;padding:5px 12px 7px!important;background:#23643d!important;color:#eaf2e8!important}
+/* Keep the dashboard's pale-green icon language consistent across the Watt surface. */
+.ico,.agent-icon,.free-symbol,.shield,.privacy-feature-icon{color:#397b4e}
+@media(max-width:380px){.chat{margin-left:9px!important;margin-right:9px!important;padding-left:10px!important;padding-right:10px!important}.composer{padding-left:9px!important;padding-right:9px!important;gap:6px!important}.composer textarea{font-size:14px!important}.composer .round{width:37px!important;height:37px!important;flex-basis:37px!important}}
+
 </style>
 
 <style id="watt-composer-and-code-tools">
@@ -297,7 +323,7 @@ body{background:#eceff2;color:var(--watt-grey-ink)}
 <div class="shell">
  <header class="top"><div class="back">‹</div><div class="logo">MV</div><div><div class="brand">Mjadala</div><div class="sub">Connect · Trade · Grow</div></div><div class="topright">⋮</div></header>
  <main class="home" id="home">
-  <section class="hero"><div class="pill">✦ &nbsp; WATT AI</div><h1 id="welcomeHeading" aria-live="polite"><span id="welcomeTyped"></span><span class="typing-caret" aria-hidden="true">|</span></h1><p>Ask anything — discover products, learn new skills, find businesses or get ideas.</p><div class="greeting-demo"><span>Preview greeting:</span><button class="active" type="button" data-greeting-mode="guest">Guest</button><button type="button" data-greeting-mode="signed">Signed in</button></div><div class="bot"><div><div class="bothead"><div class="eyes">⌒⌒</div></div><div class="botbody">WATT</div></div></div></section>
+  <section class="hero"><div class="pill">✦ &nbsp; WATT AI</div><h1 id="welcomeHeading" aria-live="polite"><span id="welcomeTyped"></span><span class="typing-caret" aria-hidden="true">|</span></h1><p>Ask anything — discover products, learn new skills, find businesses or get ideas.</p><div class="greeting-demo"><span>Preview greeting:</span><button class="active" type="button" data-greeting-mode="guest">Guest</button><button type="button" data-greeting-mode="signed">Signed in</button></div></section>
   <section class="theme-panel" aria-label="Choose your app theme"><div class="theme-title"><div><b>Choose your look</b><small>Switch the whole Watt AI experience</small></div><span>2 THEMES</span></div><div class="theme-options"><button class="theme-card selected" data-theme-choice="jade" type="button"><span class="swatches"><i></i><i></i><i></i></span><span><b>Midnight Jade</b><small>Deep teal · jade · ivory</small></span><span class="theme-check">✓</span></button><button class="theme-card" data-theme-choice="violet" type="button"><span class="swatches violet-swatches"><i></i><i></i><i></i></span><span><b>Royal Violet</b><small>Plum · orchid · pearl</small></span><span class="theme-check">✓</span></button></div></section>
   <div class="content">
    <section class="actions">
