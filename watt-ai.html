@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#f7f9ff">
-<title>Watt AI — Preview</title>
+<title>Watt AI · Mjadala</title>
 <style>
 :root{--navy:#071b49;--blue:#1769f5;--cyan:#28b8f4;--ink:#302719;--muted:#81735f;--line:#e9dcc7;--pale:#f5ead8;--white:#fff;--sand:#c18a45;--surface:#f7f0e5;--surface2:#efe1cb;--bubble:#fffaf2;--accent:#a96f2d}
 *{box-sizing:border-box}body{margin:0;background:#eaf0fb;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
@@ -204,7 +204,7 @@ body[data-theme="violet"] .privacy-more summary{color:#6840a6!important}
   </div>
  </main>
  <section class="chat" id="chat">
-  <div class="chathead"><span>✦ &nbsp; Watt AI</span><div class="theme-switch"><span id="activeThemeName">Midnight Jade</span><button class="newchat" id="newchat">＋ New chat</button></div></div>
+  <div class="chathead"><div class="chat-title-wrap"><span class="chat-title">✦ &nbsp; Watt AI</span><span class="active-agent-label" id="activeAgentLabel">General assistant</span></div><div class="theme-switch"><span id="activeThemeName">Midnight Jade</span><button class="newchat" id="newchat">＋ New chat</button></div></div>
   <div class="messages" id="messages"><div class="msg ai" id="chatWelcome">Hello! I’m Watt AI. How can I help you today?</div></div>
  </section>
  <div class="disclaimer" id="wattStatus" role="status" aria-live="polite">Watt AI · Secure AI connection</div>
@@ -220,9 +220,9 @@ const AGENTS=[['general','Watt AI'],['shopping','Shopping'],['business','Busines
 const agentBar=document.createElement('div');agentBar.className='watt-agent-bar';agentBar.setAttribute('aria-label','Choose a Watt AI agent');
 agentBar.innerHTML=AGENTS.map(([id,label])=>`<button type="button" data-watt-agent="${id}" aria-pressed="${id==='general'}">${label}</button>`).join('');
 document.querySelector('.chathead').insertAdjacentElement('afterend',agentBar);
-const agentStyle=document.createElement('style');agentStyle.textContent='.watt-agent-bar{display:flex;gap:7px;overflow-x:auto;padding:9px 12px;border-bottom:1px solid var(--line);scrollbar-width:none}.watt-agent-bar::-webkit-scrollbar{display:none}.watt-agent-bar button{flex:0 0 auto;border:1px solid var(--line);border-radius:18px;padding:7px 11px;background:var(--soft);color:var(--text);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer}.watt-agent-bar button.active{background:var(--accent);border-color:var(--accent);color:#fff}.typing{padding:12px 14px;color:var(--muted);font-size:13px}.msg.ai{white-space:pre-wrap;overflow-wrap:anywhere}.watt-error{color:#a43b35!important}';document.head.appendChild(agentStyle);
-function setAgent(agent){activeAgent=AGENTS.some(([id])=>id===agent)?agent:'general';agentBar.querySelectorAll('button').forEach(b=>{const on=b.dataset.wattAgent===activeAgent;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on))});const status=document.getElementById('wattStatus');if(status)status.textContent='Watt AI · '+(AGENTS.find(([id])=>id===activeAgent)?.[1]||'Watt AI')+' selected'}
-agentBar.addEventListener('click',e=>{const b=e.target.closest('[data-watt-agent]');if(!b)return;setAgent(b.dataset.wattAgent);if(chat.classList.contains('active'))add('You are now chatting with '+(AGENTS.find(([id])=>id===activeAgent)?.[1]||'Watt AI')+'.','ai')});
+const agentStyle=document.createElement('style');agentStyle.textContent='.chat-title-wrap{display:flex;align-items:center;gap:8px;min-width:0}.chat-title{font-weight:800;white-space:nowrap}.active-agent-label{display:inline-flex;align-items:center;max-width:145px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid var(--line);border-radius:20px;padding:5px 9px;background:var(--soft);color:var(--accent);font-size:10px;font-weight:800}.watt-agent-bar{display:flex;gap:7px;overflow-x:auto;padding:9px 12px;border-bottom:1px solid var(--line);scrollbar-width:none;flex:none}.watt-agent-bar::-webkit-scrollbar{display:none}.watt-agent-bar button{flex:0 0 auto;border:1px solid var(--line);border-radius:18px;padding:7px 11px;background:var(--soft);color:var(--text);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s,color .15s}.watt-agent-bar button.active{background:var(--accent);border-color:var(--accent);color:#fff}.watt-agent-bar button:focus-visible,.newchat:focus-visible,.composer button:focus-visible{outline:3px solid var(--accent2);outline-offset:2px}.typing{padding:12px 14px;color:var(--muted);font-size:13px}.msg.ai{white-space:pre-wrap;overflow-wrap:anywhere}.watt-error{color:#a43b35!important}@media(max-width:380px){.chathead{gap:6px}.active-agent-label{max-width:92px}.theme-switch>span{display:none}.newchat{padding:7px 8px}}';document.head.appendChild(agentStyle);
+function setAgent(agent){activeAgent=AGENTS.some(([id])=>id===agent)?agent:'general';const selected=AGENTS.find(([id])=>id===activeAgent);const label=selected?.[1]||'Watt AI';agentBar.querySelectorAll('button').forEach(b=>{const on=b.dataset.wattAgent===activeAgent;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on))});const activeLabel=document.getElementById('activeAgentLabel');if(activeLabel)activeLabel.textContent=activeAgent==='general'?'General assistant':label+' assistant';const status=document.getElementById('wattStatus');if(status){status.classList.remove('watt-error');status.textContent=label+' selected · Your conversation continues'}}
+agentBar.addEventListener('click',e=>{const b=e.target.closest('[data-watt-agent]');if(!b)return;setAgent(b.dataset.wattAgent);});
 
 document.querySelector('.back')?.addEventListener('click',()=>parent.postMessage({type:'MJADALA_WATT_CLOSE'},location.origin));
 let greetingMode='guest', accountName='', greetingTimer=null, greetingStopped=false;
