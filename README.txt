@@ -1,12 +1,9 @@
-Watt AI M-Pesa checkout UI refinement
+WATT AI GRAPHITE HOME + PLANS UPDATE
 
-Visual-only update. Contains one project file:
-  mjadala-main/watt-ai.html
+Replace only: mjadala-main/watt-ai.html
 
-Apply it:
-1. Download and extract this ZIP.
-2. Open your existing Mjadala project folder.
-3. Replace only mjadala-main/watt-ai.html with the file in this ZIP.
-4. Commit/push and redeploy the frontend as usual.
+index.html and business-integration.js are included unchanged for reference and do not need replacing.
 
-Do not replace index.html, Supabase Edge Functions, SQL, or payment secrets. The existing STK push, callback, payment-status polling, and subscription activation logic are retained.
+Visual scope: Watt AI Home and subscription plan presentation only. The chat screen markup and styling were not edited. No AI request logic, M-Pesa/payment logic, subscription logic, database, Edge Functions, authentication, or other Mjadala app files were changed.
+
+Important: The supplied source does not contain a separate Watt AI owner Settings page or a verified Watt owner-role authorization check. This update therefore does not create or expose an owner dashboard. That requires a verified owner identity/role and backend authorization before safely adding controls.

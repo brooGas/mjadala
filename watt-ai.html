@@ -226,6 +226,70 @@ body[data-theme="violet"] .privacy-more summary{color:#6840a6!important}
 .watt-generating:before{content:"";width:15px;height:15px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:wattSpin .8s linear infinite}@keyframes wattSpin{to{transform:rotate(360deg)}}
 .watt-msg-editing{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:380px){.watt-action-btn{padding:0 6px;gap:4px}.watt-action-btn span{font-size:10px}.composer{gap:5px!important}}
+
+/* Watt AI home + plans redesign: graphite grey, roomier layout. Chat rules intentionally untouched. */
+:root{--watt-grey-ink:#252a31;--watt-grey-muted:#68717c;--watt-grey-line:#dfe3e8;--watt-grey-panel:#fff;--watt-grey-soft:#f1f3f5;--watt-grey-mid:#7a838e;--watt-grey-dark:#303740}
+body{background:#eceff2;color:var(--watt-grey-ink)}
+.shell{background:#f7f8fa;box-shadow:0 16px 48px rgba(34,42,52,.12)}
+.top{background:#fff;border-color:var(--watt-grey-line)}
+.back,.topright{color:#4d5661}
+.logo{background:linear-gradient(145deg,#3d454f,#737d89);color:#fff;box-shadow:0 3px 9px #20283322}
+.sub{color:#737c87}
+.home .hero{background:radial-gradient(circle at 86% 18%,#ffffff1c 0 15%,transparent 16%),linear-gradient(128deg,#303740,#59636f 65%,#7c8691);padding:27px 23px 30px}
+.home .hero:after{border-color:#ffffff30;box-shadow:0 0 0 22px #ffffff08,0 0 0 48px #ffffff06}
+.home .hero h1 span{color:#e2e6eb}
+.home .hero p{color:#edf0f3}
+.home .pill{border-color:#ffffff55;background:#ffffff18;color:#fff}
+.home .bot{opacity:.92;filter:grayscale(1) drop-shadow(0 10px 15px #151a2180)}
+.home .theme-panel{background:#fff;border:1px solid var(--watt-grey-line);border-radius:18px;box-shadow:0 5px 16px #2028330b;padding:15px;margin:14px 15px 0}
+.home .theme-title{color:#303740}
+.home .theme-title small{color:#78818b}
+.home .theme-options{gap:10px}
+.home .theme-card{border:1px solid #dfe3e8!important;background:#f7f8fa!important;border-radius:13px!important;color:#333b45!important;padding:12px!important;min-height:66px}
+.home .theme-card.selected{border-color:#7a838e!important;background:#eef0f3!important;box-shadow:inset 0 0 0 1px #7a838e}
+.home .theme-check{background:#59636f!important;color:#fff!important}
+.home .content{padding:0 16px 26px}
+.home .actions{margin-top:14px;padding:14px;gap:11px;border-color:#e0e4e9;border-radius:19px;box-shadow:0 6px 18px #2028330a}
+.home .action{min-height:76px;padding:13px 12px;border-color:#e5e8ec;border-radius:14px;background:#fafbfc;color:#303740;gap:11px}
+.home .action .ico{width:38px;height:38px;border-radius:11px;background:#eceff2;color:#4b5561;font-size:0}
+.home .action .ico svg,.home .agent-icon svg{width:21px;height:21px;display:block;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.home .action b{font-size:12px;color:#303740}.home .action small{font-size:10px;color:#77818c}
+.home .sectionhead{margin:23px 3px 12px;color:#303740}
+.home .sectionhead span:last-child{color:#626c77}
+.home .suggestions{gap:10px}
+.home .suggestion{background:#f0f2f5;border:1px solid #e0e4e9;border-radius:14px;color:#3d4651;min-height:76px;padding:13px}
+.home .suggestion strong{color:#626c77;font-size:18px}
+.home .plan-area{margin:23px 0 7px}
+.home .plans-disclosure{border:1px solid #dfe3e8;border-radius:19px;background:#fff;box-shadow:0 6px 18px #2028330b}
+.home .plan-intro{padding:17px 15px;min-height:82px}
+.home .plan-intro h2{font-size:17px;color:#303740}
+.home .plan-intro p{font-size:11px;color:#77818c;line-height:1.45}
+.home .plan-summary-side .pill{background:#eef0f3!important;border-color:#dfe3e8!important;color:#525c67!important}
+.home .plan-chevron{background:#eceff2;color:#505a65}
+.home .plans-content{padding:0 14px 17px;border-color:#e6e9ed}
+.home .plans-content .free-banner{padding:15px;border-radius:15px;background:#f1f3f5;border:1px solid #e2e6ea;min-height:78px}
+.home .agent-plans{grid-template-columns:1fr;gap:12px;margin-top:13px}
+.home .agent-plan{padding:17px;border-radius:17px;border:1px solid #e0e4e9;background:#fff;box-shadow:0 4px 13px #20283309}
+.home .agent-top{gap:12px;margin-bottom:14px}
+.home .agent-icon{width:43px;height:43px;border-radius:13px;background:#eceff2;color:#4c5662;font-size:0;display:grid;place-items:center}
+.home .agent-top h3{font-size:15px;color:#303740}
+.home .agent-top .tagline,.home .pro-copy{color:#707a85}
+.home .tierline{padding:11px 12px;border-radius:11px;background:#f7f8fa;margin-top:7px;gap:8px}
+.home .tierline b{color:#39424d;font-size:12px}.home .tierline span{color:#747e89;font-size:10px}
+.home .pro-copy{font-size:11px;line-height:1.5;margin:12px 1px}
+.home .plan-btn,.home .bundle button{background:#4d5661;color:#fff;border-radius:11px;padding:12px 14px;min-height:42px;font-size:11px;font-weight:800}
+.home .bundle{margin-top:14px;padding:18px;border-radius:17px;background:linear-gradient(130deg,#343b44,#68727e);color:#fff}
+.home .bundle-label{color:#e1e5e9}.home .bundle h3{font-size:17px;margin:8px 0}.home .bundle p{font-size:11px;line-height:1.55;color:#edf0f3}
+.home .bundle button{background:#f2f4f6;color:#333b45}
+.home .pricing-note{font-size:10px;line-height:1.55;color:#77818c;margin:12px 2px 0}
+.home .watt-plan-state{padding:12px 13px;margin-top:11px;border-radius:12px;background:#f7f8fa;border:1px solid #e4e7eb;color:#5c6671;font-size:11px}
+.home .privacy{background:#f2f4f6!important;border-color:#e0e4e9!important;color:#39424d!important}
+.home .privacy .shield{background:#e2e6ea!important;color:#4d5661!important}
+.home .privacy b,.home .privacy-copy>b{color:#39424d!important}.home .privacy p,.home .privacy-feature small{color:#707a85!important}
+.home .privacy-feature{background:#fafbfc;border-color:#e3e7eb}.home .privacy-feature-icon{background:#eceff2;color:#59636f}
+.home .privacy-feature strong{color:#424b56}.home .privacy-more{background:#fafbfc;border-color:#e1e5e9}.home .privacy-more summary{color:#525c67}
+@media(max-width:380px){.home .agent-plan{padding:14px}.home .plan-intro{padding:14px 12px}.home .content{padding-left:12px;padding-right:12px}}
+
 </style>
 
 </head>
@@ -237,12 +301,12 @@ body[data-theme="violet"] .privacy-more summary{color:#6840a6!important}
   <section class="theme-panel" aria-label="Choose your app theme"><div class="theme-title"><div><b>Choose your look</b><small>Switch the whole Watt AI experience</small></div><span>2 THEMES</span></div><div class="theme-options"><button class="theme-card selected" data-theme-choice="jade" type="button"><span class="swatches"><i></i><i></i><i></i></span><span><b>Midnight Jade</b><small>Deep teal · jade · ivory</small></span><span class="theme-check">✓</span></button><button class="theme-card" data-theme-choice="violet" type="button"><span class="swatches violet-swatches"><i></i><i></i><i></i></span><span><b>Royal Violet</b><small>Plum · orchid · pearl</small></span><span class="theme-check">✓</span></button></div></section>
   <div class="content">
    <section class="actions">
-    <button class="action" data-prompt="Help me find products on Mjadala."><span class="ico">🛍</span><span><b>Find Products</b><small>Shop smarter</small></span></button>
-    <button class="action" data-prompt="Help me discover businesses on Mjadala."><span class="ico">▦</span><span><b>Find Businesses</b><small>Support local</small></span></button>
-    <button class="action" data-prompt="Help me understand a topic step by step."><span class="ico">🎓</span><span><b>Learn & Study</b><small>Understand anything</small></span></button>
-    <button class="action" data-prompt="Help me explore a website safely."><span class="ico">◎</span><span><b>Explore Websites</b><small>Discover the web</small></span></button>
-    <button class="action" data-prompt="Give me practical ideas for a business or project."><span class="ico">✧</span><span><b>Get Ideas</b><small>Build something great</small></span></button>
-    <button class="action" data-prompt="I want to summarise some content."><span class="ico">▤</span><span><b>Summarise</b><small>Make it clear</small></span></button>
+    <button class="action" data-prompt="Help me find products on Mjadala."><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 8h18l-1.5 12h-15L3 8Z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg></span><span><b>Find Products</b><small>Shop smarter</small></span></button>
+    <button class="action" data-prompt="Help me discover businesses on Mjadala."><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span><span><b>Find Businesses</b><small>Support local</small></span></button>
+    <button class="action" data-prompt="Help me understand a topic step by step."><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m2 9 10-5 10 5-10 5L2 9Z"/><path d="M6 11v5c3.5 3 8.5 3 12 0v-5M22 9v6"/></svg></span><span><b>Learn & Study</b><small>Understand anything</small></span></button>
+    <button class="action" data-prompt="Help me explore a website safely."><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5 13 13l-3.5 1.5L11 11l3.5-1.5Z"/></svg></span><span><b>Explore Websites</b><small>Discover the web</small></span></button>
+    <button class="action" data-prompt="Give me practical ideas for a business or project."><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 1.7 6.3L20 11l-6.3 1.7L12 19l-1.7-6.3L4 11l6.3-1.7L12 3Z"/><path d="m19 16 .7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7L19 16Z"/></svg></span><span><b>Get Ideas</b><small>Build something great</small></span></button>
+    <button class="action" data-prompt="I want to summarise some content."><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v5h4M10 12h6M10 16h6"/></svg></span><span><b>Summarise</b><small>Make it clear</small></span></button>
    </section>
    <div class="sectionhead"><span>✦ &nbsp;Try asking...</span><span>Explore prompts →</span></div>
    <section class="suggestions">
@@ -258,12 +322,12 @@ body[data-theme="violet"] .privacy-more summary{color:#6840a6!important}
     <div class="free-banner"><div class="free-symbol">✦</div><div><b>Watt AI Starter</b><small>Chat, everyday help and essential Mjadala discovery.</small></div><span class="free-tag">FREE</span></div>
     <div class="watt-plan-state" id="wattCurrentAccess" aria-live="polite">Sign in to view your Watt AI access.</div>
     <div class="agent-plans">
-     <article class="agent-plan"><div class="agent-top"><span class="agent-icon">▣</span><div><h3>Shopping Agent</h3><div class="tagline">Find the right products</div></div></div><div class="tierline"><b>Free</b><span>Product discovery</span></div><div class="tierline"><b>Pro · KSh 199 / 30 days</b><span>Deeper comparisons & buying guides</span></div><p class="pro-copy">Compare options, understand trade-offs and get tailored buying advice.</p><button class="plan-btn" data-plan-code="shopping_pro">Unlock Shopping Pro</button></article>
-     <article class="agent-plan"><div class="agent-top"><span class="agent-icon">▦</span><div><h3>Business Agent</h3><div class="tagline">Grow your business</div></div></div><div class="tierline"><b>Free</b><span>Business discovery</span></div><div class="tierline"><b>Pro · KSh 199 / 30 days</b><span>Growth & marketing tools</span></div><p class="pro-copy">Create practical marketing plans, improve listings and research markets.</p><button class="plan-btn" data-plan-code="business_agent_pro">Unlock Business Agent Pro</button></article>
-     <article class="agent-plan"><div class="agent-top"><span class="agent-icon">▤</span><div><h3>Learning Agent</h3><div class="tagline">Learn step by step</div></div></div><div class="tierline"><b>Free</b><span>Everyday explanations</span></div><div class="tierline"><b>Pro · KSh 199 / 30 days</b><span>Guided learning paths</span></div><p class="pro-copy">Structured lessons, practice questions, revision plans and progress tracking.</p><button class="plan-btn" data-plan-code="learning_pro">Unlock Learning Pro</button></article>
-     <article class="agent-plan"><div class="agent-top"><span class="agent-icon">◎</span><div><h3>Research Agent</h3><div class="tagline">Explore and understand</div></div></div><div class="tierline"><b>Free</b><span>Short summaries</span></div><div class="tierline"><b>Pro · KSh 199 / 30 days</b><span>Deep sourced research</span></div><p class="pro-copy">Multi-source research, citations, detailed comparisons and document analysis.</p><button class="plan-btn" data-plan-code="research_pro">Unlock Research Pro</button></article>
-     <article class="agent-plan"><div class="agent-top"><span class="agent-icon">✧</span><div><h3>Innovation Agent</h3><div class="tagline">Turn ideas into projects</div></div></div><div class="tierline"><b>Free</b><span>Brainstorming</span></div><div class="tierline"><b>Pro · KSh 199 / 30 days</b><span>Project development</span></div><p class="pro-copy">Roadmaps, feasibility thinking, design guidance and prototype planning.</p><button class="plan-btn" data-plan-code="innovation_pro">Unlock Innovation Pro</button></article>
-     <article class="agent-plan"><div class="agent-top"><span class="agent-icon">♧</span><div><h3>Community Agent</h3><div class="tagline">Find your people</div></div></div><div class="tierline"><b>Free</b><span>Explore communities</span></div><div class="tierline"><b>Pro · KSh 199 / 30 days</b><span>Creator & community insights</span></div><p class="pro-copy">Advanced discovery and tools for creators and community organisers.</p><button class="plan-btn" data-plan-code="community_pro">Unlock Community Pro</button></article>
+     <article class="agent-plan"><div class="agent-top"><span class="agent-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 8h18l-1.5 12h-15L3 8Z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg></span><div><h3>Shopping Agent</h3><div class="tagline">Find the right products</div></div></div><div class="tierline"><b>Free</b><span>Product discovery</span></div><div class="tierline"><b>Pro · KSh 199 / 30 days</b><span>Deeper comparisons & buying guides</span></div><p class="pro-copy">Compare options, understand trade-offs and get tailored buying advice.</p><button class="plan-btn" data-plan-code="shopping_pro">Unlock Shopping Pro</button></article>
+     <article class="agent-plan"><div class="agent-top"><span class="agent-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span><div><h3>Business Agent</h3><div class="tagline">Grow your business</div></div></div><div class="tierline"><b>Free</b><span>Business discovery</span></div><div class="tierline"><b>Pro · KSh 199 / 30 days</b><span>Growth & marketing tools</span></div><p class="pro-copy">Create practical marketing plans, improve listings and research markets.</p><button class="plan-btn" data-plan-code="business_agent_pro">Unlock Business Agent Pro</button></article>
+     <article class="agent-plan"><div class="agent-top"><span class="agent-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v5h4M10 12h6M10 16h6"/></svg></span><div><h3>Learning Agent</h3><div class="tagline">Learn step by step</div></div></div><div class="tierline"><b>Free</b><span>Everyday explanations</span></div><div class="tierline"><b>Pro · KSh 199 / 30 days</b><span>Guided learning paths</span></div><p class="pro-copy">Structured lessons, practice questions, revision plans and progress tracking.</p><button class="plan-btn" data-plan-code="learning_pro">Unlock Learning Pro</button></article>
+     <article class="agent-plan"><div class="agent-top"><span class="agent-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5 13 13l-3.5 1.5L11 11l3.5-1.5Z"/></svg></span><div><h3>Research Agent</h3><div class="tagline">Explore and understand</div></div></div><div class="tierline"><b>Free</b><span>Short summaries</span></div><div class="tierline"><b>Pro · KSh 199 / 30 days</b><span>Deep sourced research</span></div><p class="pro-copy">Multi-source research, citations, detailed comparisons and document analysis.</p><button class="plan-btn" data-plan-code="research_pro">Unlock Research Pro</button></article>
+     <article class="agent-plan"><div class="agent-top"><span class="agent-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 1.7 6.3L20 11l-6.3 1.7L12 19l-1.7-6.3L4 11l6.3-1.7L12 3Z"/></svg></span><div><h3>Innovation Agent</h3><div class="tagline">Turn ideas into projects</div></div></div><div class="tierline"><b>Free</b><span>Brainstorming</span></div><div class="tierline"><b>Pro · KSh 199 / 30 days</b><span>Project development</span></div><p class="pro-copy">Roadmaps, feasibility thinking, design guidance and prototype planning.</p><button class="plan-btn" data-plan-code="innovation_pro">Unlock Innovation Pro</button></article>
+     <article class="agent-plan"><div class="agent-top"><span class="agent-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM20 8v6M17 11h6"/></svg></span><div><h3>Community Agent</h3><div class="tagline">Find your people</div></div></div><div class="tierline"><b>Free</b><span>Explore communities</span></div><div class="tierline"><b>Pro · KSh 199 / 30 days</b><span>Creator & community insights</span></div><p class="pro-copy">Advanced discovery and tools for creators and community organisers.</p><button class="plan-btn" data-plan-code="community_pro">Unlock Community Pro</button></article>
     </div>
     <div class="bundle"><div class="bundle-label">ONE PLAN · EVERY SPECIALIST</div><h3>Watt AI All-Access · KSh 599 / 30 days</h3><p>One pass to all six specialist Pro agents. Save compared with subscribing to each agent separately.</p><button data-plan-code="all_access">Unlock All-Access</button></div>
     <div class="pricing-note">Secure M-Pesa checkout · 30-day access · No automatic renewals. Agent Pro subscriptions are separate from Mjadala Business Plans.</div>
