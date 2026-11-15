@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f7f9ff">
+<title>Watt AI · Mjadala</title>
+<style>
+:root{--navy:#071b49;--blue:#1769f5;--cyan:#28b8f4;--ink:#302719;--muted:#81735f;--line:#e9dcc7;--pale:#f5ead8;--white:#fff;--sand:#c18a45;--surface:#f7f0e5;--surface2:#efe1cb;--bubble:#fffaf2;--accent:#a96f2d}
+*{box-sizing:border-box}body{margin:0;background:#eaf0fb;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+.shell{max-width:480px;min-height:100svh;margin:0 auto;background:#f9fbff;box-shadow:0 12px 50px #18356b24;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.top{height:72px;padding:12px 18px;display:flex;align-items:center;gap:12px;background:#fff;border-bottom:1px solid var(--line)}
+.back{font-size:25px;color:var(--navy);width:28px}.logo{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#07502f;color:#f7d77c;font-weight:900;font-size:17px;box-shadow:0 3px 9px #092d1e24}
+.brand{font-size:18px;font-weight:800;letter-spacing:-.4px}.sub{font-size:11px;color:var(--muted);margin-top:1px}.topright{margin-left:auto;color:#1a2b51;font-size:21px}
+.hero{padding:22px 22px 24px;background:radial-gradient(circle at 83% 22%,#2365d9 0,#123c91 26%,transparent 27%),linear-gradient(135deg,#071b49,#0b327b 66%,#0754a8);color:#fff;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;width:230px;height:230px;border:1px solid #70caff45;border-radius:50%;right:-80px;top:-90px;box-shadow:0 0 0 22px #6cbaff0b,0 0 0 48px #6cbaff0a}
+.pill{display:inline-flex;align-items:center;gap:7px;border:1px solid #5bc7ff99;background:#ffffff14;border-radius:30px;padding:7px 12px;font-size:12px;font-weight:700;letter-spacing:.2px}
+.hero h1{font-size:30px;line-height:1.08;letter-spacing:-1px;margin:18px 0 7px;max-width:330px}.hero h1 span{color:#55c7ff}.hero h1 .typing-caret{display:inline-block;color:#8de8ff;margin-left:2px;animation:wattCaret .8s steps(1,end) infinite}@keyframes wattCaret{50%{opacity:0}}.hero p{font-size:13px;line-height:1.5;color:#d9e8ff;margin:0;max-width:310px}.greeting-demo{display:flex;align-items:center;gap:7px;margin-top:13px;position:relative;z-index:2;font-size:10px;color:#d5eee7}.greeting-demo button{border:1px solid #ffffff55;background:#ffffff16;color:#fff;border-radius:18px;padding:6px 9px;font-size:10px;font-weight:700;cursor:pointer}.greeting-demo button.active{background:#d8ffe9;color:#073b38;border-color:#d8ffe9}.hero h1{position:relative;z-index:1}
+.bot{position:absolute;right:16px;bottom:10px;width:118px;height:124px;display:grid;place-items:center;filter:drop-shadow(0 10px 15px #00153d88)}
+.bothead{width:92px;height:73px;border-radius:38px 38px 31px 31px;background:linear-gradient(145deg,#fff,#b9d9ff);border:4px solid #73baff;box-shadow:inset -7px -7px 12px #4b83c6;position:relative}
+.bothead:before{content:"";position:absolute;inset:13px 10px 12px;border-radius:25px;background:#071b49;box-shadow:inset 0 0 13px #159dff}
+.eyes{position:absolute;z-index:2;left:25px;top:27px;color:#39d7ff;font-size:20px;letter-spacing:8px}
+.botbody{width:68px;height:48px;margin:-2px auto 0;border-radius:25px 25px 10px 10px;background:linear-gradient(135deg,#fff,#9cc9ff);border:3px solid #72b9ff;display:grid;place-items:center;color:#0a347d;font-weight:900;font-size:12px}
+.content{padding:0 15px 14px;flex:1}
+.actions{margin-top:-1px;background:#fff;border:1px solid var(--line);border-radius:22px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:9px;box-shadow:0 8px 24px #173d8110}
+.action{border:1px solid #e1e9fb;border-radius:15px;padding:12px 10px;display:flex;align-items:center;gap:10px;background:linear-gradient(145deg,#fff,#f5f8ff);min-height:67px;text-align:left;color:var(--ink);cursor:pointer}
+.action:active,.suggestion:active{transform:scale(.985)}.ico{width:34px;height:34px;border-radius:11px;background:#e8f0ff;color:#1358cf;display:grid;place-items:center;font-size:19px;flex:none}
+.action b{display:block;font-size:12px}.action small{display:block;font-size:10px;color:var(--muted);margin-top:3px}
+.sectionhead{display:flex;align-items:center;justify-content:space-between;margin:20px 3px 10px;font-size:16px;font-weight:800}.sectionhead span:last-child{font-size:12px;color:#145bd7;font-weight:700}
+.suggestions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.suggestion{background:#eaf1ff;border:1px solid #dce7ff;border-radius:14px;padding:12px;text-align:left;color:#17284d;font-size:12px;line-height:1.4;min-height:65px;cursor:pointer}
+.suggestion strong{display:block;font-size:17px;margin-bottom:3px;color:#175bd2}
+.privacy{margin-top:16px;padding:12px;border-radius:15px;background:#eef8ed;border:1px solid #d2ebc8;display:flex;align-items:center;gap:10px;color:#174b27}
+.shield{width:32px;height:32px;border-radius:50%;background:#d8f0d0;display:grid;place-items:center;font-size:17px;flex:none}.privacy b{font-size:12px;display:block}.privacy small{display:block;font-size:10px;color:#46694c;margin-top:2px}
+.chat{display:none;flex-direction:column;flex:1;min-height:0;padding:16px;background:radial-gradient(ellipse at 15% 0%,#f2dfbf 0,transparent 43%),linear-gradient(160deg,#f8f1e6,#eee0c9 70%,#e8d5b8);color:#302719}.chat.active{display:flex}.chathead{color:#49351f}.chat .newchat{border-color:#ddc7a7;background:#fff9ef;color:#8b5c27}.chat .msg.ai{background:#fffaf2;border-color:#e5d2b4;color:#3b3023}.chat .msg.user{background:#a96f2d;color:#fffaf2}.chat .typing{color:#89745a}.chat .composer{background:#fffaf2;border-color:#d9c19d}.chat .composer input{color:#302719}.chat .round{background:#f1e2c9;color:#8b5c27}.chat .round.send{background:#a96f2d;color:#fff}.home.hidden{display:none}.chathead{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:800;margin-bottom:14px}.newchat{border:1px solid var(--line);background:#fff;border-radius:20px;padding:7px 11px;color:#145bd7;font-size:11px;font-weight:700}
+.messages{flex:1;overflow:auto;display:flex;flex-direction:column;gap:13px;padding:6px 0 16px}.msg{max-width:87%;padding:12px 14px;border-radius:17px;font-size:13px;line-height:1.5;white-space:pre-wrap}.msg.ai{align-self:flex-start;background:#fff;border:1px solid var(--line);border-top-left-radius:5px}.msg.user{align-self:flex-end;background:#1769f5;color:#fff;border-top-right-radius:5px}
+.typing{font-size:11px;color:#7886a2;padding:3px 6px}
+.composer{display:flex;align-items:center;gap:8px;padding:8px;background:#fff;border:1px solid #cddcff;border-radius:28px;box-shadow:0 5px 20px #123c8010}
+.composer input{border:0;outline:0;min-width:0;flex:1;font:inherit;font-size:13px;color:var(--ink);padding:8px 4px;background:transparent}
+.round{width:38px;height:38px;border:0;border-radius:50%;background:#eaf1ff;color:#145bd7;font-size:17px;flex:none}.send{background:#1769f5;color:#fff}
+.bottom{height:72px;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:center;padding:5px 7px 7px;gap:3px}.tab{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;white-space:nowrap}.tab i{display:grid;place-items:center;width:34px;height:29px;font-size:19px;margin:0}.tab.active i{background:#e9f1ff;border-radius:10px;padding:0;width:42px;height:30px}.tab.active{font-size:10px}.tab.ai-tab{color:#9a642b}.tab.ai-tab.active i{background:#f1e2c9;color:#9a642b}
+.tab{color:#73809a;font-size:10px;text-align:center;min-width:55px}.tab i{display:block;font-style:normal;font-size:20px;margin-bottom:3px}.tab.active{color:#155fe5;font-weight:800}
+.disclaimer{text-align:center;color:#8c7c65;font-size:9px;padding:0 12px 7px;background:#fff}.theme-switch{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;color:#80613c}.theme-switch button{border:1px solid #ddc7a7;background:#fff9ef;color:#805726;border-radius:20px;padding:6px 9px;font-size:10px;font-weight:700;cursor:pointer}.chat.sage{background:radial-gradient(ellipse at 15% 0%,#dce8d8 0,transparent 43%),linear-gradient(160deg,#f0f4eb,#dce7d7 70%,#cbdcc9);color:#25372a}.chat.sage .newchat{border-color:#c6d7c1;background:#f7faf4;color:#426344}.chat.sage .msg.ai{background:#f8fbf5;border-color:#cadbc5;color:#2d3d30}.chat.sage .msg.user{background:#668568;color:#fff}.chat.sage .typing{color:#657c65}.chat.sage .composer{background:#f8fbf5;border-color:#c2d4bd}.chat.sage .composer input{color:#25372a}.chat.sage .round{background:#e0eadc;color:#4d7050}.chat.sage .round.send{background:#668568;color:#fff}.chat.sage .chathead{color:#314a34}.chat.sage .theme-switch{color:#4d7050}.chat.sage .theme-switch button{border-color:#c6d7c1;background:#f7faf4;color:#426344}
+@media(min-width:600px){body{padding:22px 0}.shell{min-height:calc(100svh - 44px);border-radius:28px}.top{border-radius:28px 28px 0 0}}
+
+/* Watt AI visual refresh: themes apply to the entire interface */
+:root{--page:#f3f7f5;--panel:#ffffff;--ink:#172f2c;--muted:#71817b;--line:#dce8e2;--accent:#087e70;--accent2:#b8edda;--soft:#e9f4ef;--hero1:#082f32;--hero2:#075e58;--hero3:#0d8876;--bubble:#ffffff;--user:#087e70;--shadow:rgba(8,55,49,.10)}
+body{background:var(--page);color:var(--ink)}.shell{background:var(--page);box-shadow:0 16px 55px var(--shadow)}
+.top,.bottom,.disclaimer{background:var(--panel);border-color:var(--line)}.back,.topright{color:var(--accent)}.logo{background:linear-gradient(145deg,#073b38,#0b8b78);color:#d8ffe9}
+.sub,.action small{color:var(--muted)}.hero{background:radial-gradient(circle at 86% 18%,#45c7a333 0 15%,transparent 16%),linear-gradient(128deg,var(--hero1),var(--hero2) 65%,var(--hero3))}.hero h1 span{color:var(--accent2)}.hero p{color:#d5eee7}
+.bothead{background:linear-gradient(145deg,#fff,#c9f2e4);border-color:#7dd8bf;box-shadow:inset -7px -7px 12px #65bba3}.bothead:before{background:#073c3b;box-shadow:inset 0 0 13px #28b99e}.eyes{color:#7ef4d4}.botbody{background:linear-gradient(135deg,#fff,#b9eadb);border-color:#7dd8bf;color:#07564d}
+.actions{background:var(--panel);border-color:var(--line);box-shadow:0 8px 24px var(--shadow)}.action{background:linear-gradient(145deg,var(--panel),var(--soft));border-color:var(--line);color:var(--ink)}.ico{background:var(--soft);color:var(--accent)}.sectionhead span:last-child{color:var(--accent)}.suggestion{background:var(--soft);border-color:var(--line);color:var(--ink)}.suggestion strong{color:var(--accent)}.privacy{background:#eaf6ef;border-color:#cfe8d8;color:#205b43}.shield{background:#d6efdf}.privacy small{color:#527765}
+.chat{background:radial-gradient(ellipse at 15% 0%,#d6eee4 0,transparent 43%),linear-gradient(160deg,#f4f8f5,#e8f2ed 70%,#dcebe4);color:var(--ink)}.chathead{color:var(--ink)}.msg.ai{background:var(--bubble);border-color:var(--line);color:var(--ink)}.msg.user{background:var(--user);color:white}.typing{color:var(--muted)}.composer{background:var(--panel);border-color:var(--line);box-shadow:0 5px 20px var(--shadow)}.composer input{color:var(--ink)}.round{background:var(--soft);color:var(--accent)}.round.send{background:var(--accent);color:#fff}.bottom{border-color:var(--line)}.tab{color:#71817b}.tab.active{color:var(--accent)}.tab.active i{background:var(--soft)}.tab.ai-tab{color:var(--accent)}.tab.ai-tab.active i{background:var(--accent2);color:#064e45}.disclaimer{color:var(--muted)}
+.theme-panel{margin:13px 15px 0;padding:13px;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 5px 18px var(--shadow)}.theme-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.theme-title b{display:block;font-size:13px;color:var(--ink)}.theme-title small{display:block;font-size:10px;color:var(--muted);margin-top:3px}.theme-title>span{font-size:9px;letter-spacing:.8px;font-weight:800;color:var(--accent);background:var(--soft);padding:6px 8px;border-radius:20px}.theme-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}.theme-card{position:relative;display:flex;align-items:center;gap:8px;text-align:left;padding:10px 8px;border:1.5px solid var(--line);border-radius:13px;background:var(--page);color:var(--ink);min-width:0;cursor:pointer}.theme-card.selected{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 13%,transparent)}.theme-card b{display:block;font-size:10px;white-space:nowrap}.theme-card small{display:block;font-size:8px;color:var(--muted);margin-top:3px;white-space:nowrap}.swatches{display:flex;flex:none}.swatches i{width:13px;height:26px;border-radius:5px;margin-left:-3px;border:1px solid #ffffff99;background:#082f32}.swatches i:nth-child(2){background:#087e70}.swatches i:nth-child(3){background:#d9f2e6}.violet-swatches i:first-child{background:#24143d}.violet-swatches i:nth-child(2){background:#7650bd}.violet-swatches i:nth-child(3){background:#f0eaff}.theme-check{display:none;margin-left:auto;color:var(--accent);font-size:12px;font-weight:900}.theme-card.selected .theme-check{display:block}.theme-switch{color:var(--accent)}.newchat{border-color:var(--line);background:var(--soft);color:var(--accent)}
+body[data-theme="violet"]{--page:#f6f3fb;--panel:#fff;--ink:#2a2140;--muted:#81778f;--line:#e5ddef;--accent:#7650bd;--accent2:#e4d6ff;--soft:#f0eaff;--hero1:#24143d;--hero2:#43266e;--hero3:#7650bd;--user:#7650bd;--shadow:rgba(46,28,76,.10)}
+body[data-theme="violet"] .hero p{color:#eee5ff}body[data-theme="violet"] .bothead{border-color:#c1a4f4}body[data-theme="violet"] .bothead:before{background:#2b174b;box-shadow:inset 0 0 13px #a77bff}body[data-theme="violet"] .eyes{color:#d8c2ff}body[data-theme="violet"] .botbody{border-color:#c1a4f4;color:#52318b}body[data-theme="violet"] .privacy{background:#f0eafa;border-color:#e0d3f3;color:#553b80}body[data-theme="violet"] .privacy small{color:#776493}body[data-theme="violet"] .shield{background:#e4d6ff}
+
+
+/* Agent plans: free entry with optional specialist upgrades */
+.plan-area{margin:18px 0 4px}.plan-intro{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin:0 3px 11px}.plan-intro h2{font-size:17px;margin:0;color:var(--ink);letter-spacing:-.3px}.plan-intro p{font-size:10px;color:var(--muted);line-height:1.45;margin:4px 0 0;max-width:260px}.free-banner{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid color-mix(in srgb,var(--accent) 25%,var(--line));background:var(--soft);border-radius:15px;margin-bottom:10px}.free-symbol{width:34px;height:34px;border-radius:11px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:18px;flex:none}.free-banner b{display:block;font-size:12px;color:var(--ink)}.free-banner small{display:block;font-size:10px;color:var(--muted);margin-top:3px}.free-tag{margin-left:auto;font-size:9px;font-weight:800;color:var(--accent);background:var(--panel);padding:6px 8px;border-radius:20px;white-space:nowrap}.agent-plans{display:grid;grid-template-columns:1fr 1fr;gap:9px}.agent-plan{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:11px;min-width:0;box-shadow:0 4px 13px var(--shadow)}.agent-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}.agent-icon{width:32px;height:32px;border-radius:10px;background:var(--soft);color:var(--accent);display:grid;place-items:center;font-size:17px;flex:none}.agent-plan h3{font-size:11px;margin:0;color:var(--ink)}.agent-plan .tagline{font-size:9px;color:var(--muted);margin-top:2px}.tierline{display:flex;justify-content:space-between;gap:5px;border-top:1px solid var(--line);padding-top:7px;margin-top:7px;font-size:9px}.tierline b{color:var(--ink)}.tierline span{color:var(--muted);text-align:right}.pro-copy{font-size:9px;line-height:1.45;color:var(--muted);margin:7px 0 9px;min-height:38px}.plan-btn{width:100%;border:1px solid var(--accent);background:var(--soft);color:var(--accent);font-size:10px;font-weight:800;padding:8px 7px;border-radius:10px;cursor:pointer}.bundle{margin-top:10px;padding:13px;border-radius:16px;background:linear-gradient(125deg,var(--hero1),var(--hero2),var(--hero3));color:#fff;position:relative;overflow:hidden}.bundle:after{content:'✦';position:absolute;right:12px;top:2px;font-size:56px;color:#ffffff19}.bundle-label{font-size:9px;letter-spacing:.8px;font-weight:800;color:var(--accent2)}.bundle h3{font-size:15px;margin:5px 0}.bundle p{font-size:10px;line-height:1.45;color:#e2f2ec;margin:0 0 10px;max-width:280px}.bundle button{border:0;background:var(--accent2);color:var(--hero1);font-size:10px;font-weight:900;padding:9px 12px;border-radius:10px;cursor:pointer}.pricing-note{font-size:9px;color:var(--muted);line-height:1.45;margin:9px 3px 0}.plan-feedback{font-size:10px;color:var(--accent);font-weight:700;min-height:15px;margin:7px 3px 0}
+
+
+/* Requested Watt AI-only refinements: preserve the Mjadala app navigation. */
+html,body{height:100%;overflow:hidden}
+.shell{height:100svh;min-height:0;max-height:100svh}
+.home{display:flex;flex-direction:column;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.content{flex:none;width:100%;padding-bottom:18px}
+.chat{flex:1;min-height:0;overflow:hidden}
+.messages{min-height:0;overscroll-behavior:contain}
+.composer{position:relative;z-index:20;flex:0 0 auto;margin:0;padding:8px 12px calc(8px + env(safe-area-inset-bottom));border-radius:0;border-left:0;border-right:0;border-bottom:0;box-shadow:0 -5px 18px var(--shadow);background:var(--panel)}
+.disclaimer{flex:0 0 auto;padding:5px 12px 4px;background:var(--panel)}
+.bottom{display:none!important}
+.plan-area{margin:18px 0 4px}
+.plans-disclosure{border:1px solid var(--line);border-radius:17px;background:var(--panel);box-shadow:0 5px 17px var(--shadow);overflow:hidden}
+.plan-intro{list-style:none;cursor:pointer;align-items:center;margin:0;padding:13px 12px;min-height:66px}
+.plan-intro::-webkit-details-marker{display:none}
+.plan-intro h2{font-size:16px}
+.plan-intro p{margin-top:3px}
+.plan-summary-side{display:flex;align-items:center;gap:9px;flex:none}
+.plan-summary-side .pill{font-size:9px;padding:6px 8px}
+.plan-chevron{width:27px;height:27px;display:grid;place-items:center;border-radius:50%;background:var(--soft);color:var(--accent);font-size:19px;transition:transform .2s}
+.plans-disclosure[open] .plan-chevron{transform:rotate(180deg)}
+.plans-content{padding:0 11px 12px;border-top:1px solid var(--line)}
+.plans-content .free-banner{margin-top:11px}
+.privacy{margin:15px 0 4px;padding:14px;border-radius:17px;align-items:flex-start;gap:12px;background:linear-gradient(135deg,var(--soft),var(--panel));border:1px solid color-mix(in srgb,var(--accent) 24%,var(--line));box-shadow:0 5px 16px var(--shadow);color:var(--ink)}
+.shield{width:38px;height:38px;border-radius:13px;background:var(--accent);color:#fff;font-size:22px;box-shadow:0 4px 10px var(--shadow)}
+.privacy-copy{min-width:0}
+.privacy b{font-size:13px;color:var(--ink)}
+.privacy p{font-size:11px;line-height:1.5;color:var(--muted);margin:4px 0 5px}
+.privacy .privacy-note{font-size:10px;font-weight:750;color:var(--accent)}
+body[data-theme="violet"] .privacy{background:linear-gradient(135deg,#f0eafa,#fff);border-color:#dfd0f4}
+body[data-theme="violet"] .shield{background:#6840a6;color:#fff}
+@media(min-width:600px){.shell{height:calc(100svh - 44px);min-height:0}}
+
+/* Keep the original privacy surface appearance; enrich only its useful guidance. */
+.privacy{margin:15px 0 4px;padding:12px;border-radius:15px;display:flex;align-items:flex-start;gap:10px;background:#eef8ed;border:1px solid #d2ebc8;box-shadow:none;color:#174b27}
+.shield{width:32px;height:32px;border-radius:50%;background:#d8f0d0;color:#174b27;display:grid;place-items:center;font-size:17px;flex:none;box-shadow:none}
+.privacy-copy{min-width:0}
+.privacy b{font-size:12px;display:block;color:#174b27}
+.privacy p{font-size:10px;line-height:1.45;color:#46694c;margin:3px 0 5px}
+.privacy .privacy-note{font-size:10px;font-weight:700;color:#28633f}
+body[data-theme="violet"] .privacy{background:#f0eafa;border:1px solid #e0d3f3;color:#553b80}
+body[data-theme="violet"] .shield{background:#e4d6ff;color:#553b80}
+body[data-theme="violet"] .privacy b{color:#553b80}
+body[data-theme="violet"] .privacy p{color:#776493}
+body[data-theme="violet"] .privacy .privacy-note{color:#6840a6}
+/* Keep the dashboard panels in normal vertical flow; only the composer is pinned. */
+.shell{height:100svh;min-height:0;max-height:100svh}
+.home{padding-bottom:0;position:relative;isolation:isolate;overflow-x:hidden;overflow-y:auto}
+.home > *{position:relative;flex:0 0 auto;min-width:0;max-width:100%}
+.home > .hero{width:100%;z-index:1}
+.home > .theme-panel{display:block;width:auto;margin:13px 15px 0;z-index:1}
+.home > .content{width:100%;padding-bottom:150px;z-index:1}
+.composer{position:absolute!important;left:0;right:0;bottom:0;z-index:40;flex:none;margin:0;padding:8px 12px calc(8px + env(safe-area-inset-bottom));border-radius:0;border-left:0;border-right:0;border-bottom:0;box-shadow:0 -5px 18px var(--shadow);background:var(--panel)}
+.disclaimer{position:absolute;left:0;right:0;bottom:58px;z-index:39;padding:5px 12px 4px;background:var(--panel)}
+.chat{padding-bottom:118px}
+.messages{overflow-y:auto;flex:1;padding-bottom:12px}
+
+
+/* Privacy panel: keep the approved soft-green surface, with a clear tip-style trust mark and roomier feature rows. */
+.privacy{align-items:flex-start!important;background:#eef8ed!important;border:1px solid #d2ebc8!important;border-radius:15px!important;padding:14px!important;gap:12px!important;box-shadow:none!important;color:#174b27!important}
+.privacy .shield{width:42px!important;height:42px!important;min-width:42px;border-radius:13px!important;background:linear-gradient(145deg,#e1f5e5,#c9e9d2)!important;color:#236b42!important;display:grid!important;place-items:center!important;box-shadow:inset 0 0 0 1px #b9dfc3,0 3px 8px #28633f18!important;font-size:0!important}
+.privacy .shield svg{width:25px;height:25px;display:block}
+.privacy-copy{flex:1;min-width:0}
+.privacy-copy>b{font-size:13px!important;color:#174b27!important}
+.privacy-copy>p{font-size:11px!important;line-height:1.5!important;color:#46694c!important;margin:4px 0 10px!important}
+.privacy-features{display:grid;gap:9px}
+.privacy-feature{display:flex;align-items:center;gap:11px;min-width:0;min-height:58px;padding:10px 11px;border:1px solid #d6e9d8;border-radius:12px;background:#f8fcf7;box-shadow:0 1px 2px #245a3510}
+.privacy-feature-icon{width:29px;height:29px;flex:none;display:grid;place-items:center;border-radius:9px;background:#e2f2e3;color:#28633f;font-size:16px;font-weight:800}
+.privacy-feature strong{display:block;font-size:12px;line-height:1.3;color:#285b3d}
+.privacy-feature small{display:block;margin-top:3px;font-size:10px;line-height:1.4;color:#52745d}
+.privacy-more{margin-top:10px;padding:0;border:1px solid #d2e7d3;border-radius:11px;background:#f6fbf5;overflow:hidden}
+.privacy-more summary{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:10px 12px;cursor:pointer;list-style:none;font-size:11px;font-weight:750;color:#28633f}
+.privacy-more summary::-webkit-details-marker{display:none}
+.privacy-more summary span{font-size:15px;line-height:1}
+.privacy-more[open] summary span{transform:rotate(45deg)}
+.privacy-more>p{font-size:10px!important;line-height:1.5!important;color:#52745d!important;margin:0!important;padding:0 12px 12px!important}
+body[data-theme="violet"] .privacy{background:#f0eafa!important;border-color:#e0d3f3!important;color:#553b80!important}
+body[data-theme="violet"] .privacy .shield{background:linear-gradient(145deg,#f0e7ff,#dfd0fa)!important;color:#6840a6!important;box-shadow:inset 0 0 0 1px #d5c3f1,0 3px 8px #6840a618!important}
+body[data-theme="violet"] .privacy-feature{background:#fbf9ff;border-color:#e6dcf4}
+body[data-theme="violet"] .privacy .shield svg,body[data-theme="violet"] .privacy-feature-icon{color:#6840a6!important}
+body[data-theme="violet"] .privacy-feature-icon{background:#eee5fb}
+body[data-theme="violet"] .privacy-copy>b,body[data-theme="violet"] .privacy-feature strong{color:#553b80!important}
+body[data-theme="violet"] .privacy-copy>p,body[data-theme="violet"] .privacy-feature small,body[data-theme="violet"] .privacy-more>p{color:#776493!important}
+body[data-theme="violet"] .privacy-more{border-color:#e0d3f3!important;background:#faf7ff}
+body[data-theme="violet"] .privacy-more summary{color:#6840a6!important}
+
+
+/* Watt AI subscription checkout — aligned with Mjadala's business checkout styling */
+.watt-pay-modal{position:fixed;inset:0;z-index:50000;background:rgba(19,39,28,.58);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);display:none;align-items:flex-end;justify-content:center;padding:14px;box-sizing:border-box}
+.watt-pay-modal.open{display:flex}
+.watt-pay-panel{position:relative;width:min(100%,440px);max-height:min(92dvh,720px);overflow:auto;background:#fffdf7;border:1px solid #e4e8dc;border-radius:25px;padding:18px 18px calc(18px + env(safe-area-inset-bottom));box-shadow:0 24px 80px rgba(9,31,19,.28);color:#29332c;box-sizing:border-box;animation:wattPayRise .22s ease-out}
+@keyframes wattPayRise{from{transform:translateY(18px);opacity:.7}to{transform:translateY(0);opacity:1}}
+.watt-pay-handle{width:38px;height:4px;border-radius:99px;background:#dce3d8;margin:0 auto 16px}
+.watt-pay-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.watt-pay-heading{display:flex;align-items:center;gap:10px;min-width:0}
+.watt-pay-mark{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border-radius:13px;background:#eaf2e8;color:#356d49}
+.watt-pay-mark svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.watt-pay-top h3{margin:0;font-size:17px;line-height:1.25;font-weight:850;letter-spacing:-.25px;color:#26372b}
+.watt-pay-kicker{display:block;margin-top:3px;font-size:10px;line-height:1.3;font-weight:750;letter-spacing:.08em;text-transform:uppercase;color:#718071}
+.watt-pay-close{display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;border:1px solid #e5e9e0;border-radius:50%;background:#f7f8f3;color:#566457;font-size:22px;line-height:1;cursor:pointer}
+.watt-pay-plan{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:18px 0 19px;padding:15px;border:1px solid #e4eadf;border-radius:17px;background:linear-gradient(135deg,#f3f7ef,#fbf8ed)}
+.watt-pay-plan-copy{min-width:0}.watt-pay-plan b{display:block;font-size:13px;line-height:1.35;font-weight:850;color:#2e4935}.watt-pay-plan small{display:block;color:#718071;font-size:10px;line-height:1.4;margin-top:4px}
+.watt-pay-amount{text-align:right;flex:0 0 auto}.watt-pay-amount strong{display:block;font-size:20px;line-height:1.15;letter-spacing:-.5px;color:#245d3c;font-weight:900}.watt-pay-amount small{display:block;margin-top:4px;font-size:9px;color:#788578}
+.watt-pay-section-label{display:block;margin:0 0 7px;font-size:11px;font-weight:850;color:#344638}
+.watt-pay-input-wrap{display:flex;align-items:center;gap:9px;min-height:51px;padding:0 12px;border:1px solid #dce5d9;border-radius:13px;background:#fff;transition:border-color .16s,box-shadow .16s}
+.watt-pay-input-wrap:focus-within{border-color:#5d946b;box-shadow:0 0 0 3px rgba(71,123,91,.12)}
+.watt-pay-country{display:flex;align-items:center;gap:6px;flex:0 0 auto;padding-right:10px;border-right:1px solid #e7ece4;color:#425b47;font-size:12px;font-weight:850;white-space:nowrap}
+.watt-pay-country span:first-child{font-size:15px}
+.watt-pay-panel input#wattPayPhone{display:block;width:100%;min-width:0;height:48px;border:0!important;outline:0!important;box-shadow:none!important;border-radius:0!important;padding:0!important;background:transparent!important;color:#27372c!important;font:700 15px/1.2 system-ui,-apple-system,Segoe UI,Roboto,sans-serif!important;letter-spacing:.02em}
+.watt-pay-panel input#wattPayPhone::placeholder{color:#a2aca0;font-weight:500;letter-spacing:0}
+.watt-pay-field-note{margin:6px 1px 0;font-size:10px;line-height:1.45;color:#849083}
+.watt-pay-submit{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:50px;border:0;border-radius:13px;padding:13px 16px;background:linear-gradient(135deg,#397b4e,#23643d);color:#fff;font-weight:850;font-size:13px;margin-top:17px;box-shadow:0 5px 13px rgba(39,104,60,.18);cursor:pointer;transition:transform .15s,filter .15s}
+.watt-pay-submit:active{transform:scale(.99)}.watt-pay-submit:disabled{opacity:.58;cursor:wait;box-shadow:none}
+.watt-pay-submit svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.watt-pay-security{display:flex;align-items:flex-start;gap:8px;margin:13px 1px 0;padding:10px 11px;border:1px solid #e5ecdf;border-radius:12px;background:#f7faf4;color:#657565;font-size:10px;line-height:1.5}
+.watt-pay-security svg{width:15px;height:15px;flex:0 0 15px;margin-top:1px;color:#4c8157;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.watt-pay-status{font-size:11px;line-height:1.5;color:#287448;font-weight:750;margin:10px 2px 0;min-height:0;overflow-wrap:anywhere}
+.watt-pay-status:empty{display:none}
+.watt-plan-state{font-size:10px;font-weight:800;color:#087e70;margin:6px 0}.watt-pay-modal *{box-sizing:border-box}
+@media(min-width:600px){.watt-pay-modal{align-items:center;padding:24px}.watt-pay-panel{border-radius:25px;padding:21px 22px 22px}}
+@media(max-width:380px){.watt-pay-modal{padding:8px}.watt-pay-panel{padding:15px 14px calc(15px + env(safe-area-inset-bottom));border-radius:22px}.watt-pay-plan{padding:12px}.watt-pay-amount strong{font-size:18px}}
+
+/* Watt AI Home: Mjadala ivory + sage identity, with the roomier Home and Plans layout. */
+:root{--watt-grey-ink:#29332c;--watt-grey-muted:#737d75;--watt-grey-line:#e7e9df;--watt-grey-panel:#fffdf8;--watt-grey-soft:#f3f5ed;--watt-grey-mid:#477b5b;--watt-grey-dark:#477b5b}
+body{background:#eef1e9;color:#29332c}
+.shell{background:#fffdf8;box-shadow:0 16px 48px rgba(54,91,64,.10)}
+.top{background:#fffdf8;border-color:#e7e9df}
+.back{color:#477b5b}.logo{background:linear-gradient(145deg,#477b5b,#5b8c68);color:#f8f2df;box-shadow:0 3px 9px #365b4022}
+.sub{color:#737d75}
+.home .hero{background:radial-gradient(circle at 86% 18%,#d9e8d833 0 15%,transparent 16%),linear-gradient(128deg,#f8f2df,#edf2e7 65%,#e4eddf);padding:27px 23px 30px;color:#29332c}
+.home .hero:after{border-color:#477b5b30;box-shadow:0 0 0 22px #477b5b08,0 0 0 48px #477b5b06}
+.home .hero h1 span{color:#477b5b}.home .hero h1 .typing-caret{color:#477b5b}
+.home .hero p{color:#53675a}.home .pill{border-color:#b9cdbd;background:#ffffff9c;color:#477b5b}
+.home .greeting-demo{color:#53675a}.home .greeting-demo button{border-color:#b9cdbd;background:#ffffffb8;color:#477b5b}.home .greeting-demo button.active{background:#477b5b;color:#fff;border-color:#477b5b}
+.home .bot{opacity:.96;filter:drop-shadow(0 10px 15px #365b4020)}
+.home .theme-panel{background:#fffdf8;border:1px solid #e7e9df;border-radius:18px;box-shadow:0 5px 16px #365b400b;padding:15px;margin:14px 15px 0}
+.home .theme-title{color:#29332c}.home .theme-title small{color:#737d75}.home .theme-options{gap:10px}
+.home .theme-card{border:1px solid #e7e9df!important;background:#f8f8f1!important;border-radius:13px!important;color:#29332c!important;padding:12px!important;min-height:66px}
+.home .theme-card.selected{border-color:#5b8c68!important;background:#edf3e9!important;box-shadow:inset 0 0 0 1px #5b8c68}
+.home .theme-check{background:#477b5b!important;color:#fff!important}
+.home .content{padding:0 16px 26px}
+.home .actions{margin-top:14px;padding:14px;gap:11px;border-color:#e7e9df;border-radius:19px;box-shadow:0 6px 18px #365b400a;background:#fffdf8}
+.home .action{min-height:76px;padding:13px 12px;border-color:#e7e9df;border-radius:14px;background:#fffefa;color:#29332c;gap:11px}
+.home .action .ico{width:38px;height:38px;border-radius:11px;background:#e8f1e6;color:#477b5b;font-size:0}
+.home .action .ico svg,.home .agent-icon svg{width:21px;height:21px;display:block;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.home .action b{font-size:12px;color:#29332c}.home .action small{font-size:10px;color:#737d75}
+.home .sectionhead{margin:23px 3px 12px;color:#29332c}.home .sectionhead span:last-child{color:#477b5b}
+.home .suggestions{gap:10px}.home .suggestion{background:#f3f5ed;border:1px solid #e7e9df;border-radius:14px;color:#34463a;min-height:76px;padding:13px}.home .suggestion strong{display:grid;place-items:center;width:28px;height:28px;margin-bottom:7px;border-radius:9px;background:#e8f1e6;color:#477b5b}.home .suggestion strong svg{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.home .plan-area{margin:23px 0 7px}.home .plans-disclosure{border:1px solid #e7e9df;border-radius:19px;background:#fffdf8;box-shadow:0 6px 18px #365b400b}
+.home .plan-intro{padding:17px 15px;min-height:82px}.home .plan-intro h2{font-size:17px;color:#29332c}.home .plan-intro p{font-size:11px;color:#737d75;line-height:1.45}
+.home .plan-summary-side .pill{background:#edf3e9!important;border-color:#dce8d9!important;color:#477b5b!important}.home .plan-chevron{background:#e8f1e6;color:#477b5b}
+.home .plans-content{padding:0 14px 17px;border-color:#e7e9df}.home .plans-content .free-banner{padding:15px;border-radius:15px;background:#f3f5ed;border:1px solid #e1e9dc;min-height:78px}
+.home .agent-plans{grid-template-columns:1fr;gap:12px;margin-top:13px}.home .agent-plan{padding:17px;border-radius:17px;border:1px solid #e7e9df;background:#fffdf8;box-shadow:0 4px 13px #365b4009}
+.home .agent-top{gap:12px;margin-bottom:14px}.home .agent-icon{width:43px;height:43px;border-radius:13px;background:#e8f1e6;color:#477b5b;font-size:0;display:grid;place-items:center}
+.home .agent-top h3{font-size:15px;color:#29332c}.home .agent-top .tagline,.home .pro-copy{color:#737d75}
+.home .tierline{padding:11px 12px;border-radius:11px;background:#f8f8f1;margin-top:7px;gap:8px}.home .tierline b{color:#34463a;font-size:12px}.home .tierline span{color:#737d75;font-size:10px}
+.home .pro-copy{font-size:11px;line-height:1.5;margin:12px 1px}.home .plan-btn,.home .bundle button{background:linear-gradient(135deg,#397b4e,#23643d);color:#fff;border:0;border-radius:11px;padding:12px 14px;min-height:42px;font-size:11px;font-weight:800}
+.home .bundle{margin-top:14px;padding:18px;border-radius:17px;background:linear-gradient(130deg,#477b5b,#5b8c68);color:#fff}.home .bundle-label{color:#f8f2df}.home .bundle h3{font-size:17px;margin:8px 0}.home .bundle p{font-size:11px;line-height:1.55;color:#f1f5ed}.home .bundle button{background:#f8f2df;color:#365b40}
+.home .pricing-note{font-size:10px;line-height:1.55;color:#737d75;margin:12px 2px 0}.home .watt-plan-state{padding:12px 13px;margin-top:11px;border-radius:12px;background:#f8f8f1;border:1px solid #e7e9df;color:#53675a;font-size:11px}
+.home .privacy{background:#f3f5ed!important;border-color:#dce8d9!important;color:#34463a!important}.home .privacy .shield{background:#dcebdc!important;color:#477b5b!important}.home .privacy b,.home .privacy-copy>b{color:#34463a!important}.home .privacy p,.home .privacy-feature small{color:#65766a!important}
+.home .privacy-feature{background:#fffefa;border-color:#e7e9df}.home .privacy-feature-icon{background:#e8f1e6;color:#477b5b}.home .privacy-feature strong{color:#34463a}.home .privacy-more{background:#fffefa;border-color:#e1e9dc}.home .privacy-more summary{color:#477b5b}
+/* Pale-green placeholders throughout Watt AI, including the chat composer. */
+input::placeholder,textarea::placeholder{color:#8caf96!important;opacity:1!important}
+.watt-pay-panel input#wattPayPhone::placeholder{color:#8caf96!important;opacity:1!important}
+/* Circular account photo in the Home header. */
+.watt-profile-button{margin-left:auto;width:42px;height:42px;flex:0 0 42px;padding:0;border:2px solid #fff;border-radius:50%;overflow:hidden;background:#e8f1e6;box-shadow:0 0 0 1px #dce8d9;display:grid;place-items:center;cursor:default}
+.watt-profile-button img{width:100%;height:100%;object-fit:cover;border-radius:50%}.watt-profile-button img[hidden]{display:none}
+.watt-profile-fallback{display:grid;place-items:center;width:100%;height:100%;font-size:12px;font-weight:900;color:#477b5b;background:#e8f1e6}
+.watt-profile-button svg{width:23px;height:23px;display:block;fill:none;stroke:#477b5b;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:380px){.home .agent-plan{padding:14px}.home .plan-intro{padding:14px 12px}.home .content{padding-left:12px;padding-right:12px}}
+
+</style>
+
+<style id="watt-composer-and-code-tools">
+/* Floating, expandable message box inspired by modern AI chat composers. */
+.composer{left:12px!important;right:12px!important;bottom:8px!important;width:auto!important;display:flex;align-items:flex-end;gap:8px;padding:8px 9px calc(8px + env(safe-area-inset-bottom))!important;border:1px solid var(--line)!important;border-radius:25px!important;background:var(--panel)!important;box-shadow:0 7px 26px var(--shadow)!important}
+.composer textarea{display:block;flex:1;min-width:0;min-height:40px;max-height:128px;resize:none;overflow-y:auto;border:0;outline:0;background:transparent;color:var(--ink);font:inherit;font-size:14px;line-height:1.45;padding:9px 3px 7px;}
+.composer textarea::placeholder{color:var(--muted);opacity:.9}
+.composer .round{width:40px;height:40px;display:grid;place-items:center;flex:0 0 40px;border:0;cursor:pointer}
+.composer .round svg{width:21px;height:21px;display:block}
+.composer .voice-button.listening{background:#fee8e7!important;color:#bd3832!important;animation:wattMicPulse 1.1s ease-in-out infinite}
+.composer button:disabled{opacity:.48;cursor:not-allowed}
+@keyframes wattMicPulse{50%{box-shadow:0 0 0 6px #e75d5d22}}
+.disclaimer{bottom:72px!important}
+.chat.active~.disclaimer{display:none!important}
+.chat{padding-bottom:100px!important}
+.msg.ai{max-width:94%;white-space:normal;overflow-wrap:anywhere}
+.msg.ai .watt-message-text{white-space:pre-wrap;overflow-wrap:anywhere}
+.watt-code-wrap{position:relative;max-width:100%;margin:10px 0 3px;border:1px solid color-mix(in srgb,var(--accent) 22%,var(--line));border-radius:12px;overflow:hidden;background:#101b1b;color:#e9f5f1}
+.watt-code-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;background:#1a2a29;color:#b9d6cc;font:600 10px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace}
+.watt-copy-button{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:30px;min-height:29px;padding:5px 8px;border:1px solid #ffffff35;border-radius:8px;background:#ffffff12;color:#e7f4ef;font:600 10px/1 system-ui,sans-serif;cursor:pointer}
+.watt-copy-button svg{width:14px;height:14px;display:block}
+.watt-code-wrap pre{margin:0;padding:12px;max-width:100%;overflow:auto;white-space:pre;font:12px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:2}
+.watt-copy-button.copied{background:#d8ffe9;color:#07523e;border-color:#d8ffe9}
+.watt-copy-message{font-size:10px;color:var(--muted);margin:4px 2px 0}
+.watt-inline-code{padding:2px 5px;border-radius:5px;background:var(--soft);border:1px solid var(--line);font: .92em ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
+.watt-assistant-copy{display:flex;justify-content:flex-end;margin-top:7px}
+.watt-assistant-copy .watt-copy-button{background:var(--soft);border-color:var(--line);color:var(--muted)}
+@media(max-width:380px){.composer{left:8px!important;right:8px!important}.composer textarea{font-size:13px}.watt-code-wrap pre{font-size:11px}}
+</style>
+
+
+<style id="watt-response-navigation">
+.composer .round{flex:none}.composer .image-button[aria-pressed="true"]{background:var(--accent);color:#fff;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent)}
+.watt-message-actions{display:flex;align-items:center;gap:4px;margin:8px 0 1px;flex-wrap:wrap}
+.watt-action-btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:31px;height:31px;padding:0 8px;border:0;border-radius:9px;background:transparent;color:var(--muted);font:600 11px system-ui,sans-serif;cursor:pointer}
+.watt-action-btn svg{width:16px;height:16px;display:block}.watt-action-btn:active,.watt-action-btn:hover{background:var(--soft);color:var(--accent)}
+.watt-action-btn.watt-action-done{color:var(--accent)}
+.watt-more-wrap{position:relative}.watt-more-menu,.watt-long-menu{position:absolute;z-index:80;min-width:175px;padding:6px;border:1px solid var(--line);border-radius:13px;background:var(--panel);box-shadow:0 12px 35px var(--shadow);display:none}
+.watt-more-menu.open,.watt-long-menu.open{display:block}.watt-more-menu{right:0;bottom:35px}.watt-long-menu{left:12px;top:50%;transform:translateY(-50%)}
+.watt-menu-item{display:flex;align-items:center;width:100%;gap:9px;padding:10px;border:0;border-radius:8px;background:transparent;color:var(--ink);font:500 12px system-ui,sans-serif;text-align:left;cursor:pointer}.watt-menu-item:hover{background:var(--soft)}
+.msg.user{position:relative;touch-action:pan-y}.msg.ai{position:relative}.watt-image-result{display:block;width:min(100%,520px);height:auto;border-radius:13px;margin:3px 0 8px;border:1px solid var(--line);background:var(--soft)}
+.watt-image-note{font-size:11px;color:var(--muted);margin:3px 0 7px}.watt-generating{display:flex;align-items:center;gap:9px;padding:12px 14px;color:var(--muted);font-size:12px}
+.watt-generating:before{content:"";width:15px;height:15px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:wattSpin .8s linear infinite}@keyframes wattSpin{to{transform:rotate(360deg)}}
+.watt-msg-editing{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:380px){.watt-action-btn{padding:0 6px;gap:4px}.watt-action-btn span{font-size:10px}.composer{gap:5px!important}}
+</style>
+
+
+<style id="watt-requested-home-and-composer-fixes">
+/* The welcome/greeting placard: smaller text, pale-green surface and a clear boundary. */
+.home .hero{background:#edf6ec!important;color:#304a37!important;border:1px solid #c8ddc8!important;border-radius:22px!important;margin:12px 14px 14px!important;padding:19px 18px 20px!important;box-shadow:0 5px 18px rgba(47,91,58,.08)!important;overflow:hidden}
+.home .hero:after{display:none!important}
+.home .hero .pill{background:#e1efdf!important;border:1px solid #c3dbc2!important;color:#477b55!important}
+.home .hero h1{font-size:22px!important;line-height:1.22!important;letter-spacing:-.45px!important;margin:12px 0 7px!important;max-width:100%!important;color:#304a37!important}
+.home .hero h1 span{color:#477b55!important}
+.home .hero h1 .typing-caret{color:#477b55!important}
+.home .hero p{color:#5c7660!important;max-width:100%!important}
+.home .hero .greeting-demo{color:#5c7660!important}
+.home .hero .greeting-demo button{background:#f8fcf7!important;border:1px solid #c8ddc8!important;color:#477b55!important}
+.home .hero .greeting-demo button.active{background:#d8ead5!important;border-color:#b8d3b7!important;color:#355b3c!important}
+/* Match the main Mjadala avatar treatment: photo, or account initials when no photo exists. */
+.watt-profile-button{cursor:default!important;padding:0!important;display:grid!important;place-items:center!important}
+.watt-profile-fallback{font-family:inherit!important;font-size:13px!important;letter-spacing:.2px!important}
+.watt-profile-button img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}
+/* Send is muted and disabled until the composer contains non-whitespace text. */
+#send:disabled{opacity:.38!important;filter:saturate(.45)!important;cursor:not-allowed!important;box-shadow:none!important}
+#send:not(:disabled){opacity:1!important;filter:none!important;cursor:pointer!important}
+</style>
+
+</head>
+<body>
+<div class="shell">
+ <header class="top"><div class="back">‹</div><div class="logo">MV</div><div><div class="brand">Mjadala</div><div class="sub">Connect · Trade · Grow</div></div><div class="watt-profile-button" id="wattProfileAvatar" aria-label="Profile" title="Profile"><span class="watt-profile-fallback" id="wattProfileInitials">MV</span></div></header>
+ <main class="home" id="home">
+  <section class="hero"><div class="pill">✦ &nbsp; WATT AI</div><h1 id="welcomeHeading" aria-live="polite"><span id="welcomeTyped"></span><span class="typing-caret" aria-hidden="true">|</span></h1><p>Ask anything — discover products, learn new skills, find businesses or get ideas.</p><div class="greeting-demo"><span>Preview greeting:</span><button class="active" type="button" data-greeting-mode="guest">Guest</button><button type="button" data-greeting-mode="signed">Signed in</button></div></section>
+  <section class="theme-panel" aria-label="Choose your app theme"><div class="theme-title"><div><b>Choose your look</b><small>Switch the whole Watt AI experience</small></div><span>2 THEMES</span></div><div class="theme-options"><button class="theme-card selected" data-theme-choice="jade" type="button"><span class="swatches"><i></i><i></i><i></i></span><span><b>Midnight Jade</b><small>Deep teal · jade · ivory</small></span><span class="theme-check">✓</span></button><button class="theme-card" data-theme-choice="violet" type="button"><span class="swatches violet-swatches"><i></i><i></i><i></i></span><span><b>Royal Violet</b><small>Plum · orchid · pearl</small></span><span class="theme-check">✓</span></button></div></section>
+  <div class="content">
+   <section class="actions">
+    <button class="action" data-prompt="Help me find products on Mjadala."><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 8h18l-1.5 12h-15L3 8Z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg></span><span><b>Find Products</b><small>Shop smarter</small></span></button>
+    <button class="action" data-prompt="Help me discover businesses on Mjadala."><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span><span><b>Find Businesses</b><small>Support local</small></span></button>
+    <button class="action" data-prompt="Help me understand a topic step by step."><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m2 9 10-5 10 5-10 5L2 9Z"/><path d="M6 11v5c3.5 3 8.5 3 12 0v-5M22 9v6"/></svg></span><span><b>Learn & Study</b><small>Understand anything</small></span></button>
+    <button class="action" data-prompt="Help me explore a website safely."><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5 13 13l-3.5 1.5L11 11l3.5-1.5Z"/></svg></span><span><b>Explore Websites</b><small>Discover the web</small></span></button>
+    <button class="action" data-prompt="Give me practical ideas for a business or project."><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 1.7 6.3L20 11l-6.3 1.7L12 19l-1.7-6.3L4 11l6.3-1.7L12 3Z"/><path d="m19 16 .7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7L19 16Z"/></svg></span><span><b>Get Ideas</b><small>Build something great</small></span></button>
+    <button class="action" data-prompt="I want to summarise some content."><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v5h4M10 12h6M10 16h6"/></svg></span><span><b>Summarise</b><small>Make it clear</small></span></button>
+   </section>
+   <div class="sectionhead"><span>✦ &nbsp;Try asking...</span><span>Explore prompts →</span></div>
+   <section class="suggestions">
+    <button class="suggestion" data-prompt="Help me choose a good laptop within my budget."><strong aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></strong>Help me choose a laptop within my budget</button>
+    <button class="suggestion" data-prompt="Explain PID control in simple terms, step by step."><strong aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.7-1.4-2.4 1.4-1.1a8 8 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.7 1.4 2.4-1.4 1.1a8 8 0 0 1 0 2Z"/></svg></strong>Explain PID control in simple terms</button>
+    <button class="suggestion" data-prompt="Where can I find quality engineering tools?"><strong aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16v13H4zM7 7V4h10v3M8 11h8M8 15h5"/></svg></strong>Where can I find quality tools?</button>
+    <button class="suggestion" data-prompt="How can I grow my small business online?"><strong aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 17 10 11l4 4 6-8"/><path d="M14 7h6v6"/></svg></strong>How can I grow my business online?</button>
+   </section>
+   <section class="plan-area" id="agentPlans">
+    <details class="plans-disclosure">
+     <summary class="plan-intro"><div><h2>Meet your AI agents</h2><p>Start free. Upgrade only the specialist tools you need.</p></div><span class="plan-summary-side"><span class="pill" style="color:var(--accent);border-color:var(--line);background:var(--soft)">AGENT PLANS</span><span class="plan-chevron" aria-hidden="true">⌄</span></span></summary>
+     <div class="plans-content">
+    <div class="free-banner"><div class="free-symbol">✦</div><div><b>Watt AI Starter</b><small>Chat, everyday help and essential Mjadala discovery.</small></div><span class="free-tag">FREE</span></div>
+    <div class="watt-plan-state" id="wattCurrentAccess" aria-live="polite">Sign in to view your Watt AI access.</div>
+    <div class="agent-plans">
+     <article class="agent-plan"><div class="agent-top"><span class="agent-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 8h18l-1.5 12h-15L3 8Z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg></span><div><h3>Shopping Agent</h3><div class="tagline">Find the right products</div></div></div><div class="tierline"><b>Free</b><span>Product discovery</span></div><div class="tierline"><b>Pro · KSh 199 / 30 days</b><span>Deeper comparisons & buying guides</span></div><p class="pro-copy">Compare options, understand trade-offs and get tailored buying advice.</p><button class="plan-btn" data-plan-code="shopping_pro">Unlock Shopping Pro</button></article>
+     <article class="agent-plan"><div class="agent-top"><span class="agent-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span><div><h3>Business Agent</h3><div class="tagline">Grow your business</div></div></div><div class="tierline"><b>Free</b><span>Business discovery</span></div><div class="tierline"><b>Pro · KSh 199 / 30 days</b><span>Growth & marketing tools</span></div><p class="pro-copy">Create practical marketing plans, improve listings and research markets.</p><button class="plan-btn" data-plan-code="business_agent_pro">Unlock Business Agent Pro</button></article>
+     <article class="agent-plan"><div class="agent-top"><span class="agent-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v5h4M10 12h6M10 16h6"/></svg></span><div><h3>Learning Agent</h3><div class="tagline">Learn step by step</div></div></div><div class="tierline"><b>Free</b><span>Everyday explanations</span></div><div class="tierline"><b>Pro · KSh 199 / 30 days</b><span>Guided learning paths</span></div><p class="pro-copy">Structured lessons, practice questions, revision plans and progress tracking.</p><button class="plan-btn" data-plan-code="learning_pro">Unlock Learning Pro</button></article>
+     <article class="agent-plan"><div class="agent-top"><span class="agent-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5 13 13l-3.5 1.5L11 11l3.5-1.5Z"/></svg></span><div><h3>Research Agent</h3><div class="tagline">Explore and understand</div></div></div><div class="tierline"><b>Free</b><span>Short summaries</span></div><div class="tierline"><b>Pro · KSh 199 / 30 days</b><span>Deep sourced research</span></div><p class="pro-copy">Multi-source research, citations, detailed comparisons and document analysis.</p><button class="plan-btn" data-plan-code="research_pro">Unlock Research Pro</button></article>
+     <article class="agent-plan"><div class="agent-top"><span class="agent-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 1.7 6.3L20 11l-6.3 1.7L12 19l-1.7-6.3L4 11l6.3-1.7L12 3Z"/></svg></span><div><h3>Innovation Agent</h3><div class="tagline">Turn ideas into projects</div></div></div><div class="tierline"><b>Free</b><span>Brainstorming</span></div><div class="tierline"><b>Pro · KSh 199 / 30 days</b><span>Project development</span></div><p class="pro-copy">Roadmaps, feasibility thinking, design guidance and prototype planning.</p><button class="plan-btn" data-plan-code="innovation_pro">Unlock Innovation Pro</button></article>
+     <article class="agent-plan"><div class="agent-top"><span class="agent-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM20 8v6M17 11h6"/></svg></span><div><h3>Community Agent</h3><div class="tagline">Find your people</div></div></div><div class="tierline"><b>Free</b><span>Explore communities</span></div><div class="tierline"><b>Pro · KSh 199 / 30 days</b><span>Creator & community insights</span></div><p class="pro-copy">Advanced discovery and tools for creators and community organisers.</p><button class="plan-btn" data-plan-code="community_pro">Unlock Community Pro</button></article>
+    </div>
+    <div class="bundle"><div class="bundle-label">ONE PLAN · EVERY SPECIALIST</div><h3>Watt AI All-Access · KSh 599 / 30 days</h3><p>One pass to all six specialist Pro agents. Save compared with subscribing to each agent separately.</p><button data-plan-code="all_access">Unlock All-Access</button></div>
+    <div class="pricing-note">Secure M-Pesa checkout · 30-day access · No automatic renewals. Agent Pro subscriptions are separate from Mjadala Business Plans.</div>
+    <div class="plan-feedback" id="planFeedback" aria-live="polite"></div>
+     </div>
+    </details>
+   </section>
+   <section class="privacy" aria-labelledby="privacyTitle">
+    <div class="shield" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2 19 6v5.2c0 4.5-2.9 7.8-7 9.6-4.1-1.8-7-5.1-7-9.6V6l7-2.8Z"/><path d="m8.5 12.1 2.3 2.3 4.8-5"/></svg></div>
+    <div class="privacy-copy">
+     <b id="privacyTitle">Your privacy matters</b>
+     <p>Watt AI is here to help you explore ideas, learn and get things done while keeping your personal information in mind.</p>
+     <div class="privacy-features">
+      <div class="privacy-feature"><span class="privacy-feature-icon" aria-hidden="true">✓</span><span><strong>Private conversations</strong><small>Your chats are not public posts on Mjadala.</small></span></div>
+      <div class="privacy-feature"><span class="privacy-feature-icon" aria-hidden="true">✓</span><span><strong>You stay in control</strong><small>Share only the details needed for the task.</small></span></div>
+      <div class="privacy-feature"><span class="privacy-feature-icon" aria-hidden="true">✓</span><span><strong>Protect sensitive information</strong><small>Never share passwords, PINs or payment details.</small></span></div>
+     </div>
+     <details class="privacy-more"><summary>Learn about privacy <span aria-hidden="true">＋</span></summary><p>Before sending a message, check whether it contains personal or confidential information. You can usually describe a situation without including account numbers, passwords, private contact details or other identifying information.</p></details>
+    </div>
+   </section>
+  </div>
+ </main>
+ <section class="chat" id="chat">
+  <div class="chathead"><div class="chat-title-wrap"><span class="chat-title">✦ &nbsp; Watt AI</span><span class="active-agent-label" id="activeAgentLabel">General assistant</span></div><div class="theme-switch"><span id="activeThemeName">Midnight Jade</span><button class="newchat" id="newchat">＋ New chat</button></div></div>
+  <div class="messages" id="messages"><div class="msg ai" id="chatWelcome">Hello! I’m Watt AI. How can I help you today?</div></div>
+ </section>
+ <div class="disclaimer" id="wattStatus" role="status" aria-live="polite">Watt AI</div>
+ <div class="composer" id="wattComposer" role="group" aria-label="Message Watt AI">
+ <button class="round image-button" id="imageMode" type="button" title="Create an image" aria-label="Create an image" aria-pressed="false">
+  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+ </button>
+ <button class="round voice-button" id="voiceInput" type="button" title="Start voice input" aria-label="Start voice input">
+  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5.5 10.5v1a6.5 6.5 0 0 0 13 0v-1M12 18v3.5M8.5 21.5h7"/></svg>
+ </button>
+ <textarea id="prompt" rows="1" placeholder="Message Watt AI..." autocomplete="off" aria-label="Write a message to Watt AI"></textarea>
+ <button class="round send" id="send" type="button" disabled title="Send message" aria-label="Send message">
+  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+ </button>
+</div>
+</div>
+<div class="watt-pay-modal" id="wattPayModal" aria-hidden="true">
+ <section class="watt-pay-panel" role="dialog" aria-modal="true" aria-labelledby="wattPayTitle">
+  <div class="watt-pay-handle" aria-hidden="true"></div>
+  <div class="watt-pay-top">
+   <div class="watt-pay-heading">
+    <span class="watt-pay-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/><path d="M7 7l10 10M17 7 7 17"/></svg></span>
+    <div><h3 id="wattPayTitle">Complete your upgrade</h3><span class="watt-pay-kicker">Secure M-Pesa checkout</span></div>
+   </div>
+   <button class="watt-pay-close" id="wattPayClose" type="button" aria-label="Close">×</button>
+  </div>
+  <div class="watt-pay-plan">
+   <div class="watt-pay-plan-copy"><b id="wattPayPlanName">Agent Pro</b><small>Watt AI subscription · No automatic renewal</small></div>
+   <div class="watt-pay-amount"><strong id="wattPayPlanPrice">KSh 199</strong><small>30-day access</small></div>
+  </div>
+  <label class="watt-pay-section-label" for="wattPayPhone">M-Pesa number</label>
+  <div class="watt-pay-input-wrap"><span class="watt-pay-country"><span aria-hidden="true">🇰🇪</span> KE</span><input id="wattPayPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="07XX XXX XXX" maxlength="15" aria-describedby="wattPayPhoneHint"></div>
+  <p class="watt-pay-field-note" id="wattPayPhoneHint">Enter your Safaricom number, for example 07XX XXX XXX or 2547XX XXX XXX.</p>
+  <button class="watt-pay-submit" id="wattPaySubmit" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v13H4zM7 7V4h10v3M4 11h16M8 15h3"/></svg><span>Pay securely with M-Pesa</span></button>
+  <div class="watt-pay-security"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 20 6v5c0 5-3.4 8.3-8 10-4.6-1.7-8-5-8-10V6z"/><path d="m9 12 2 2 4-4"/></svg><span>A payment prompt will appear on your phone. Confirm the amount and enter your M-Pesa PIN only on your phone. Watt AI activates your plan after Safaricom confirms payment.</span></div>
+  <div class="watt-pay-status" id="wattPayStatus" role="status" aria-live="polite"></div>
+
+<script>
+const home=document.getElementById('home'),chat=document.getElementById('chat'),messages=document.getElementById('messages'),input=document.getElementById('prompt');
+const WATT_SUPABASE_URL='https://olqwfscmhtdseljvfqvm.supabase.co';
+const WATT_SUPABASE_KEY='sb_publishable_Ay8LXBjvNhXQJDKQMF_Etw_SMb6_z4M';
+const WATT_CHAT_ENDPOINT=WATT_SUPABASE_URL+'/functions/v1/watt-chat';
+let wattAccessToken='',wattUserId='',activeAgent='general',conversation=[];
+const AGENTS=[['general','Watt AI'],['shopping','Shopping'],['business','Business'],['learning','Learning'],['research','Research'],['innovation','Innovation'],['community','Community']];
+const agentBar=document.createElement('div');agentBar.className='watt-agent-bar';agentBar.setAttribute('aria-label','Choose a Watt AI agent');
+agentBar.innerHTML=AGENTS.map(([id,label])=>`<button type="button" data-watt-agent="${id}" aria-pressed="${id==='general'}">${label}</button>`).join('');
+document.querySelector('.chathead').insertAdjacentElement('afterend',agentBar);
+const agentStyle=document.createElement('style');agentStyle.textContent='.chat-title-wrap{display:flex;align-items:center;gap:8px;min-width:0}.chat-title{font-weight:800;white-space:nowrap}.active-agent-label{display:inline-flex;align-items:center;max-width:145px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid var(--line);border-radius:20px;padding:5px 9px;background:var(--soft);color:var(--accent);font-size:10px;font-weight:800}.watt-agent-bar{display:flex;gap:7px;overflow-x:auto;padding:9px 12px;border-bottom:1px solid var(--line);scrollbar-width:none;flex:none}.watt-agent-bar::-webkit-scrollbar{display:none}.watt-agent-bar button{flex:0 0 auto;border:1px solid var(--line);border-radius:18px;padding:7px 11px;background:var(--soft);color:var(--text);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s,color .15s}.watt-agent-bar button.active{background:var(--accent);border-color:var(--accent);color:#fff}.watt-agent-bar button:focus-visible,.newchat:focus-visible,.composer button:focus-visible{outline:3px solid var(--accent2);outline-offset:2px}.typing{padding:12px 14px;color:var(--muted);font-size:13px}.msg.ai{white-space:pre-wrap;overflow-wrap:anywhere}.watt-error{color:#a43b35!important}@media(max-width:380px){.chathead{gap:6px}.active-agent-label{max-width:92px}.theme-switch>span{display:none}.newchat{padding:7px 8px}}';document.head.appendChild(agentStyle);
+function setAgent(agent){activeAgent=AGENTS.some(([id])=>id===agent)?agent:'general';const selected=AGENTS.find(([id])=>id===activeAgent);const label=selected?.[1]||'Watt AI';agentBar.querySelectorAll('button').forEach(b=>{const on=b.dataset.wattAgent===activeAgent;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on))});const activeLabel=document.getElementById('activeAgentLabel');if(activeLabel)activeLabel.textContent=activeAgent==='general'?'General assistant':label+' assistant';const status=document.getElementById('wattStatus');if(status){status.classList.remove('watt-error');status.textContent=label+' selected · Your conversation continues'}}
+agentBar.addEventListener('click',e=>{const b=e.target.closest('[data-watt-agent]');if(!b)return;setAgent(b.dataset.wattAgent);});
+
+document.querySelector('.back')?.addEventListener('click',()=>parent.postMessage({type:'MJADALA_WATT_CLOSE'},location.origin));
+let greetingMode='guest', accountName='', greetingTimer=null, greetingStopped=false;
+function accountInitials(name){const clean=String(name||'').trim();if(!clean)return 'MV';const words=clean.split(/\s+/).filter(Boolean);if(words.length===1)return words[0].slice(0,2).toUpperCase();return (words[0][0]+words[words.length-1][0]).toUpperCase()}
+function setWattAvatar(name,photoUrl=''){const host=document.getElementById('wattProfileAvatar');if(!host)return;host.replaceChildren();if(photoUrl){const img=document.createElement('img');img.alt='Your Mjadala profile photo';img.src=photoUrl;img.onerror=()=>{img.remove();const fallback=document.createElement('span');fallback.className='watt-profile-fallback';fallback.textContent=accountInitials(name);host.appendChild(fallback)};host.appendChild(img)}else{const fallback=document.createElement('span');fallback.className='watt-profile-fallback';fallback.textContent=accountInitials(name);host.appendChild(fallback)}}
+async function loadWattProfileAvatar(){if(!wattAccessToken||!wattUserId){setWattAvatar(accountName);return}const headers={'apikey':WATT_SUPABASE_KEY,'Authorization':'Bearer '+wattAccessToken};for(const key of ['id','user_id']){try{const response=await fetch(WATT_SUPABASE_URL+'/rest/v1/profiles?select=avatar_url&'+key+'=eq.'+encodeURIComponent(wattUserId)+'&limit=1',{headers});if(!response.ok)continue;const rows=await response.json();const raw=rows?.[0]?.avatar_url;if(raw){let url=String(raw);if(!/^https?:\/\//i.test(url))url=WATT_SUPABASE_URL+'/storage/v1/object/public/profile-photos/'+url.replace(/^\/+|^profile-photos\//,'');setWattAvatar(accountName,url);return}}catch(_){}}setWattAvatar(accountName)}
+
+function stopGreetingLoop(){greetingStopped=true;if(greetingTimer)clearTimeout(greetingTimer);greetingTimer=null}
+function greetingLines(){return greetingMode==='signed'?[`Hello, ${accountName}.`,'I’m Watt AI.','How can I help you today?']:['Hello! I’m Watt AI.','How can I help you today?','Ask me anything.']}
+function startGreetingLoop(){if(greetingStopped)return;if(greetingTimer)clearTimeout(greetingTimer);const target=document.getElementById('welcomeTyped');if(!target)return;const lines=greetingLines();let lineIndex=0;function typeLine(){if(greetingStopped)return;const line=lines[lineIndex%lines.length];let i=0;target.textContent='';function typeChar(){if(greetingStopped)return;if(i<line.length){target.textContent+=line.charAt(i++);greetingTimer=setTimeout(typeChar,48)}else{greetingTimer=setTimeout(eraseLine,1450)}}function eraseLine(){if(greetingStopped)return;if(target.textContent.length){target.textContent=target.textContent.slice(0,-1);greetingTimer=setTimeout(eraseLine,22)}else{lineIndex++;greetingTimer=setTimeout(typeLine,260)}}typeChar()}typeLine()}
+function setGreeting(mode,name=''){greetingMode=mode;if(name)accountName=name;setWattAvatar(accountName);const heading=document.getElementById('welcomeHeading');if(heading){heading.setAttribute('aria-label',mode==='signed'?'Hello, '+accountName+'. I’m Watt AI. How can I help you today?':'Hello! I’m Watt AI. How can I help you today?');}document.querySelectorAll('[data-greeting-mode]').forEach(b=>b.classList.toggle('active',b.dataset.greetingMode===mode));const welcome=document.getElementById('chatWelcome');if(welcome)welcome.textContent=mode==='signed'?'Hello, '+accountName+'. I’m Watt AI. How can I help you today?':'Hello! I’m Watt AI. How can I help you today?';startGreetingLoop()}
+document.querySelectorAll('[data-greeting-mode]').forEach(b=>b.addEventListener('click',()=>setGreeting(b.dataset.greetingMode)));
+async function loadWattAccess(){if(!wattAccessToken)return;try{const response=await fetch(WATT_STATUS_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+wattAccessToken,'apikey':WATT_SUPABASE_KEY},body:JSON.stringify({action:'my_access'})});const data=await response.json();if(!response.ok)return;const current=document.getElementById('wattCurrentAccess');if(current){const labels=(data.subscriptions||[]).map(row=>row.entitlement_key==='all_access'?'All-Access':row.entitlement_key.charAt(0).toUpperCase()+row.entitlement_key.slice(1)+' Pro');current.textContent=labels.length?'Your active access: '+labels.join(' · '):'You are using Watt AI Starter. Upgrade only the specialist agents you need.';}}catch(_){}}
+async function loadWattPlanCatalog(){if(!wattAccessToken)return;try{const response=await fetch(WATT_STATUS_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+wattAccessToken,'apikey':WATT_SUPABASE_KEY},body:JSON.stringify({action:'catalog'})});const data=await response.json();if(!response.ok||!Array.isArray(data.plans))return;data.plans.forEach(plan=>{if(WATT_PLAN_CATALOG[plan.plan_code])WATT_PLAN_CATALOG[plan.plan_code]={title:plan.title,price:Number(plan.amount_kes),days:Number(plan.duration_days)};const button=document.querySelector('[data-plan-code="'+plan.plan_code+'"]');if(button){button.textContent='Unlock '+plan.title+' · KSh '+Number(plan.amount_kes).toLocaleString('en-KE');const rows=button.closest('.agent-plan')?.querySelectorAll('.tierline');if(rows?.[1]){const label=rows[1].querySelector('b');if(label)label.textContent='Pro · KSh '+Number(plan.amount_kes).toLocaleString('en-KE')+' / '+Number(plan.duration_days)+' days'}}if(plan.plan_code==='all_access'){const title=document.querySelector('.bundle h3');if(title)title.textContent=plan.title+' · KSh '+Number(plan.amount_kes).toLocaleString('en-KE')+' / '+Number(plan.duration_days)+' days'}});}catch(_){}}
+window.addEventListener('message',e=>{if(e.source!==parent||e.origin!==location.origin||e.data?.type!=='MJADALA_WATT_GREETING')return;wattAccessToken=typeof e.data.accessToken==='string'?e.data.accessToken:'';wattUserId=typeof e.data.userId==='string'?e.data.userId:'';if(e.data.signedIn&&e.data.name)setGreeting('signed',String(e.data.name));else setGreeting('guest');const status=document.getElementById('wattStatus');if(status)status.textContent=wattAccessToken?'Watt AI':'Sign in to Mjadala to use Watt AI';loadWattAccess();loadWattPlanCatalog();loadWattProfileAvatar();});
+
+function openChat(text=''){stopGreetingLoop();home.classList.add('hidden');chat.classList.add('active');if(text){input.value=text;send()}input.focus()}
+function wattSvg(name){const paths={copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>',sound:'<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>',share:'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.7 6.6-4.4m-6.6 9 6.6 4.4"/>',more:'<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/>',refresh:'<path d="M20 7v5h-5"/><path d="M4 17v-5h5"/><path d="M5.5 9a7 7 0 0 1 12-2L20 12M4 12l2.5 5a7 7 0 0 0 12-2"/>',flag:'<path d="M4 22V4m0 0c6-4 10 4 16 0v11c-6 4-10-4-16 0"/>',image:'<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>'};return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+(paths[name]||'')+'</svg>'}
+function escapeWattHTML(value){return String(value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+async function copyWattText(value,button){try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(value)}else{const helper=document.createElement('textarea');helper.value=value;helper.style.position='fixed';helper.style.opacity='0';document.body.appendChild(helper);helper.select();const ok=document.execCommand('copy');helper.remove();if(!ok)throw new Error('Copy unavailable')}if(button){button.classList.add('watt-action-done');const old=button.innerHTML;button.innerHTML=wattSvg('copy')+'<span>Copied</span>';setTimeout(()=>{button.classList.remove('watt-action-done');button.innerHTML=old},1300)}}catch(_){if(button)button.title='Copy is unavailable in this browser'}}
+function appendInlineText(parent,text){
+ const source=String(text),token=/(`[^`]+`|\[[^\]]+\]\(https?:\/\/[^\s)]+\)|\*\*[^*]+\*\*|__[^_]+__|~~[^~]+~~|(?<!\*)\*[^*\n]+\*(?!\*)|(?<!_)_[^_\n]+_(?!_))/g;let last=0,match;
+ while((match=token.exec(source))){if(match.index>last)parent.appendChild(document.createTextNode(source.slice(last,match.index)));const raw=match[0];let node;if(raw.startsWith('`')){node=document.createElement('code');node.className='watt-inline-code';node.textContent=raw.slice(1,-1)}else if(raw.startsWith('[')){const parts=raw.match(/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/);if(parts){node=document.createElement('a');node.textContent=parts[1];node.href=parts[2];node.target='_blank';node.rel='noopener noreferrer'}else node=document.createTextNode(raw)}else if(raw.startsWith('**')||raw.startsWith('__')){node=document.createElement('strong');node.textContent=raw.slice(2,-2)}else if(raw.startsWith('~~')){node=document.createElement('del');node.textContent=raw.slice(2,-2)}else{node=document.createElement('em');node.textContent=raw.slice(1,-1)}parent.appendChild(node);last=token.lastIndex}
+ if(last<source.length)parent.appendChild(document.createTextNode(source.slice(last)));
+}
+function renderAssistantContent(container,text){
+ const source=String(text).replace(/\r\n?/g,'\n');
+ const chunks=source.split(/```([\w.+#-]*)\n?([\s\S]*?)```/g);
+ const appendParagraph=(lines)=>{const p=document.createElement('p');p.className='watt-md-paragraph';lines.forEach((line,i)=>{if(i)p.appendChild(document.createElement('br'));appendInlineText(p,line)});container.appendChild(p)};
+ const isRule=line=>/^\s*(?:---+|___+|\*\s*\*\s*\*+)\s*$/.test(line);
+ for(let c=0;c<chunks.length;c++){
+  if(c%3!==0){const language=chunks[c]||'code',codeText=chunks[c+1]||'',wrap=document.createElement('div');wrap.className='watt-code-wrap';const head=document.createElement('div');head.className='watt-code-head';const lang=document.createElement('span');lang.textContent=language.toUpperCase()||'CODE';const copy=document.createElement('button');copy.type='button';copy.className='watt-copy-button';copy.innerHTML=wattSvg('copy');copy.setAttribute('aria-label','Copy code');copy.title='Copy code';copy.addEventListener('click',()=>copyWattText(codeText.replace(/\n$/,''),copy));head.append(lang,copy);const pre=document.createElement('pre'),code=document.createElement('code');code.textContent=codeText.replace(/\n$/,'');pre.appendChild(code);wrap.append(head,pre);container.appendChild(wrap);c++;continue;}
+  const lines=(chunks[c]||'').split('\n');let i=0;
+  while(i<lines.length){const line=lines[i];if(!line.trim()){i++;continue}if(isRule(line)){container.appendChild(document.createElement('hr'));i++;continue}
+   const heading=line.match(/^\s{0,3}(#{1,4})\s+(.+?)\s*#*\s*$/);if(heading){const h=document.createElement('h'+Math.min(4,heading[1].length));appendInlineText(h,heading[2]);container.appendChild(h);i++;continue}
+   if(/^\s*>/.test(line)){const quote=document.createElement('blockquote'),q=[];while(i<lines.length&&/^\s*>/.test(lines[i]))q.push(lines[i++].replace(/^\s*>\s?/,''));q.forEach((x,j)=>{if(j)quote.appendChild(document.createElement('br'));appendInlineText(quote,x)});container.appendChild(quote);continue}
+   if(/^\s*[-*+]\s+/.test(line)){const list=document.createElement('ul');while(i<lines.length&&/^\s*[-*+]\s+/.test(lines[i])){const li=document.createElement('li');appendInlineText(li,lines[i++].replace(/^\s*[-*+]\s+/,''));list.appendChild(li)}container.appendChild(list);continue}
+   if(/^\s*\d+[.)]\s+/.test(line)){const list=document.createElement('ol');while(i<lines.length&&/^\s*\d+[.)]\s+/.test(lines[i])){const li=document.createElement('li');appendInlineText(li,lines[i++].replace(/^\s*\d+[.)]\s+/,''));list.appendChild(li)}container.appendChild(list);continue}
+   const para=[line];i++;while(i<lines.length&&lines[i].trim()&&!/^\s{0,3}#{1,4}\s+/.test(lines[i])&&!/^\s*>/.test(lines[i])&&!/^\s*[-*+]\s+/.test(lines[i])&&!/^\s*\d+[.)]\s+/.test(lines[i])&&!isRule(lines[i]))para.push(lines[i++]);appendParagraph(para);
+  }
+ }
+}
+function responseActions(text,el,convIndex){const bar=document.createElement('div');bar.className='watt-message-actions';const make=(label,icon,fn)=>{const b=document.createElement('button');b.type='button';b.className='watt-action-btn';b.innerHTML=wattSvg(icon);b.setAttribute('aria-label',label);b.title=label;b.addEventListener('click',fn);return b};bar.appendChild(make('Copy','copy',e=>copyWattText(text,e.currentTarget)));bar.appendChild(make('Read aloud','sound',e=>{if(!('speechSynthesis'in window)){setStatus('Read aloud is not supported in this browser.');return}if(speechSynthesis.speaking){speechSynthesis.cancel();e.currentTarget.classList.remove('watt-action-done');return}const u=new SpeechSynthesisUtterance(text);u.lang=navigator.language||'en-US';u.onend=()=>e.currentTarget.classList.remove('watt-action-done');speechSynthesis.cancel();speechSynthesis.speak(u);e.currentTarget.classList.add('watt-action-done')}));bar.appendChild(make('Share','share',async e=>{try{if(navigator.share)await navigator.share({title:'Watt AI response',text});else await copyWattText(text,e.currentTarget)}catch(_){}}));const wrap=document.createElement('div');wrap.className='watt-more-wrap';const menu=document.createElement('div');menu.className='watt-more-menu';const more=make('More actions','more',()=>{document.querySelectorAll('.watt-more-menu.open').forEach(m=>{if(m!==menu)m.classList.remove('open')});menu.classList.toggle('open')});const item=(label,icon,fn)=>{const b=document.createElement('button');b.type='button';b.className='watt-menu-item';b.innerHTML=wattSvg(icon)+'<span>'+label+'</span>';b.addEventListener('click',()=>{menu.classList.remove('open');fn()});menu.appendChild(b)};item('Copy response','copy',()=>copyWattText(text));item('Regenerate response','refresh',()=>regenerateResponse(el,convIndex));item('Use as prompt','edit',()=>{input.value=text;resizePrompt();input.focus();setStatus('Response added to the message box for editing.');});wrap.append(more,menu);bar.appendChild(wrap);return bar}
+function add(text,who,opts={}){const el=document.createElement('div');el.className='msg '+who;if(Number.isInteger(opts.convIndex))el.dataset.convIndex=String(opts.convIndex);if(who==='ai'){renderAssistantContent(el,text);if(opts.actions!==false)el.appendChild(responseActions(text,el,opts.convIndex))}else{el.textContent=text;if(Number.isInteger(opts.convIndex))el.dataset.convIndex=String(opts.convIndex);attachLongPress(el,text,opts.convIndex)}messages.appendChild(el);messages.scrollTop=messages.scrollHeight;return el}
+function attachLongPress(el,text,index){let timer=null;const show=()=>{clearTimeout(timer);document.querySelectorAll('.watt-long-menu.open').forEach(m=>m.remove());const menu=document.createElement('div');menu.className='watt-long-menu open';const edit=document.createElement('button');edit.className='watt-menu-item';edit.type='button';edit.innerHTML=wattSvg('edit')+'<span>Edit message</span>';edit.addEventListener('click',()=>{menu.remove();editEarlierMessage(el,text,index)});const copy=document.createElement('button');copy.className='watt-menu-item';copy.type='button';copy.innerHTML=wattSvg('copy')+'<span>Copy message</span>';copy.addEventListener('click',()=>{menu.remove();copyWattText(text)});menu.append(edit,copy);el.appendChild(menu);setTimeout(()=>{const close=e=>{if(!menu.contains(e.target)){menu.remove();document.removeEventListener('pointerdown',close,true)}};document.addEventListener('pointerdown',close,true)},0)};el.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;timer=setTimeout(show,550)});['pointerup','pointerleave','pointercancel'].forEach(ev=>el.addEventListener(ev,()=>clearTimeout(timer)));el.addEventListener('contextmenu',e=>{e.preventDefault();show()})}
+function editEarlierMessage(el,text,index){if(!Number.isInteger(index))return;conversation=conversation.slice(0,index);let node=el;while(node&&node!==messages){const next=node.nextElementSibling;node.remove();node=next}input.value=text;resizePrompt();openChat();input.focus();setStatus('Edit your earlier message, then send it again.')}
+async function regenerateResponse(el,index){if(!Number.isInteger(index)||conversation.length===0||conversation[conversation.length-1]?.role!=='assistant'){setStatus('Only the latest response can be regenerated right now.');return}conversation.pop();el.remove();await requestAssistant(false)}
+let imageMode=false;
+const imageModeButton=document.getElementById('imageMode');
+imageModeButton?.addEventListener('click',()=>{imageMode=!imageMode;imageModeButton.setAttribute('aria-pressed',String(imageMode));setStatus(imageMode?'Image creation mode is on. Describe the picture you want.':'Image creation mode is off.')});
+function isImageRequest(text){return /\b(generate|create|draw|design|render|paint|make)\b.{0,70}\b(image|picture|illustration|artwork|logo|poster|wallpaper|diagram|infographic|icon|banner|thumbnail)\b/i.test(text)||/\b(image|picture|illustration|logo|poster)\b.{0,50}\b(generate|create|draw|design|render|make)\b/i.test(text)}
+async function requestImage(prompt){const waiting=document.createElement('div');waiting.className='watt-generating';waiting.textContent='Watt AI is creating your image…';messages.appendChild(waiting);messages.scrollTop=messages.scrollHeight;const sendButton=document.getElementById('send');sendButton.disabled=true;input.disabled=true;try{const response=await fetch(WATT_CHAT_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+wattAccessToken,'apikey':WATT_SUPABASE_KEY},body:JSON.stringify({task:'image',prompt,agent:activeAgent})});let data={};try{data=await response.json()}catch(_){}if(!response.ok)throw new Error(data.error||'Watt AI could not create the image.');if(!data.image_data)throw new Error('The image service returned no picture.');waiting.remove();const card=document.createElement('div');card.className='msg ai';const caption=document.createElement('div');caption.className='watt-image-note';caption.textContent='Created with Watt AI';const img=document.createElement('img');img.className='watt-image-result';img.alt='Image created by Watt AI';img.src='data:'+(data.mime_type||'image/webp')+';base64,'+data.image_data;const tools=document.createElement('div');tools.className='watt-message-actions';const download=document.createElement('a');download.className='watt-action-btn';download.href=img.src;download.download='watt-ai-image.webp';download.innerHTML=wattSvg('image')+'<span>Save image</span>';tools.appendChild(download);const share=document.createElement('button');share.type='button';share.className='watt-action-btn';share.innerHTML=wattSvg('share')+'<span>Share</span>';share.addEventListener('click',async()=>{try{if(navigator.share){const blob=await(await fetch(img.src)).blob();const file=new File([blob],'watt-ai-image.webp',{type:blob.type});if(navigator.canShare?.({files:[file]}))await navigator.share({files:[file],title:'Watt AI image'});else await navigator.share({title:'Watt AI image',text:prompt})}else setStatus('Use Save image to keep this picture.')}catch(_){}});tools.appendChild(share);card.append(caption,img,tools);messages.appendChild(card);conversation.push({role:'assistant',content:'I created an image from this prompt: '+prompt});messages.scrollTop=messages.scrollHeight;setStatus('Your image is ready.')}catch(error){waiting.remove();conversation.pop();add(error.message||'Image creation failed. Please try again.','ai',{actions:false});setStatus('Image creation issue · You can retry your prompt.')}finally{input.disabled=false;updateSendState();input.focus()}}
+async function requestAssistant(rollbackUser=true){if(!wattAccessToken){add('Please sign in to your Mjadala account, close Watt AI and open it again. Your secure session is needed to connect to the AI service.','ai',{actions:false});return}const t=document.createElement('div');t.className='typing';t.textContent='Watt AI is thinking…';messages.appendChild(t);messages.scrollTop=messages.scrollHeight;const sendButton=document.getElementById('send');sendButton.disabled=true;input.disabled=true;try{const response=await fetch(WATT_CHAT_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+wattAccessToken,'apikey':WATT_SUPABASE_KEY},body:JSON.stringify({agent:activeAgent,messages:conversation.slice(-12)})});let data={};try{data=await response.json()}catch(_){}if(!response.ok)throw new Error(data.error||'Watt AI could not answer just now.');const answer=String(data.answer||'').trim();if(!answer)throw new Error('Watt AI returned an empty answer.');const index=conversation.length;conversation.push({role:'assistant',content:answer});t.remove();add(answer,'ai',{convIndex:index});return true}catch(error){t.remove();if(rollbackUser&&conversation[conversation.length-1]?.role==='user')conversation.pop();add(error.message||'Connection problem. Please try again.','ai',{actions:false});setStatus('Connection issue · Tap send to retry');return false}finally{sendButton.disabled=false;input.disabled=false;messages.scrollTop=messages.scrollHeight}}
+function marketplaceIntentQuery(text){const raw=String(text||'').trim();const intent=/\b(?:i\s+(?:want|need)|i['’]?m\s+looking\s+for|looking\s+for|find\s+me|help\s+me\s+find|show\s+me|search\s+for|shop\s+for|buy\s+me|where\s+can\s+i\s+(?:buy|get|find)|do\s+you\s+have)\b/i;let match=raw.match(intent);if(!match&&activeAgent==='shopping'&&raw.length<90)match=[raw];if(!match)return '';let query=match===null?'':raw.slice((match.index||0)+match[0].length);query=query.replace(/^[\s,:-]+/,'').replace(/^(?:to\s+(?:buy|get|find)|buy|find|for)\s+/i,'').replace(/[?.!,;]+$/,'').replace(/^(?:a|an|the|some)\s+/i,'').trim();return query.length>=2?query:''}
+async function send(){const value=input.value.trim();if(!value)return;openChat();input.value='';resizePrompt();const userIndex=conversation.length;conversation.push({role:'user',content:value});add(value,'user',{convIndex:userIndex});const shoppingQuery=marketplaceIntentQuery(value);const createImage=imageMode||isImageRequest(value);if(imageMode){imageMode=false;imageModeButton.setAttribute('aria-pressed','false')}if(createImage){if(!wattAccessToken){add('Please sign in to Mjadala to create images.','ai',{actions:false});conversation.pop();return}await requestImage(value);return}const answered=await requestAssistant();if(answered&&shoppingQuery){setStatus('Opening Mjadala marketplace results for '+shoppingQuery+'.');setTimeout(()=>parent.postMessage({type:'MJADALA_WATT_FIND_PRODUCT',query:shoppingQuery},location.origin),250)}}
+document.querySelectorAll('[data-prompt]').forEach(b=>b.addEventListener('click',()=>openChat(b.dataset.prompt)));
+function updateSendState(){const button=document.getElementById('send');if(button)button.disabled=!input.value.trim()}
+function resizePrompt(){input.style.height='auto';input.style.height=Math.min(input.scrollHeight,128)+'px';updateSendState()}
+document.getElementById('send').addEventListener('click',send);input.addEventListener('input',()=>{stopGreetingLoop();resizePrompt();updateSendState()});input.addEventListener('focus',()=>{if(input.value)stopGreetingLoop()});input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
+let wattRecognition=null;
+updateSendState();setWattAvatar(accountName);
+const voiceButton=document.getElementById('voiceInput');
+voiceButton.addEventListener('click',()=>{const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SpeechRecognition){const status=document.getElementById('wattStatus');if(status){status.textContent='Voice input is not supported in this browser. You can type your message.';status.classList.remove('watt-error')}return}if(wattRecognition){wattRecognition.stop();return}wattRecognition=new SpeechRecognition();wattRecognition.lang=navigator.language||'en-US';wattRecognition.interimResults=true;wattRecognition.continuous=false;voiceButton.classList.add('listening');voiceButton.title='Stop voice input';voiceButton.setAttribute('aria-label','Stop voice input');let finalText='';wattRecognition.onresult=event=>{let interim='';for(let i=event.resultIndex;i<event.results.length;i++){const transcript=event.results[i][0].transcript;if(event.results[i].isFinal)finalText+=transcript;else interim+=transcript}input.value=(finalText+interim).trim();resizePrompt()};wattRecognition.onerror=()=>{const status=document.getElementById('wattStatus');if(status)status.textContent='Could not capture voice. Please try again or type your message.'};wattRecognition.onend=()=>{voiceButton.classList.remove('listening');voiceButton.title='Start voice input';voiceButton.setAttribute('aria-label','Start voice input');wattRecognition=null;input.focus()};try{wattRecognition.start()}catch(_){voiceButton.classList.remove('listening');wattRecognition=null}});
+document.getElementById('newchat').addEventListener('click',()=>{if('speechSynthesis'in window)speechSynthesis.cancel();conversation=[];messages.innerHTML='<div class="msg ai" id="chatWelcome"></div>';input.value='';resizePrompt();setGreeting(greetingMode);home.classList.remove('hidden');chat.classList.remove('active');const status=document.getElementById('wattStatus');if(status){status.classList.remove('watt-error');status.textContent=wattAccessToken?'Watt AI':'Sign in to Mjadala to use Watt AI'}});
+function applyTheme(theme){document.body.dataset.theme=theme;document.querySelectorAll('[data-theme-choice]').forEach(btn=>{const active=btn.dataset.themeChoice===theme;btn.classList.toggle('selected',active);btn.setAttribute('aria-pressed',String(active))});const label=document.getElementById('activeThemeName');if(label)label.textContent=theme==='violet'?'Royal Violet':'Midnight Jade'}
+document.querySelectorAll('[data-theme-choice]').forEach(btn=>btn.addEventListener('click',()=>applyTheme(btn.dataset.themeChoice)));
+const WATT_PLAN_CATALOG={shopping_pro:{title:'Shopping Agent Pro',price:199},business_agent_pro:{title:'Business Agent Pro',price:199},learning_pro:{title:'Learning Agent Pro',price:199},research_pro:{title:'Research Agent Pro',price:199},innovation_pro:{title:'Innovation Agent Pro',price:199},community_pro:{title:'Community Agent Pro',price:199},all_access:{title:'Watt AI All-Access',price:599}};
+const WATT_PAYMENT_ENDPOINT=WATT_SUPABASE_URL+'/functions/v1/watt-subscription-stk-push';
+const WATT_STATUS_ENDPOINT=WATT_SUPABASE_URL+'/functions/v1/watt-subscription-status';
+let selectedWattPlan='',pendingWattPayment='',wattPollTimer=null;
+const payModal=document.getElementById('wattPayModal'),payStatus=document.getElementById('wattPayStatus'),paySubmit=document.getElementById('wattPaySubmit');
+function openWattCheckout(code){const plan=WATT_PLAN_CATALOG[code];if(!plan)return;if(!wattAccessToken){document.getElementById('planFeedback').textContent='Please sign in to Mjadala before purchasing a Watt AI subscription.';return}selectedWattPlan=code;document.getElementById('wattPayPlanName').textContent=plan.title;document.getElementById('wattPayPlanPrice').textContent='KSh '+plan.price.toLocaleString('en-KE');payStatus.textContent='';document.getElementById('wattPayPhone').value='';paySubmit.disabled=false;paySubmit.textContent='Pay securely with M-Pesa';payModal.classList.add('open');payModal.setAttribute('aria-hidden','false');setTimeout(()=>document.getElementById('wattPayPhone').focus(),80)}
+function closeWattCheckout(){payModal.classList.remove('open');payModal.setAttribute('aria-hidden','true');if(wattPollTimer){clearInterval(wattPollTimer);wattPollTimer=null}}
+document.querySelectorAll('[data-plan-code]').forEach(btn=>btn.addEventListener('click',()=>openWattCheckout(btn.dataset.planCode)));
+document.getElementById('wattPayClose').addEventListener('click',closeWattCheckout);
+payModal.addEventListener('click',e=>{if(e.target===payModal)closeWattCheckout()});
+async function pollWattPayment(paymentId){let attempts=0;if(wattPollTimer)clearInterval(wattPollTimer);wattPollTimer=setInterval(async()=>{attempts++;try{const response=await fetch(WATT_STATUS_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+wattAccessToken,'apikey':WATT_SUPABASE_KEY},body:JSON.stringify({payment_id:paymentId})});const data=await response.json();if(!response.ok)throw new Error(data.error||'Could not check payment status.');if(data.payment?.payment_status==='paid'){clearInterval(wattPollTimer);wattPollTimer=null;payStatus.textContent='Payment confirmed. Your Watt AI access is now active for 30 days.';paySubmit.textContent='Activated ✓';paySubmit.disabled=true;const feedback=document.getElementById('planFeedback');if(feedback)feedback.textContent='Subscription active. Enjoy your upgraded Watt AI agent.';setStatus('Watt AI subscription activated.');return}if(data.payment?.payment_status==='failed'||data.payment?.payment_status==='cancelled'){clearInterval(wattPollTimer);wattPollTimer=null;payStatus.textContent='The payment was not completed. You can close this window and try again.';paySubmit.disabled=false;return}payStatus.textContent='Waiting for Safaricom confirmation… Please complete the prompt on your phone.'}catch(error){if(attempts>8){clearInterval(wattPollTimer);wattPollTimer=null;payStatus.textContent='We have not received confirmation yet. If you paid, your plan will activate when Safaricom confirms it. You can reopen Watt AI later to check.'}}if(attempts>=24){clearInterval(wattPollTimer);wattPollTimer=null;if(payStatus.textContent.includes('Waiting'))payStatus.textContent='Still awaiting confirmation. Do not pay again immediately. Check your M-Pesa messages, then try again later.'}},5000)}
+paySubmit.addEventListener('click',async()=>{if(!wattAccessToken){payStatus.textContent='Please sign in again before paying.';return}const phone=document.getElementById('wattPayPhone').value.trim();if(!phone){payStatus.textContent='Enter the M-Pesa phone number to receive the payment prompt.';return}paySubmit.disabled=true;paySubmit.textContent='Sending prompt…';payStatus.textContent='Connecting securely to Safaricom…';try{const response=await fetch(WATT_PAYMENT_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+wattAccessToken,'apikey':WATT_SUPABASE_KEY},body:JSON.stringify({plan_code:selectedWattPlan,phone})});const data=await response.json();if(!response.ok)throw new Error(data.error||'Could not start M-Pesa payment.');pendingWattPayment=data.payment_id;payStatus.textContent=data.customer_message||'Check your phone for the M-Pesa prompt.';paySubmit.textContent='Waiting for payment…';pollWattPayment(data.payment_id)}catch(error){payStatus.textContent=error.message||'Payment could not start. Please try again.';paySubmit.disabled=false;paySubmit.textContent='Try M-Pesa again'}});
+applyTheme('jade');setGreeting('guest');setAgent('general');
+</script>
+
+ </section>
+</div>
+
+
+<style id="watt-readable-markdown-and-compact-actions">
+.msg.ai{font-size:14px!important;line-height:1.68!important;padding:15px 16px!important;max-width:95%!important}
+.msg.ai .watt-md-paragraph{margin:0 0 12px!important;line-height:1.7!important;white-space:normal!important}
+.msg.ai .watt-md-paragraph:last-child{margin-bottom:3px!important}
+.msg.ai h1,.msg.ai h2,.msg.ai h3,.msg.ai h4{font-weight:800;line-height:1.3;margin:17px 0 8px;color:var(--ink)}
+.msg.ai h1{font-size:20px}.msg.ai h2{font-size:18px}.msg.ai h3{font-size:16px}.msg.ai h4{font-size:14px}
+.msg.ai ul,.msg.ai ol{margin:5px 0 13px;padding-left:23px;display:grid;gap:6px;line-height:1.6}
+.msg.ai li{padding-left:2px}.msg.ai blockquote{margin:9px 0 13px;padding:9px 12px;border-left:3px solid var(--accent);border-radius:0 9px 9px 0;background:var(--soft);color:var(--ink);line-height:1.6}
+.msg.ai hr{border:0;border-top:1px solid var(--line);margin:13px 0}.msg.ai strong{font-weight:800}.msg.ai em{font-style:italic}.msg.ai del{opacity:.75}.msg.ai a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}.watt-md-table{width:100%;border-collapse:collapse;margin:9px 0 14px;font-size:12px;display:block;overflow-x:auto}.watt-md-table th,.watt-md-table td{border:1px solid var(--line);padding:8px 9px;text-align:left;vertical-align:top}.watt-md-table th{background:var(--soft);font-weight:800}
+.watt-message-actions{gap:5px!important;margin:9px 0 0!important}
+.watt-action-btn{width:32px!important;min-width:32px!important;height:32px!important;padding:0!important;border-radius:9px!important;gap:0!important;font-size:0!important}
+.watt-action-btn svg{width:17px!important;height:17px!important}.watt-action-btn span{display:none!important}
+.watt-more-menu,.watt-long-menu{min-width:158px!important;padding:5px!important;border-radius:11px!important}
+.watt-menu-item{gap:8px!important;padding:8px 9px!important;border-radius:7px!important;font:500 11px/1.35 system-ui,sans-serif!important}
+.watt-menu-item svg{width:15px;height:15px;flex:none}
+.watt-more-menu{bottom:37px!important}
+@media(max-width:380px){.msg.ai{font-size:13.5px!important;padding:13px 14px!important}.watt-action-btn{width:30px!important;min-width:30px!important;height:30px!important}}
+</style>
+
+</body></html>
