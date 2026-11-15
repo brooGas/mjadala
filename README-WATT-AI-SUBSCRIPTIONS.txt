@@ -70,10 +70,16 @@ Mjadala Daraja integration:
 - DARAJA_CONSUMER_SECRET
 - DARAJA_SHORTCODE
 - DARAJA_PASSKEY
-- DARAJA_TRANSACTION_TYPE (optional; defaults to CustomerPayBillOnline)
+- WATT_DARAJA_SHORTCODE (the app owner’s own PayBill/Till number)
+- WATT_DARAJA_PASSKEY (the passkey for that owner shortcode)
+- WATT_DARAJA_TRANSACTION_TYPE (CustomerPayBillOnline for PayBill or
+  CustomerBuyGoodsOnline for Till)
 
-IMPORTANT: The existing DARAJA_CALLBACK_URL is NOT changed. Watt AI uses its
-own callback secret so it does not interfere with existing business/ad flows:
+IMPORTANT: Watt AI routes plan payments to the app owner’s own PayBill/Till using
+WATT_DARAJA_SHORTCODE and WATT_DARAJA_PASSKEY. Do not point these at a
+marketplace seller or a customer business. The existing DARAJA_SHORTCODE,
+DARAJA_PASSKEY and DARAJA_CALLBACK_URL are left untouched. Watt AI uses its
+own callback secret:
 WATT_DARAJA_CALLBACK_URL=https://olqwfscmhtdseljvfqvm.supabase.co/functions/v1/watt-subscription-callback
 
 DEPLOYMENT ORDER
@@ -88,9 +94,10 @@ B. Supabase Dashboard -> SQL Editor:
 C. Add/update the secret WATT_DARAJA_CALLBACK_URL with the exact URL above.
    Reuse the existing DARAJA_* credentials if they are already configured.
    Do NOT replace DARAJA_CALLBACK_URL and do NOT create a new OpenAI key.
-   If the existing M-Pesa integration uses different secret names, stop and
-   map those names in the new STK function before deployment; do not paste
-   credentials into chat or source code.
+   Keep the existing DARAJA_CONSUMER_KEY and DARAJA_CONSUMER_SECRET for the
+   Daraja API application. Add the three WATT_DARAJA_* owner collection
+   settings above plus WATT_DARAJA_CALLBACK_URL. Do not paste credentials
+   into chat or source code.
 
 D. Copy these function folders into the existing Supabase functions folder:
    supabase/functions/watt-chat/index.ts                 (replace whole file)
@@ -128,8 +135,10 @@ LIVE PAYMENTS
 -------------
 Do not switch DARAJA_ENV to production until Safaricom production credentials,
 shortcode, transaction type and callback URL have been approved and tested.
-A Till may require CustomerBuyGoodsOnline rather than CustomerPayBillOnline;
-set DARAJA_TRANSACTION_TYPE to the value matching the shortcode type.
+For the app owner’s PayBill, set WATT_DARAJA_TRANSACTION_TYPE to
+CustomerPayBillOnline. For the app owner’s Till, set it to
+CustomerBuyGoodsOnline. Use the shortcode and passkey belonging to the app
+owner’s collection account, not a marketplace seller.
 
 SECURITY / LIMITATIONS
 ----------------------
