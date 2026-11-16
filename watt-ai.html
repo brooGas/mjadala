@@ -561,4 +561,24 @@ document.getElementById('wattProfileButton')?.addEventListener('click',()=>paren
 @media(max-width:380px){#wattComposer{gap:5px!important;padding:5px 7px!important}#wattComposer #prompt,#wattComposer #prompt::placeholder{font-size:12px!important}}
 </style>
 
+
+
+<style id="watt-home-placard-boundary-restored">
+/* Restore the composer boundary and frame the complete greeting placard. */
+.home > .hero{
+  box-sizing:border-box!important;
+  width:calc(100% - 30px)!important;
+  margin:14px 15px 0!important;
+  border:1px solid #e2e8df!important;
+  border-radius:19px!important;
+  box-shadow:0 5px 16px rgba(54,91,64,.10)!important;
+  overflow:hidden;
+}
+@media(max-width:380px){
+  .home > .hero{width:calc(100% - 22px)!important;margin:11px 11px 0!important;border-radius:17px!important}
+}
+/* Keep the original rounded, visibly bordered message composer intact. */
+#wattComposer{box-sizing:border-box!important;border:1.5px solid #cbb99e!important;border-radius:18px!important;background:#fffdf8!important;box-shadow:0 3px 12px rgba(63,77,57,.10)!important}
+</style>
+
 </body></html>
