@@ -633,32 +633,39 @@ updateHeaderActions();
 <script id="mjadala-watt-shopping-bridge">
 (()=>{
   const frame=document.getElementById('wattAiFrame');
-  window.addEventListener('message',async event=>{
-    if(event.origin!==location.origin||event.source!==frame?.contentWindow||event.data?.type!=='MJADALA_WATT_FIND_PRODUCT')return;
-    const request=event.data||{};
-    const closeWatt=()=>{
-      const overlay=document.getElementById('wattAiOverlay');
-      const launch=document.getElementById('wattAiLaunch');
+  async function runMarketplaceSearch(request={}){
+    const overlay=document.getElementById('wattAiOverlay');
+    const launch=document.getElementById('wattAiLaunch');
+    const catalog=document.getElementById('businessProductCatalog');
+    try{
+      if(typeof window.mjadalaBusinessSearchProducts!=='function'){
+        throw new Error('Marketplace search module did not load. Refresh Mjadala and try again.');
+      }
+      const result=await window.mjadalaBusinessSearchProducts({
+        query:String(request.query||''),
+        maxPrice:request.maxPrice==null?null:Number(request.maxPrice)
+      });
+      if(catalog)catalog.scrollIntoView({behavior:'smooth',block:'start'});
       overlay?.classList.remove('open');
       overlay?.setAttribute('aria-hidden','true');
       document.body.style.overflow='';
       if(launch)launch.style.visibility='visible';
-    };
-    const explore=document.querySelector('.nav-item[data-index="1"]');
-    explore?.click();
-    const catalog=document.getElementById('businessProductCatalog');
-    catalog?.scrollIntoView({behavior:'smooth',block:'start'});
-    try{
-      if(typeof window.mjadalaBusinessSearchProducts!=='function')throw new Error('The marketplace search is not ready yet. Please try again in a moment.');
-      const result=await window.mjadalaBusinessSearchProducts({query:request.query||'',maxPrice:request.maxPrice});
-      catalog?.scrollIntoView({behavior:'smooth',block:'start'});
-      frame?.contentWindow?.postMessage({type:'MJADALA_WATT_FIND_PRODUCT_RESULT',count:result?.count||0},location.origin);
-      closeWatt();
+      return {ok:true,count:Number(result?.count)||0};
     }catch(error){
-      if(catalog)catalog.innerHTML='<p class="live-empty">Marketplace search could not complete: '+String(error?.message||error).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))+'</p>';
-      frame?.contentWindow?.postMessage({type:'MJADALA_WATT_FIND_PRODUCT_RESULT',error:String(error?.message||error)},location.origin);
-      closeWatt();
+      const message=String(error?.message||error||'Unknown marketplace error');
+      if(catalog)catalog.innerHTML='<p class="live-empty">Shopping Agent error: '+message.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))+'</p>';
+      if(catalog)catalog.scrollIntoView({behavior:'smooth',block:'start'});
+      overlay?.classList.remove('open');
+      overlay?.setAttribute('aria-hidden','true');
+      document.body.style.overflow='';
+      if(launch)launch.style.visibility='visible';
+      return {ok:false,error:message};
     }
+  }
+  window.mjadalaWattFindProduct=runMarketplaceSearch;
+  window.addEventListener('message',event=>{
+    if(event.origin!==location.origin||event.source!==frame?.contentWindow||event.data?.type!=='MJADALA_WATT_FIND_PRODUCT')return;
+    runMarketplaceSearch(event.data||{});
   });
 })();
 </script>
