@@ -301,9 +301,17 @@
   window.mjadalaBusinessShowAllProducts = () => { closeProductDetail(); window.mjadalaBusinessSellerFilter = null; loadProduct(); };
   window.mjadalaBusinessOpenStorefront = () => { closeProductDetail(); };
   window.mjadalaBusinessSearchProducts = async ({ query = '', maxPrice = null } = {}) => {
-    // Search only the real, published product rows loaded from public.business_products.
-    // Keep catalogProducts intact so the existing product-open and checkout handlers continue to work.
-    if (!catalogProducts.length) await loadProduct();
+    // Fetch the current published marketplace rows for every Watt search.
+    // This avoids searching an empty or stale catalogue if the first page load
+    // has not finished yet. Only public, published products are considered.
+    const { data, error } = await sb.from('business_products')
+      .select('*')
+      .eq('published', true)
+      .order('created_at', { ascending: false })
+      .limit(60);
+    if (error) throw error;
+
+    catalogProducts = data || [];
     const terms = String(query || '').toLowerCase().split(/\s+/).filter(Boolean);
     const ceiling = Number.isFinite(Number(maxPrice)) && Number(maxPrice) > 0 ? Number(maxPrice) : null;
     const matches = catalogProducts.filter(product => {
@@ -313,6 +321,7 @@
       const priceMatch = ceiling === null || (Number.isFinite(price) && price <= ceiling);
       return textMatch && priceMatch;
     });
+
     const host = $('businessProductCatalog');
     const heading = host?.previousElementSibling;
     if (heading) heading.dataset.wattSearch = 'true';
