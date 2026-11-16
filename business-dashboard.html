@@ -1616,10 +1616,7 @@ button {
       <div class="help-faq-item"><b>Why don't I see visitors or conversion numbers?</b><span>Those figures need storefront-view tracking to be set up on this database. Everything shown is real data — nothing is invented.</span></div>
     </div>
 
-    <a class="help-contact-row" href="mailto:support@mjadala.app?subject=Mjadala%20Business%20support" id="helpEmailLink">
-      <span class="panel-icon"><svg class="std-icon"><use href="#i-mail"/></svg></span>
-      <span><strong>Email support</strong><small>support@mjadala.app</small></span>
-    </a>
+    <div id="helpContactList"></div>
   </section>
 </div>
 
@@ -1712,8 +1709,30 @@ if (storeManagerClose) {
 
 // ---------- Help & Support modal ----------
 const helpModalBackdrop = document.getElementById('helpModalBackdrop');
+function renderHelpContacts() {
+  const host = document.getElementById('helpContactList');
+  if (!host) return;
+  const rows = [];
+  const email = bizStore && bizStore.support_email;
+  if (email) {
+    rows.push('<a class="help-contact-row" href="mailto:' + bizEsc(email) + '?subject=Mjadala%20Business%20support">' +
+      '<span class="panel-icon"><svg class="std-icon"><use href="#i-mail"/></svg></span>' +
+      '<span><strong>Email ' + bizEsc(bizStore.business_name || 'the store') + '</strong><small>' + bizEsc(email) + '</small></span></a>');
+  }
+  const socials = Array.isArray(bizStore && bizStore.social_links) ? bizStore.social_links : [];
+  socials.forEach(item => {
+    const label = (SOCIAL_PLATFORMS.find(p => p.key === item.platform) || {}).label || item.platform;
+    rows.push('<div class="help-contact-row"><span class="panel-icon"><svg class="std-icon"><use href="#i-globe"/></svg></span>' +
+      '<span><strong>' + bizEsc(label) + '</strong><small>' + bizEsc(item.value) + '</small></span></div>');
+  });
+  host.innerHTML = rows.length
+    ? rows.join('')
+    : '<p class="biz-note">This store hasn’t added support contact details yet.</p>';
+}
+
 function openHelpModal() {
   if (!helpModalBackdrop) return;
+  renderHelpContacts();
   helpModalBackdrop.classList.add('open');
   helpModalBackdrop.setAttribute('aria-hidden', 'false');
   closeSidebar();
@@ -1750,6 +1769,17 @@ const bz = id => document.getElementById(id);
 let bizUser = null;
 let bizStore = null;      // row from business_profiles, or null
 let bizPlans = [];
+let bizSocialDraft = [];  // working copy of the store's social/contact links while editing settings
+const SOCIAL_PLATFORMS = [
+  { key: 'whatsapp', label: 'WhatsApp' },
+  { key: 'instagram', label: 'Instagram' },
+  { key: 'facebook', label: 'Facebook' },
+  { key: 'tiktok', label: 'TikTok' },
+  { key: 'x', label: 'X (Twitter)' },
+  { key: 'youtube', label: 'YouTube' },
+  { key: 'telegram', label: 'Telegram' },
+  { key: 'website', label: 'Website / Other' }
+];
 
 function showOnlyPanel(viewId) {
   document.querySelectorAll('.panel-view').forEach(p => { p.hidden = (p.id !== viewId); });
@@ -2093,6 +2123,8 @@ async function loadSettings() {
     ];
     const available = candidates.filter(c => Object.prototype.hasOwnProperty.call(row, c.key));
     const hasLogoField = Object.prototype.hasOwnProperty.call(row, 'logo_url');
+    const hasSupportEmail = Object.prototype.hasOwnProperty.call(row, 'support_email');
+    const hasSocialLinks = Object.prototype.hasOwnProperty.call(row, 'social_links');
 
     const logoHtml = '<div class="field" style="text-align:center">' +
       '<label>Profile picture</label>' +
@@ -2106,18 +2138,64 @@ async function loadSettings() {
       '<p class="biz-note" id="logoStatus" aria-live="polite"></p>' +
       '</div>';
 
-    host.innerHTML = (hasLogoField ? logoHtml : '') + (available.length ? available.map(c =>
-      '<div class="field"><label for="setting_' + c.key + '">' + c.label + '</label>' +
-      (c.key === 'description' ? '<textarea id="setting_' + c.key + '" rows="2">' + bizEsc(row[c.key] || '') + '</textarea>'
-        : '<input id="setting_' + c.key + '" value="' + bizEsc(row[c.key] || '') + '">') + '</div>'
-    ).join('') + '<div class="owner-actions"><button type="button" id="settingsSave">Save changes</button></div><p class="biz-note" id="settingsStatus" aria-live="polite"></p>'
-      : (hasLogoField ? '' : '<p class="biz-note">No editable store details were found on your business profile yet.</p>'));
+    const supportHtml = hasSupportEmail
+      ? '<div class="field"><label for="setting_support_email">Support email <span style="color:var(--red)">*</span></label>' +
+        '<input id="setting_support_email" type="email" required value="' + bizEsc(row.support_email || '') + '" placeholder="e.g. yourstore@gmail.com"></div>'
+      : '';
 
-    if (available.length) {
+    try { bizSocialDraft = Array.isArray(row.social_links) ? row.social_links.slice() : (row.social_links ? JSON.parse(row.social_links) : []); } catch (_) { bizSocialDraft = []; }
+
+    const socialHtml = hasSocialLinks
+      ? '<div class="field"><label>Social &amp; contact links</label>' +
+        '<div id="socialLinksList"></div>' +
+        '<div style="display:flex;gap:6px;margin-top:6px">' +
+        '<select id="socialPlatformSelect" style="flex:0 0 150px;border:1px solid var(--line);border-radius:10px;padding:10px 8px;background:#fff">' +
+        SOCIAL_PLATFORMS.map(p => '<option value="' + p.key + '">' + p.label + '</option>').join('') +
+        '</select>' +
+        '<input id="socialValueInput" placeholder="Link or handle, e.g. @yourstore" style="flex:1">' +
+        '<button type="button" id="socialAddBtn" style="border:0;border-radius:10px;background:var(--forest);color:#fff;padding:0 16px;font-weight:700">Add</button>' +
+        '</div></div>'
+      : '';
+
+    const hasAnyFields = available.length > 0 || hasSupportEmail || hasSocialLinks;
+
+    host.innerHTML = (hasLogoField ? logoHtml : '') +
+      (available.length ? available.map(c =>
+        '<div class="field"><label for="setting_' + c.key + '">' + c.label + '</label>' +
+        (c.key === 'description' ? '<textarea id="setting_' + c.key + '" rows="2">' + bizEsc(row[c.key] || '') + '</textarea>'
+          : '<input id="setting_' + c.key + '" value="' + bizEsc(row[c.key] || '') + '">') + '</div>'
+      ).join('') : '') +
+      supportHtml + socialHtml +
+      (hasAnyFields
+        ? '<div class="owner-actions"><button type="button" id="settingsSave">Save changes</button></div><p class="biz-note" id="settingsStatus" aria-live="polite"></p>'
+        : (hasLogoField ? '' : '<p class="biz-note">No editable store details were found on your business profile yet.</p>'));
+
+    if (hasSocialLinks) {
+      renderSocialLinksEditor();
+      bz('socialAddBtn').addEventListener('click', () => {
+        const select = bz('socialPlatformSelect'), input = bz('socialValueInput');
+        const value = input.value.trim();
+        if (!value) { input.focus(); return; }
+        bizSocialDraft.push({ platform: select.value, value });
+        input.value = '';
+        renderSocialLinksEditor();
+      });
+    }
+
+    if (hasAnyFields) {
       bz('settingsSave').addEventListener('click', async () => {
         const statusEl = bz('settingsStatus');
         const patch = {};
         available.forEach(c => { patch[c.key] = bz('setting_' + c.key).value.trim(); });
+        if (hasSupportEmail) {
+          const email = bz('setting_support_email').value.trim();
+          const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+          if (!emailOk) { statusEl.textContent = 'Support email is required and must be a valid email address.'; return; }
+          patch.support_email = email;
+        }
+        if (hasSocialLinks) {
+          patch.social_links = bizSocialDraft;
+        }
         statusEl.textContent = 'Saving…';
         const { error: saveErr } = await sb.from('business_profiles').update(patch).eq('user_id', bizUser.id);
         if (saveErr) { statusEl.textContent = 'Could not save: ' + saveErr.message; return; }
@@ -2134,6 +2212,27 @@ async function loadSettings() {
     host.innerHTML = '<p class="biz-note">Settings could not load: ' + bizEsc(e.message) + '</p>';
   }
 }
+
+function renderSocialLinksEditor() {
+  const host = bz('socialLinksList');
+  if (!host) return;
+  const labelFor = key => (SOCIAL_PLATFORMS.find(p => p.key === key) || {}).label || key;
+  host.innerHTML = bizSocialDraft.length
+    ? bizSocialDraft.map((item, i) =>
+        '<div class="help-contact-row" style="margin-top:6px"><div style="flex:1"><strong>' + bizEsc(labelFor(item.platform)) + '</strong><br>' +
+        '<small class="biz-note">' + bizEsc(item.value) + '</small></div>' +
+        '<button type="button" data-social-remove="' + i + '" style="border:0;background:transparent;color:var(--red);font-weight:800;font-size:16px;cursor:pointer">×</button></div>'
+      ).join('')
+    : '<p class="biz-note">No social or contact links added yet.</p>';
+}
+
+document.addEventListener('click', (e) => {
+  const removeBtn = e.target.closest('[data-social-remove]');
+  if (!removeBtn) return;
+  const idx = Number(removeBtn.getAttribute('data-social-remove'));
+  bizSocialDraft.splice(idx, 1);
+  renderSocialLinksEditor();
+});
 
 function isPaymentConfigured(row) {
   const m = row.payment_method;
