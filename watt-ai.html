@@ -577,8 +577,34 @@ document.getElementById('wattProfileButton')?.addEventListener('click',()=>paren
 @media(max-width:380px){
   .home > .hero{width:calc(100% - 22px)!important;margin:11px 11px 0!important;border-radius:17px!important}
 }
-/* Keep the original rounded, visibly bordered message composer intact. */
-#wattComposer{box-sizing:border-box!important;border:1.5px solid #cbb99e!important;border-radius:18px!important;background:#fffdf8!important;box-shadow:0 3px 12px rgba(63,77,57,.10)!important}
+/* Clean, ChatGPT-style message composer. The approved greeting placard above is untouched. */
+#wattComposer{
+  box-sizing:border-box!important;
+  position:relative!important;
+  width:calc(100% - 24px)!important;
+  margin:0 12px 10px!important;
+  padding:7px 10px!important;
+  gap:8px!important;
+  border:1px solid #d7ddd8!important;
+  border-radius:26px!important;
+  background:#fff!important;
+  box-shadow:0 2px 9px rgba(34,48,39,.09)!important;
+}
+#wattComposer #prompt{
+  min-height:42px!important;
+  max-height:112px!important;
+  padding:9px 3px!important;
+  font-size:14px!important;
+  line-height:1.45!important;
+  color:#26332b!important;
+}
+#wattComposer #prompt::placeholder{font-size:14px!important;color:#858e88!important;opacity:1!important}
+#wattComposer .round{width:38px!important;height:38px!important;flex:0 0 38px!important}
+#wattComposer .round svg{width:20px!important;height:20px!important}
+@media(max-width:380px){
+  #wattComposer{width:calc(100% - 18px)!important;margin:0 9px 8px!important;padding:6px 8px!important;gap:6px!important}
+  #wattComposer #prompt,#wattComposer #prompt::placeholder{font-size:13px!important}
+}
 </style>
 
 </body></html>
