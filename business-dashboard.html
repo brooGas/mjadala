@@ -1010,6 +1010,29 @@ button {
 }
 .change.down { color: #a4452f; }
 .change.down svg { transform: scaleY(-1); }
+
+/* Help & Support modal (added) */
+.help-modal-backdrop {
+  position: fixed; inset: 0; z-index: 90; background: rgba(15,30,20,.5);
+  display: none; align-items: center; justify-content: center; padding: 14px;
+}
+.help-modal-backdrop.open { display: flex; }
+.help-modal {
+  width: min(100%, 460px); max-height: min(88vh, 620px); overflow: auto;
+  background: var(--cream); border-radius: 20px; padding: 22px 20px;
+  box-shadow: 0 24px 70px rgba(10,30,20,.35);
+}
+.help-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+.help-modal-head h3 { margin: 0; font-size: 18px; color: var(--forest-dark); }
+.help-modal-close { border: 0; background: var(--pale-light); color: var(--forest-dark); width: 32px; height: 32px; border-radius: 50%; font-size: 16px; }
+.help-faq { margin: 14px 0; display: grid; gap: 10px; }
+.help-faq-item { border: 1px solid var(--line); border-radius: 12px; padding: 11px 13px; background: #fff; }
+.help-faq-item b { display: block; font-size: 13px; margin-bottom: 3px; color: var(--ink); }
+.help-faq-item span { font-size: 12px; color: var(--muted); line-height: 1.45; }
+.help-contact-row { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 12px; padding: 11px 13px; background: var(--pale-light); margin-top: 4px; text-decoration: none; color: var(--ink); }
+.help-contact-row .panel-icon { flex: 0 0 34px; }
+.help-contact-row strong { display: block; font-size: 13px; }
+.help-contact-row small { display: block; color: var(--muted); font-size: 11px; margin-top: 1px; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -1046,6 +1069,8 @@ button {
   <symbol id="i-list" viewBox="0 0 24 24"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1" fill="currentColor" stroke="none"/></symbol>
   <symbol id="i-play" viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20" fill="currentColor" stroke="none"/></symbol>
   <symbol id="i-user-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.5 18.5a6 6 0 0 1 11 0"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 4h16v12H8l-4 4Z"/></symbol>
 </svg>
 
 <div class="app">
@@ -1117,13 +1142,12 @@ button {
     <div class="crown"><svg class="std-icon"><use href="#i-crown"/></svg></div>
     <strong>Grow Your Business</strong>
     <p>Reach more customers with Mjadala Business.</p>
-    <button class="gold-btn"
-      onclick="notify('Plan options would appear here.')">
+    <button class="gold-btn" type="button" id="explorePlansBtn">
       Explore plans
     </button>
   </div>
 
-  <a class="help" href="#help"><svg class="std-icon"><use href="#i-info"/></svg> &nbsp; Help &amp; Support</a>
+  <button type="button" class="help" id="helpSupportBtn" style="background:transparent;border:0;width:100%;text-align:left;display:flex;align-items:center;cursor:pointer"><svg class="std-icon"><use href="#i-info"/></svg> &nbsp; Help &amp; Support</button>
 
 </aside>
 
@@ -1487,7 +1511,8 @@ button {
 
   <div class="panel-view" id="view-plans" hidden>
     <section class="card panel">
-      <div class="panel-head"><div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-crown"/></svg></span>Business plans</div></div>
+      <div class="panel-head"><div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-crown"/></svg></span>Explore plans</div></div>
+      <div id="planUsageInfo" style="margin-bottom:14px"><p class="biz-note">Loading…</p></div>
       <p class="biz-note" style="color:var(--muted)">Pick the plan that fits your store. This records your request — the Mjadala team confirms and activates it.</p>
       <div id="explorePlansList"><p class="biz-note">Loading plans…</p></div>
       <div class="owner-actions"><button type="button" id="planRequestBtn">Request this plan</button></div>
@@ -1541,11 +1566,6 @@ button {
       <p class="biz-note" style="color:var(--muted);margin-top:-4px">Choose how customers pay you with M-Pesa. Only one method is active at a time.</p>
       <div id="paymentSetupInfo"><p class="biz-note">Loading…</p></div>
     </section>
-    <section class="card panel">
-      <div class="panel-head"><div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-crown"/></svg></span>Plan</div></div>
-      <div id="planUsageInfo"><p class="biz-note">Loading…</p></div>
-      <div class="owner-actions"><button type="button" onclick="goToPanel('plans')">View business plans</button></div>
-    </section>
   </div>
 
 </section>
@@ -1580,6 +1600,29 @@ button {
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<!-- Help & Support modal -->
+<div class="help-modal-backdrop" id="helpModalBackdrop" aria-hidden="true">
+  <section class="help-modal" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+    <div class="help-modal-head">
+      <h3 id="helpModalTitle">Help &amp; Support</h3>
+      <button type="button" class="help-modal-close" id="helpModalClose" aria-label="Close">×</button>
+    </div>
+    <p class="biz-note" style="color:var(--muted)">Quick answers for running your store, or reach the Mjadala team directly.</p>
+
+    <div class="help-faq">
+      <div class="help-faq-item"><b>Why isn't my store approved yet?</b><span>Every new business is reviewed by the Mjadala team before it goes live. This usually takes a short while — you'll see the status change here once it's approved.</span></div>
+      <div class="help-faq-item"><b>How do I get paid for orders?</b><span>Go to Website settings → Payment setup and add your Till, Pochi la Biashara or Paybill number. Customers pay you directly through M-Pesa.</span></div>
+      <div class="help-faq-item"><b>How do I change my plan?</b><span>Open "Explore plans" in the sidebar, choose the plan that fits your store, and request it. The Mjadala team confirms and activates it.</span></div>
+      <div class="help-faq-item"><b>Why don't I see visitors or conversion numbers?</b><span>Those figures need storefront-view tracking to be set up on this database. Everything shown is real data — nothing is invented.</span></div>
+    </div>
+
+    <a class="help-contact-row" href="mailto:support@mjadala.app?subject=Mjadala%20Business%20support" id="helpEmailLink">
+      <span class="panel-icon"><svg class="std-icon"><use href="#i-mail"/></svg></span>
+      <span><strong>Email support</strong><small>support@mjadala.app</small></span>
+    </a>
+  </section>
+</div>
+
 </div>
 
 <script>
@@ -1607,7 +1650,7 @@ function goToPanel(name) {
   });
   if (name === 'customers') loadCustomers();
   else if (name === 'analytics') loadAnalytics();
-  else if (name === 'plans') loadExplorePlans();
+  else if (name === 'plans') { loadExplorePlans(); loadPlanUsage(); }
 }
 
 document.querySelectorAll('.side-nav .nav-item').forEach(item => {
@@ -1618,6 +1661,14 @@ document.querySelectorAll('.side-nav .nav-item').forEach(item => {
     goToPanel(panel);
     closeSidebar();
   });
+});
+
+// "Explore plans" (sidebar) opens the same Business plans panel reached from Website settings' old
+// "View business plans" link and the bottom-nav Explore shortcut — one place to pick/request a plan.
+document.getElementById('explorePlansBtn')?.addEventListener('click', () => {
+  if (!window.bizStoreReady) { showOnlyPanel('view-gate'); closeSidebar(); return; }
+  goToPanel('plans');
+  closeSidebar();
 });
 
 const businessSidebar = document.getElementById('businessSidebar');
@@ -1658,6 +1709,24 @@ if (storeManagerClose) {
     }
   });
 }
+
+// ---------- Help & Support modal ----------
+const helpModalBackdrop = document.getElementById('helpModalBackdrop');
+function openHelpModal() {
+  if (!helpModalBackdrop) return;
+  helpModalBackdrop.classList.add('open');
+  helpModalBackdrop.setAttribute('aria-hidden', 'false');
+  closeSidebar();
+}
+function closeHelpModal() {
+  if (!helpModalBackdrop) return;
+  helpModalBackdrop.classList.remove('open');
+  helpModalBackdrop.setAttribute('aria-hidden', 'true');
+}
+document.getElementById('helpSupportBtn')?.addEventListener('click', openHelpModal);
+document.getElementById('helpModalClose')?.addEventListener('click', closeHelpModal);
+helpModalBackdrop?.addEventListener('click', (e) => { if (e.target === helpModalBackdrop) closeHelpModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && helpModalBackdrop?.classList.contains('open')) closeHelpModal(); });
 
 /* ===================== Real data: Supabase wiring ===================== */
 
@@ -1893,6 +1962,7 @@ async function loadBusinessDashboard() {
       loadSettings();
       loadNotifications();
       loadPlanUsage();
+      subscribeBizNotifications();
     } else {
       const appRes = await sb.from('mj_business_applications')
         .select('business_name,status,created_at')
@@ -1919,7 +1989,7 @@ function renderStoreIdentity(store) {
   const name = store.business_name || 'Your store';
   bz('storeNameLabel').textContent = name;
   const status = (store.directory_status || 'pending').toLowerCase();
-  const statusLabel = status === 'approved' ? '● Verified Store' : status === 'suspended' ? '● Suspended' : '● Pending approval';
+  const statusLabel = status === 'approved' ? '● Verified Store' : status === 'suspended' ? '● Suspended' : '● Pending approval';
   bz('storeStatusLabel').textContent = statusLabel;
   bz('welcomeSub').textContent = name + ' — your store at a glance';
   if (store.logo_url) {
@@ -2030,7 +2100,7 @@ async function loadSettings() {
       '<div id="logoPlaceholder" class="store-illustration" style="position:absolute;inset:0;width:100%;height:100%;border-radius:0;margin:0"><svg class="std-icon"><use href="#i-storefront"/></svg></div>' +
       '<img id="logoPreviewImg" alt="Store profile picture" hidden style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none">' +
       '</div>' +
-      '<p class="biz-note">Drag the circle to reposition the photo. Max 3 MB.</p>' +
+      '<p class="biz-note">Drag the circle to reposition the photo. Max 3 MB.</p>' +
       '<input type="file" id="logoFileInput" accept="image/*" style="display:block;margin:0 auto 8px">' +
       '<div class="owner-actions"><button type="button" id="logoSaveBtn">Save profile picture</button></div>' +
       '<p class="biz-note" id="logoStatus" aria-live="polite"></p>' +
@@ -2428,12 +2498,31 @@ async function loadNotifications() {
   }
 }
 
+// Realtime: refresh the notification bell as soon as a new order (or its payment
+// status) changes, instead of only on page load. Falls back silently if the
+// client's realtime channel feature is unavailable.
+let bizOrdersChannel = null;
+function subscribeBizNotifications() {
+  if (!sb || typeof sb.channel !== 'function' || bizOrdersChannel || !bizUser) return;
+  try {
+    bizOrdersChannel = sb.channel('biz-orders-' + bizUser.id)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'business_orders', filter: 'seller_id=eq.' + bizUser.id }, () => {
+        loadNotifications();
+        if (!bz('view-overview')?.hidden) { loadRecentOrders(); loadSalesPerformance(dateRangeDays); }
+        if (!bz('view-orders')?.hidden) loadOrdersPreview();
+      })
+      .subscribe();
+  } catch (_) { /* realtime unavailable — the bell still refreshes on open */ }
+}
+
 const notifBtn = document.getElementById('notifBtn'), notifPanel = document.getElementById('notifPanel');
 if (notifBtn && notifPanel) {
-  notifBtn.addEventListener('click', (e) => {
+  notifBtn.addEventListener('click', async (e) => {
     e.stopPropagation();
-    notifPanel.hidden = !notifPanel.hidden;
-    if (!notifPanel.hidden) {
+    const opening = notifPanel.hidden;
+    if (opening) await loadNotifications(); // refresh with the latest orders each time it's opened
+    notifPanel.hidden = !opening;
+    if (opening) {
       try { localStorage.setItem('mjBizNotifSeen', String(Date.now())); } catch (e2) {}
       bz('notifDot').hidden = true;
     }
