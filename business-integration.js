@@ -11,7 +11,6 @@
   window.mjadalaAuth = { getSession: () => sb.auth.getSession(), signOut: () => sb.auth.signOut(), getUser: () => sb.auth.getUser() };
   const $ = id => document.getElementById(id);
   let session = null, activeProduct = null, selectedImages = [], poolId = null, catalogProducts = [], productDetailOpen = false, poolOfferOpen = false;
-  let wattMarketplaceFilters = null;
   const money = n => 'KSh ' + Number(n || 0).toLocaleString('en-KE');
   const toast = msg => { if (typeof window.showToast === 'function') window.showToast(msg); else alert(msg); };
   const errorText = e => e?.message || String(e || 'Unknown error');
@@ -108,44 +107,13 @@
       express_delivery_fee: Math.max(0, Number($('sellerExpressFee').value) || 0),
       pickup_available: $('sellerPickup').value !== 'delivery',
       warranty_available: $('sellerWarranty').value !== 'No warranty offered',
-      warranty_period: $('sellerWarranty').value, warranty_terms: $('sellerWarranty').value === 'No warranty offered' ? 'No warranty is offered for this product. Applicable consumer rights remain unaffected.' : ($('sellerWarrantyTerms')?.value.trim() || $('sellerWarranty').value),
+      warranty_period: $('sellerWarranty').value, warranty_terms: $('sellerWarranty').value,
       returns_allowed: !!$('sellerReturns').value.trim(), return_window_days:7, return_terms:$('sellerReturns').value.trim(),
       additional_terms:$('sellerTerms').value.trim(), pooling_enabled:$('sellerPoolEnabled').checked,
       pool_min_members:min, pool_max_members:max, pool_discount_percent:discount,
       pool_delivery_fee: Math.max(0, Number($('sellerPoolDeliveryFee').value) || 0), published:true
     };
   }
-  async function generateProductListingCopy() {
-    const button = $('wattProductCopyBtn'), status = $('wattProductCopyStatus');
-    if (!button || !status) return;
-    const name = $('sellerProductName')?.value.trim() || '';
-    const notes = $('sellerProductDescription')?.value.trim() || '';
-    const warranty = $('sellerWarranty')?.value || 'No warranty offered';
-    if (!session?.access_token) { try { const { data } = await sb.auth.getSession(); session = data?.session || session; } catch (_) {} }
-    if (!session?.access_token) { status.textContent = 'Sign in to Mjadala first, then ask Watt AI to prepare the listing.'; return; }
-    if (!name) { status.textContent = 'Enter the product name first so Watt AI knows what to describe.'; $('sellerProductName')?.focus(); return; }
-    button.disabled = true; button.textContent = 'Watt AI is writing…'; status.textContent = 'Preparing a clear description and fair customer terms…';
-    try {
-      const endpoint = SUPABASE_URL + '/functions/v1/watt-chat';
-      const prompt = `Prepare a simple, honest Mjadala product listing for a small Kenyan seller. Product name: ${name}. Seller notes (may be incomplete): ${notes || 'No extra details supplied.'}. Price (KES): ${$('sellerProductPrice')?.value || 'not supplied'}. Warranty option selected by seller: ${warranty}. Current return policy notes: ${$('sellerReturns')?.value.trim() || 'not supplied'}.\n\nReturn ONLY one valid JSON object with exactly these string fields: description, warranty_terms, return_terms. Write in clear, friendly, professional English that a small shopkeeper can understand. Keep the description concise and useful. Do not invent brand, material, size, features, origin, certification, stock or performance claims. If key facts are missing, use neutral wording or say customers should confirm details with the seller. For warranty_terms, respect the seller's selected warranty option exactly; if no warranty is offered, say that clearly without removing statutory consumer rights. If a warranty is offered, explain a fair process for genuine faults within that period, proof of purchase and reasonable inspection; do not add unfair blanket exclusions. For return_terms, explain a reasonable process for damaged, defective or incorrectly supplied items and any stated return window; do not promise free returns or refunds unless the seller has specified that. Always state that applicable consumer rights remain unaffected. Do not change the selected warranty duration.`;
-      const response = await fetch(endpoint, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':SUPABASE_ANON_KEY}, body:JSON.stringify({agent:'business',messages:[{role:'user',content:prompt}]}) });
-      let data = {}; try { data = await response.json(); } catch (_) {}
-      if (!response.ok) throw new Error(data.error || 'Watt AI could not prepare the listing.');
-      let answer = String(data.answer || '').trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'');
-      const first = answer.indexOf('{'), last = answer.lastIndexOf('}');
-      if (first < 0 || last <= first) throw new Error('Watt AI returned an incomplete draft. Please try again.');
-      const draft = JSON.parse(answer.slice(first,last+1));
-      if (typeof draft.description !== 'string' || typeof draft.warranty_terms !== 'string' || typeof draft.return_terms !== 'string') throw new Error('Watt AI did not return all three listing fields. Please try again.');
-      $('sellerProductDescription').value = draft.description.trim();
-      if ($('sellerWarrantyTerms')) $('sellerWarrantyTerms').value = draft.warranty_terms.trim();
-      if ($('sellerReturns')) $('sellerReturns').value = draft.return_terms.trim();
-      status.textContent = 'Draft ready. Check the description, warranty and returns policy, then edit anything that does not match your product before publishing.';
-    } catch (error) { status.textContent = 'Could not prepare the draft: ' + errorText(error); }
-    finally { button.disabled = false; button.textContent = '✦ Help me write description & warranty'; }
-  }
-  $('wattProductCopyBtn')?.addEventListener('click', generateProductListingCopy);
-  $('sellerWarranty')?.addEventListener('change', () => { const field = $('sellerWarrantyTerms'); if (!field) return; if ($('sellerWarranty').value === 'No warranty offered') field.value = 'No warranty is offered for this product. Applicable consumer rights remain unaffected.'; else if (field.value.startsWith('No warranty is offered for this product.')) field.value = 'For manufacturing defects reported within the selected warranty period. The customer should provide proof of purchase and allow the seller to inspect the item. Damage caused by misuse, accidents or normal wear is not covered. Applicable consumer rights remain unaffected.'; });
-
   async function uploadPhotos(files) {
     const urls = [];
     for (const file of files) {
@@ -179,7 +147,7 @@
     $('customerProductName').textContent = p.product_name;
     $('customerProductDescription').textContent = p.description || '';
     $('customerProductPrice').textContent = money(p.price);
-    $('customerWarranty').textContent = (p.warranty_period || 'No warranty offered') + (p.warranty_terms && p.warranty_terms !== p.warranty_period ? ' — ' + p.warranty_terms : '');
+    $('customerWarranty').textContent = p.warranty_period || 'No warranty offered';
     $('customerReturns').textContent = p.return_terms || 'No additional return policy provided.';
     $('customerTerms').textContent = p.additional_terms || 'No additional terms provided.';
     const thumb = document.querySelector('.product-thumb');
@@ -208,30 +176,16 @@
       $('poolDeliveryExplanation').textContent = 'Seller-set pool delivery fee per customer: ' + money(p.pool_delivery_fee || 0) + '. Final discount eligibility is checked by the server when you order.';
     }
   }
-  function renderCatalog(products) {
-    catalogProducts = products || [];
+  function renderCatalog(products, preserveSource = false) {
+    if (!preserveSource) catalogProducts = products || [];
+    const displayProducts = products || [];
     const host = $('businessProductCatalog'); if (!host) return;
-    const term = ($('marketplaceSearch')?.value || '').trim().toLocaleLowerCase();
-    const words = term.split(/\s+/).filter(Boolean);
-    const filters = wattMarketplaceFilters;
-    const visibleProducts = catalogProducts.filter(p => {
-      const haystack = [p.product_name,p.description,p.business_name].map(v => String(v || '')).join(' ').toLocaleLowerCase();
-      if (words.length && !words.every(word => haystack.includes(word))) return false;
-      if (filters?.category && !haystack.includes(filters.category.toLocaleLowerCase())) return false;
-      if (Number.isFinite(filters?.maxPrice) && Number(p.price) > filters.maxPrice) return false;
-      return true;
-    });
-    if (!catalogProducts.length) {
+    if (!displayProducts.length) {
       host.innerHTML = '<p class="live-empty">No products have been published yet. Sellers can publish the first real listing below.</p>';
       const card = document.querySelector('.product-card'); if (card) card.style.display = 'none';
       return;
     }
-    if (!visibleProducts.length) {
-      host.innerHTML = '<p class="live-empty">No listings match “' + escapeHTML($('marketplaceSearch')?.value || '') + '” yet. Try another product name or check back later.</p>';
-      const card = document.querySelector('.product-card'); if (card) card.style.display = 'none';
-      return;
-    }
-    host.innerHTML = '<div class="market-grid">' + visibleProducts.map(p => {
+    host.innerHTML = '<div class="market-grid">' + displayProducts.map(p => {
       const image = Array.isArray(p.image_urls) ? p.image_urls.find(url => typeof url === 'string' && url.trim()) : null;
       const isOwner = !!session?.user?.id && String(p.seller_id) === String(session.user.id);
       const initials = escapeHTML((p.product_name || 'P').trim().slice(0,2).toUpperCase());
@@ -344,34 +298,32 @@
     }
   }
   window.mjadalaBusinessReloadProducts = loadProduct;
-  window.mjadalaBusinessShowAllProducts = () => { wattMarketplaceFilters = null; if ($('marketplaceSearch')) $('marketplaceSearch').value = ''; closeProductDetail(); window.mjadalaBusinessSellerFilter = null; loadProduct(); };
+  window.mjadalaBusinessShowAllProducts = () => { closeProductDetail(); window.mjadalaBusinessSellerFilter = null; loadProduct(); };
   window.mjadalaBusinessOpenStorefront = () => { closeProductDetail(); };
-  window.mjadalaWattFindProducts = ({query = '', maxPrice = null, category = ''} = {}) => {
-    wattMarketplaceFilters = {
-      maxPrice: Number.isFinite(Number(maxPrice)) && Number(maxPrice) > 0 ? Number(maxPrice) : null,
-      category: String(category || '').trim(),
-    };
-    if ($('marketplaceSearch')) $('marketplaceSearch').value = String(query || '').trim();
-    closeProductDetail();
-    document.querySelector('.nav-item[data-index="1"]')?.click();
-    const note = $('wattMarketplaceFilterNote');
-    if (note) {
-      const bits = [];
-      if (query) bits.push(String(query));
-      if (wattMarketplaceFilters.category) bits.push(wattMarketplaceFilters.category);
-      if (wattMarketplaceFilters.maxPrice) bits.push('up to KSh ' + wattMarketplaceFilters.maxPrice.toLocaleString('en-KE'));
-      const label = $('wattMarketplaceFilterText'); if (label) label.textContent = bits.length ? 'Watt search: ' + bits.join(' · ') : 'Watt marketplace results';
-      note.hidden = false;
+  window.mjadalaBusinessSearchProducts = async ({ query = '', maxPrice = null } = {}) => {
+    // Search only the real, published product rows loaded from public.business_products.
+    // Keep catalogProducts intact so the existing product-open and checkout handlers continue to work.
+    if (!catalogProducts.length) await loadProduct();
+    const terms = String(query || '').toLowerCase().split(/\s+/).filter(Boolean);
+    const ceiling = Number.isFinite(Number(maxPrice)) && Number(maxPrice) > 0 ? Number(maxPrice) : null;
+    const matches = catalogProducts.filter(product => {
+      const haystack = [product.product_name, product.description].filter(Boolean).join(' ').toLowerCase();
+      const textMatch = !terms.length || terms.every(term => haystack.includes(term));
+      const price = Number(product.price);
+      const priceMatch = ceiling === null || (Number.isFinite(price) && price <= ceiling);
+      return textMatch && priceMatch;
+    });
+    const host = $('businessProductCatalog');
+    const heading = host?.previousElementSibling;
+    if (heading) heading.dataset.wattSearch = 'true';
+    if (!matches.length) {
+      if (host) host.innerHTML = '<p class="live-empty">No published products matched those filters. Try a different product name or a higher budget.</p>';
+      const card = document.querySelector('.product-card'); if (card) card.style.display = 'none';
+      return { count: 0 };
     }
-    if (catalogProducts.length) renderCatalog(catalogProducts);
-    setTimeout(() => $('businessProductCatalog')?.scrollIntoView({behavior:'smooth',block:'start'}), 180);
+    renderCatalog(matches, true);
+    return { count: matches.length };
   };
-  $('clearWattMarketplaceFilter')?.addEventListener('click', () => {
-    wattMarketplaceFilters = null;
-    if ($('marketplaceSearch')) $('marketplaceSearch').value = '';
-    const note = $('wattMarketplaceFilterNote'); if (note) note.hidden = true;
-    if (catalogProducts.length) renderCatalog(catalogProducts);
-  });
   async function checkout() {
     if (!requireSession()) return;
     const quantity = Math.max(0, Number($('qtyValue').textContent) || 0);
@@ -629,7 +581,6 @@
   $('deliveryMethod').addEventListener('change',updateCartUI);
   $('qtyPlus').addEventListener('click',()=>setTimeout(updateCartUI,0));
   $('qtyMinus').addEventListener('click',()=>setTimeout(updateCartUI,0));
-  $('marketplaceSearch')?.addEventListener('input', () => { wattMarketplaceFilters = null; const note = $('wattMarketplaceFilterNote'); if (note) note.hidden = true; if (catalogProducts.length) renderCatalog(catalogProducts); });
   let marketplaceChannel = null;
   function startMarketplaceRealtime(){ if(marketplaceChannel)sb.removeChannel(marketplaceChannel); marketplaceChannel=sb.channel('mjadala-marketplace').on('postgres_changes',{event:'*',schema:'public',table:'business_products'},()=>loadProduct()).subscribe(); }
   sb.auth.getSession().then(({data})=>{ session=data.session; if (!session) addAuthUI(); else if($('businessAuthPanel'))$('businessAuthPanel').style.display='none'; if(session){loadBusinessProfile(); if($('ownerPanel') && getComputedStyle($('ownerPanel')).display!=='none') loadOwnerInventory();} loadProduct(); startMarketplaceRealtime(); });
