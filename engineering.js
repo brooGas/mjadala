@@ -67,6 +67,7 @@
   const style = document.createElement('style');
   style.textContent = `
   #engineeringHub,#engCommunityDetail,#engAdsDashboard{position:absolute;inset:0;z-index:30;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;overflow:hidden}
+  .eng-ask-watt-fab{position:absolute;right:16px;bottom:18px;z-index:45;display:flex;align-items:center;gap:7px;border:1px solid #c8e2d1;border-radius:999px;padding:10px 14px;background:#e8f5e9;color:#174b2b;font-size:12px;font-weight:850;box-shadow:0 7px 20px #153d2a2b;cursor:pointer}.eng-ask-watt-fab svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8}#engCommunityDetail .eng-ask-watt-fab{bottom:68px}
   #engineeringHub[hidden],#engCommunityDetail[hidden],#engAdsDashboard[hidden]{display:none!important}
   .eng-top{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid var(--line);background:var(--paper);flex:0 0 auto}
   .eng-top h2{font-size:16px;margin:0;flex:1}
@@ -152,7 +153,8 @@
       <div id="engLearningList" class="eng-learning-list" hidden></div>
       <div class="section-title">Popular Communities <span class="subtle" id="engCommStatus">Loading…</span></div>
       <div class="eng-comm-grid" id="engCommunities"><p class="live-empty">Loading communities…</p></div>
-    </div>`;
+    </div>
+    <button type="button" class="eng-ask-watt-fab" id="engAskWattHub" aria-label="Ask Watt AI about this Engineering page"><svg viewBox="0 0 24 24"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1"/><circle cx="12" cy="12" r="4"/></svg>Ask Watt</button>`;
   host.appendChild(hub);
 
   const detail = document.createElement('div');
@@ -188,7 +190,8 @@
       </div>
       <div id="engFeed"><p class="live-empty">Loading discussions…</p></div>
     </div>
-    <button type="button" class="eng-btn-primary" id="engCreateFab" style="position:absolute;right:16px;bottom:16px;border-radius:999px;box-shadow:0 6px 18px #0003;z-index:5">+ Create Post</button>`;
+    <button type="button" class="eng-btn-primary" id="engCreateFab" style="position:absolute;right:16px;bottom:16px;border-radius:999px;box-shadow:0 6px 18px #0003;z-index:5">+ Create Post</button>
+    <button type="button" class="eng-ask-watt-fab" id="engAskWattDetail" aria-label="Ask Watt AI about this Engineering community"><svg viewBox="0 0 24 24"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1"/><circle cx="12" cy="12" r="4"/></svg>Ask Watt</button>`;
   host.appendChild(detail);
 
   const dashboard = document.createElement('div');
@@ -245,11 +248,25 @@
     </div>`;
   host.appendChild(dashboard);
 
-  function openOverlay(el){ el.hidden = false; document.body.style.overflow = 'hidden'; }
-  function closeOverlay(el){ el.hidden = true; document.body.style.overflow = ''; }
+  function syncEngineeringWattLauncher(){
+    const launcher = document.getElementById('wattAiLaunch');
+    if (launcher) launcher.style.display = (!hub.hidden || !detail.hidden) ? 'none' : '';
+  }
+  function openOverlay(el){ el.hidden = false; document.body.style.overflow = 'hidden'; syncEngineeringWattLauncher(); }
+  function closeOverlay(el){ el.hidden = true; document.body.style.overflow = ''; syncEngineeringWattLauncher(); }
   function openAdsDashboard(){ openOverlay(dashboard); closeOverlay(hub); closeOverlay(detail); loadAdPlansForForm(); loadMyEngAds(); if (isAdmin) loadAdminAds(); }
   $('engAdsDashBack').onclick = () => { closeOverlay(dashboard); openOverlay(hub); };
   $('engAdFormToggle').onclick = () => openAdsDashboard();
+
+  function askWattFromEngineering(surface){
+    const title = surface === detail ? ($('engDetailName')?.textContent || 'Engineering community') : 'Mjadala Engineering Hub';
+    const body = surface?.querySelector('.eng-body');
+    const content = (body?.innerText || '').replace(/\n{3,}/g,'\n\n').trim().slice(0,9000);
+    const context = {page:'Engineering',title,content,source:'Mjadala Engineering'};
+    if (typeof window.mjadalaOpenWattWithContext === 'function') window.mjadalaOpenWattWithContext(context);
+  }
+  $('engAskWattHub')?.addEventListener('click',()=>askWattFromEngineering(hub));
+  $('engAskWattDetail')?.addEventListener('click',()=>askWattFromEngineering(detail));
 
   function openHub(){
     openOverlay(hub);

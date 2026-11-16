@@ -11,6 +11,7 @@
   window.mjadalaAuth = { getSession: () => sb.auth.getSession(), signOut: () => sb.auth.signOut(), getUser: () => sb.auth.getUser() };
   const $ = id => document.getElementById(id);
   let session = null, activeProduct = null, selectedImages = [], poolId = null, catalogProducts = [], productDetailOpen = false, poolOfferOpen = false;
+  let wattMarketplaceFilters = null;
   const money = n => 'KSh ' + Number(n || 0).toLocaleString('en-KE');
   const toast = msg => { if (typeof window.showToast === 'function') window.showToast(msg); else alert(msg); };
   const errorText = e => e?.message || String(e || 'Unknown error');
@@ -212,7 +213,14 @@
     const host = $('businessProductCatalog'); if (!host) return;
     const term = ($('marketplaceSearch')?.value || '').trim().toLocaleLowerCase();
     const words = term.split(/\s+/).filter(Boolean);
-    const visibleProducts = term ? catalogProducts.filter(p => { const haystack = [p.product_name,p.description,p.business_name].map(v => String(v || '')).join(' ').toLocaleLowerCase(); return words.every(word => haystack.includes(word)); }) : catalogProducts;
+    const filters = wattMarketplaceFilters;
+    const visibleProducts = catalogProducts.filter(p => {
+      const haystack = [p.product_name,p.description,p.business_name].map(v => String(v || '')).join(' ').toLocaleLowerCase();
+      if (words.length && !words.every(word => haystack.includes(word))) return false;
+      if (filters?.category && !haystack.includes(filters.category.toLocaleLowerCase())) return false;
+      if (Number.isFinite(filters?.maxPrice) && Number(p.price) > filters.maxPrice) return false;
+      return true;
+    });
     if (!catalogProducts.length) {
       host.innerHTML = '<p class="live-empty">No products have been published yet. Sellers can publish the first real listing below.</p>';
       const card = document.querySelector('.product-card'); if (card) card.style.display = 'none';
@@ -336,8 +344,34 @@
     }
   }
   window.mjadalaBusinessReloadProducts = loadProduct;
-  window.mjadalaBusinessShowAllProducts = () => { closeProductDetail(); window.mjadalaBusinessSellerFilter = null; loadProduct(); };
+  window.mjadalaBusinessShowAllProducts = () => { wattMarketplaceFilters = null; if ($('marketplaceSearch')) $('marketplaceSearch').value = ''; closeProductDetail(); window.mjadalaBusinessSellerFilter = null; loadProduct(); };
   window.mjadalaBusinessOpenStorefront = () => { closeProductDetail(); };
+  window.mjadalaWattFindProducts = ({query = '', maxPrice = null, category = ''} = {}) => {
+    wattMarketplaceFilters = {
+      maxPrice: Number.isFinite(Number(maxPrice)) && Number(maxPrice) > 0 ? Number(maxPrice) : null,
+      category: String(category || '').trim(),
+    };
+    if ($('marketplaceSearch')) $('marketplaceSearch').value = String(query || '').trim();
+    closeProductDetail();
+    document.querySelector('.nav-item[data-index="1"]')?.click();
+    const note = $('wattMarketplaceFilterNote');
+    if (note) {
+      const bits = [];
+      if (query) bits.push(String(query));
+      if (wattMarketplaceFilters.category) bits.push(wattMarketplaceFilters.category);
+      if (wattMarketplaceFilters.maxPrice) bits.push('up to KSh ' + wattMarketplaceFilters.maxPrice.toLocaleString('en-KE'));
+      const label = $('wattMarketplaceFilterText'); if (label) label.textContent = bits.length ? 'Watt search: ' + bits.join(' · ') : 'Watt marketplace results';
+      note.hidden = false;
+    }
+    if (catalogProducts.length) renderCatalog(catalogProducts);
+    setTimeout(() => $('businessProductCatalog')?.scrollIntoView({behavior:'smooth',block:'start'}), 180);
+  };
+  $('clearWattMarketplaceFilter')?.addEventListener('click', () => {
+    wattMarketplaceFilters = null;
+    if ($('marketplaceSearch')) $('marketplaceSearch').value = '';
+    const note = $('wattMarketplaceFilterNote'); if (note) note.hidden = true;
+    if (catalogProducts.length) renderCatalog(catalogProducts);
+  });
   async function checkout() {
     if (!requireSession()) return;
     const quantity = Math.max(0, Number($('qtyValue').textContent) || 0);
@@ -595,7 +629,7 @@
   $('deliveryMethod').addEventListener('change',updateCartUI);
   $('qtyPlus').addEventListener('click',()=>setTimeout(updateCartUI,0));
   $('qtyMinus').addEventListener('click',()=>setTimeout(updateCartUI,0));
-  $('marketplaceSearch')?.addEventListener('input', () => { if (catalogProducts.length) renderCatalog(catalogProducts); });
+  $('marketplaceSearch')?.addEventListener('input', () => { wattMarketplaceFilters = null; const note = $('wattMarketplaceFilterNote'); if (note) note.hidden = true; if (catalogProducts.length) renderCatalog(catalogProducts); });
   let marketplaceChannel = null;
   function startMarketplaceRealtime(){ if(marketplaceChannel)sb.removeChannel(marketplaceChannel); marketplaceChannel=sb.channel('mjadala-marketplace').on('postgres_changes',{event:'*',schema:'public',table:'business_products'},()=>loadProduct()).subscribe(); }
   sb.auth.getSession().then(({data})=>{ session=data.session; if (!session) addAuthUI(); else if($('businessAuthPanel'))$('businessAuthPanel').style.display='none'; if(session){loadBusinessProfile(); if($('ownerPanel') && getComputedStyle($('ownerPanel')).display!=='none') loadOwnerInventory();} loadProduct(); startMarketplaceRealtime(); });
