@@ -1520,6 +1520,7 @@ button {
       <div id="planUsageInfo" style="margin-bottom:14px"><p class="biz-note">Loading…</p></div>
       <p class="biz-note" style="color:var(--muted)">Pick the plan that fits your store. This records your request — the Mjadala team confirms and activates it.</p>
       <div id="explorePlansList"><p class="biz-note">Loading plans…</p></div>
+      <div class="field" id="planPhoneField" hidden><label for="planPhoneInput">Phone number for the M-Pesa prompt</label><input id="planPhoneInput" inputmode="tel" placeholder="e.g. 07XXXXXXXX"></div>
       <div class="owner-actions"><button type="button" id="planRequestBtn">Request this plan</button></div>
       <p class="biz-note" id="planRequestStatus" aria-live="polite"></p>
     </section>
@@ -2438,6 +2439,27 @@ function setupLogoUploader(row) {
   });
 }
 
+function selectedPlanAmount(host) {
+  const selectedCard = host.querySelector('input[name="explorePlan"]:checked')?.closest('.biz-plan-card');
+  if (!selectedCard) return null;
+  const planId = selectedCard.querySelector('input').value;
+  const plan = bizPlans.find(p => p.id === planId);
+  if (!plan) return null;
+  const cycle = selectedCard.dataset.cycle || 'monthly';
+  const monthly = Number(plan.price_kes) || 0;
+  const freeMonths = Number(plan.yearly_free_months) || 0;
+  const yearly = plan.price_yearly_kes != null && monthly > 0 ? Number(plan.price_yearly_kes) : monthly * Math.max(1, 12 - freeMonths);
+  const amount = cycle === 'yearly' ? yearly : monthly;
+  return { plan, cycle, amount };
+}
+
+function updatePlanPhoneVisibility(host) {
+  const field = bz('planPhoneField');
+  if (!field) return;
+  const sel = selectedPlanAmount(host);
+  field.hidden = !sel || sel.amount === 0;
+}
+
 async function loadExplorePlans() {
   const host = bz('explorePlansList');
   const requestBtn = bz('planRequestBtn');
@@ -2456,28 +2478,30 @@ async function loadExplorePlans() {
     const currentPlanId = bizStore && Object.prototype.hasOwnProperty.call(bizStore, 'requested_plan_id') ? bizStore.requested_plan_id : null;
     host.innerHTML = renderPlanCards(bizPlans, { name: 'explorePlan', selectable: true, selectedId: currentPlanId });
     requestBtn.hidden = false;
+    updatePlanPhoneVisibility(host);
+
+    if (!host.dataset.wiredChange) {
+      host.dataset.wiredChange = '1';
+      host.addEventListener('change', () => updatePlanPhoneVisibility(host));
+      host.addEventListener('click', (e) => { if (e.target.closest('.biz-plan-cycle button')) setTimeout(() => updatePlanPhoneVisibility(host), 0); });
+    }
 
     if (!requestBtn.dataset.wired) {
       requestBtn.dataset.wired = '1';
       requestBtn.addEventListener('click', async () => {
-        const selectedCard = host.querySelector('input[name="explorePlan"]:checked')?.closest('.biz-plan-card');
-        const selectedPlanId = selectedCard?.querySelector('input')?.value;
-        const selectedCycle = selectedCard?.dataset.cycle || 'monthly';
-        if (!selectedPlanId) { requestStatus.textContent = 'Choose a plan first.'; return; }
-        const plan = bizPlans.find(p => p.id === selectedPlanId);
-        if (!plan) { requestStatus.textContent = 'That plan could not be found.'; return; }
-
-        const monthly = Number(plan.price_kes) || 0;
-        const freeMonths = Number(plan.yearly_free_months) || 0;
-        const yearly = plan.price_yearly_kes != null && monthly > 0 ? Number(plan.price_yearly_kes) : monthly * Math.max(1, 12 - freeMonths);
-        const amount = selectedCycle === 'yearly' ? yearly : monthly;
+        const sel = selectedPlanAmount(host);
+        if (!sel) { requestStatus.textContent = 'Choose a plan first.'; return; }
+        const { plan, cycle, amount } = sel;
         const isFree = amount === 0;
+        const phoneInput = bz('planPhoneInput');
+        const phone = isFree ? '' : (phoneInput?.value || '').trim();
+        if (!isFree && !phone) { requestStatus.textContent = 'Enter the phone number for the M-Pesa prompt.'; phoneInput?.focus(); return; }
 
         requestBtn.disabled = true;
         requestStatus.textContent = 'Sending request…';
         try {
           const payload = {
-            user_id: bizUser.id, plan_id: selectedPlanId, billing_cycle: selectedCycle, amount_kes: amount,
+            user_id: bizUser.id, plan_id: plan.id, billing_cycle: cycle, amount_kes: amount,
             payment_status: isFree ? 'n/a' : 'pending', status: 'pending'
           };
           const { data: inserted, error } = await sb.from('mj_business_plan_requests').insert(payload).select('id').single();
@@ -2485,13 +2509,8 @@ async function loadExplorePlans() {
           if (isFree) {
             requestStatus.textContent = 'Requested ' + bizEsc(plan.plan_name) + '. A Mjadala admin will approve it shortly.';
           } else {
-            const phone = (window.prompt('Enter the phone number for the M-Pesa prompt (e.g. 07XXXXXXXX), to pay KSh ' + amount.toLocaleString('en-KE') + ' for ' + plan.plan_name + ':') || '').trim();
-            if (!phone) {
-              requestStatus.textContent = 'Request saved as pending. Open "Explore plans" again to pay when ready.';
-            } else {
-              requestStatus.textContent = 'Starting the M-Pesa prompt…';
-              await startPlanRequestStk(inserted.id, phone, requestStatus);
-            }
+            requestStatus.textContent = 'Starting the M-Pesa prompt for KSh ' + amount.toLocaleString('en-KE') + '…';
+            await startPlanRequestStk(inserted.id, phone, requestStatus);
           }
         } catch (err) {
           requestStatus.textContent = 'Could not send request: ' + (err.message || err);
