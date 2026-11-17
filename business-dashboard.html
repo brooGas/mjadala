@@ -1033,6 +1033,38 @@ button {
 .help-contact-row .panel-icon { flex: 0 0 34px; }
 .help-contact-row strong { display: block; font-size: 13px; }
 .help-contact-row small { display: block; color: var(--muted); font-size: 11px; margin-top: 1px; }
+
+/* Admin: plan-requests table (added) */
+.admin-table-wrap { overflow-x: auto; margin-top: 4px; }
+.admin-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 620px; }
+.admin-table th {
+  text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .03em;
+  color: var(--muted); padding: 8px 10px; border-bottom: 2px solid var(--line); white-space: nowrap;
+}
+.admin-table td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.admin-table tr:last-child td { border-bottom: none; }
+.admin-status-pill {
+  display: inline-block; font-size: 10.5px; font-weight: 800; padding: 4px 10px; border-radius: 999px;
+  white-space: nowrap;
+}
+.admin-status-pill.pending { background: #fff0ce; color: #79530b; }
+.admin-status-pill.paid, .admin-status-pill.approved { background: #dff0d9; color: #1f7a3d; }
+.admin-status-pill.rejected { background: #fbdede; color: #a3233a; }
+.admin-status-pill.nfree { background: #e2ecf5; color: #1f5c8c; }
+.admin-row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.btn-approve, .btn-reject {
+  border: 0; border-radius: 9px; padding: 7px 13px; font-weight: 750; font-size: 12px; color: #fff; cursor: pointer;
+}
+.btn-approve { background: #1f9d55; }
+.btn-approve:hover { background: #197f45; }
+.btn-reject { background: #d94b4b; }
+.btn-reject:hover { background: #b93b3b; }
+.btn-approve:disabled, .btn-reject:disabled { opacity: .55; cursor: default; }
+.admin-reject-row { display: none; gap: 6px; margin-top: 6px; }
+.admin-reject-row.open { display: flex; }
+.admin-reject-row input {
+  flex: 1; border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; font: inherit; font-size: 12px;
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -2592,24 +2624,46 @@ async function loadAdminPlanRequests() {
     rows = rows || [];
     const pending = rows.filter(r => r.status === 'pending');
     if (!rows.length) { host.innerHTML = '<p class="biz-note">No plan requests yet.</p>'; return; }
-    host.innerHTML = rows.map(r => {
-      const storeName = r.business_profiles?.business_name || r.user_id.slice(0, 8);
-      const planName = r.mj_business_plans?.plan_name || 'Plan';
-      const payPill = r.payment_status === 'paid' ? '<span class="mj-ad-pill approved">Paid</span>'
-        : r.payment_status === 'rejected' ? '<span class="mj-ad-pill rejected">Payment rejected</span>'
-        : r.payment_status === 'n/a' ? '<span class="mj-ad-pill approved">Free plan</span>'
-        : '<span class="mj-ad-pill pending">Payment pending</span>';
-      const statusPill = r.status === 'approved' ? ' · Approved' : r.status === 'rejected' ? ' · Rejected' : '';
-      const canAct = r.status === 'pending';
-      return '<article class="eng-plan-row" style="flex-direction:column;align-items:stretch">' +
-        '<strong>' + bizEsc(storeName) + '</strong>' +
-        '<p class="eng-comm-desc" style="margin:2px 0">' + bizEsc(planName) + ' · ' + bizEsc(r.billing_cycle) + ' · KSh ' + (Number(r.amount_kes) || 0).toLocaleString('en-KE') + '</p>' +
-        '<p class="eng-pay-box" style="margin:4px 0">' + payPill + bizEsc(statusPill) + '</p>' +
-        (canAct
-          ? '<div class="eng-plan-actions" style="margin-top:7px"><button type="button" class="eng-btn-primary" data-plan-req-approve="' + r.id + '" data-plan-id="' + r.plan_id + '" data-cycle="' + bizEsc(r.billing_cycle) + '">Approve</button><button type="button" data-plan-req-reject="' + r.id + '">Reject</button></div>'
-          : '') +
-        '</article>';
-    }).join('');
+
+    function payPillHtml(r) {
+      if (r.payment_status === 'paid') return '<span class="admin-status-pill paid">Paid</span>';
+      if (r.payment_status === 'rejected') return '<span class="admin-status-pill rejected">Payment rejected</span>';
+      if (r.payment_status === 'n/a') return '<span class="admin-status-pill nfree">Free plan</span>';
+      return '<span class="admin-status-pill pending">Payment pending</span>';
+    }
+    function statusPillHtml(r) {
+      if (r.status === 'approved') return '<span class="admin-status-pill approved">Approved</span>';
+      if (r.status === 'rejected') return '<span class="admin-status-pill rejected">Rejected</span>';
+      return '<span class="admin-status-pill pending">Pending</span>';
+    }
+
+    host.innerHTML = '<div class="admin-table-wrap"><table class="admin-table"><thead><tr>' +
+      '<th>Store</th><th>Plan</th><th>Billing</th><th>Amount</th><th>Payment</th><th>Status</th><th>Action</th>' +
+      '</tr></thead><tbody>' +
+      rows.map(r => {
+        const storeName = r.business_profiles?.business_name || r.user_id.slice(0, 8);
+        const planName = r.mj_business_plans?.plan_name || 'Plan';
+        const canAct = r.status === 'pending';
+        return '<tr>' +
+          '<td>' + bizEsc(storeName) + '</td>' +
+          '<td>' + bizEsc(planName) + '</td>' +
+          '<td>' + bizEsc(r.billing_cycle) + '</td>' +
+          '<td>KSh ' + (Number(r.amount_kes) || 0).toLocaleString('en-KE') + '</td>' +
+          '<td>' + payPillHtml(r) + '</td>' +
+          '<td>' + statusPillHtml(r) + '</td>' +
+          '<td>' + (canAct
+            ? '<div class="admin-row-actions">' +
+              '<button type="button" class="btn-approve" data-plan-req-approve="' + r.id + '" data-plan-id="' + r.plan_id + '" data-cycle="' + bizEsc(r.billing_cycle) + '">Approve</button>' +
+              '<button type="button" class="btn-reject" data-plan-req-reject-toggle="' + r.id + '">Reject</button>' +
+              '<div class="admin-reject-row" id="reject-row-' + r.id + '">' +
+              '<input type="text" id="reject-reason-' + r.id + '" placeholder="Reason (optional)">' +
+              '<button type="button" class="btn-reject" data-plan-req-reject-confirm="' + r.id + '">Confirm</button>' +
+              '</div></div>'
+            : '—') +
+          '</td></tr>';
+      }).join('') +
+      '</tbody></table></div>';
+
     host.querySelectorAll('[data-plan-req-approve]').forEach(b => b.addEventListener('click', async () => {
       b.disabled = true;
       try {
@@ -2625,11 +2679,16 @@ async function loadAdminPlanRequests() {
         await loadAdminPlanRequests();
       } catch (err) { alert(err.message || String(err)); b.disabled = false; }
     }));
-    host.querySelectorAll('[data-plan-req-reject]').forEach(b => b.addEventListener('click', async () => {
-      const reason = prompt('Reason for rejecting this plan request (optional):') || '';
+    host.querySelectorAll('[data-plan-req-reject-toggle]').forEach(b => b.addEventListener('click', () => {
+      const row = bz('reject-row-' + b.getAttribute('data-plan-req-reject-toggle'));
+      if (row) { row.classList.add('open'); row.querySelector('input')?.focus(); }
+    }));
+    host.querySelectorAll('[data-plan-req-reject-confirm]').forEach(b => b.addEventListener('click', async () => {
+      const requestId = b.getAttribute('data-plan-req-reject-confirm');
+      const reason = (bz('reject-reason-' + requestId)?.value || '').trim();
       b.disabled = true;
-      const { error } = await sb.from('mj_business_plan_requests').update({ status: 'rejected', rejection_reason: reason || null }).eq('id', b.getAttribute('data-plan-req-reject'));
-      if (error) alert(error.message);
+      const { error } = await sb.from('mj_business_plan_requests').update({ status: 'rejected', rejection_reason: reason || null }).eq('id', requestId);
+      if (error) { alert(error.message); b.disabled = false; return; }
       await loadAdminPlanRequests();
     }));
     const countBadge = bz('navAdminCount');
