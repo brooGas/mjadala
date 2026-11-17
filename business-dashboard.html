@@ -1136,6 +1136,11 @@ button {
     <a class="nav-item" href="#settings" data-panel="settings">
       <span class="nav-icon"><svg class="std-icon"><use href="#i-settings"/></svg></span>Website settings
     </a>
+
+    <a class="nav-item" href="#admin" data-panel="admin" id="navAdmin" hidden>
+      <span class="nav-icon"><svg class="std-icon"><use href="#i-shield-check"/></svg></span>Admin
+      <span class="count" id="navAdminCount" hidden>0</span>
+    </a>
   </nav>
 
   <div class="grow-card">
@@ -1568,6 +1573,19 @@ button {
     </section>
   </div>
 
+  <div class="panel-view" id="view-admin" hidden>
+    <section class="card panel">
+      <div class="panel-head"><div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-crown"/></svg></span>Business plan requests</div></div>
+      <p class="biz-note" style="color:var(--muted)">Paid requests show their M-Pesa status. Approve only once a request shows "Paid" (or it's a free plan).</p>
+      <div id="adminPlanRequestsList"><p class="biz-note">Loading…</p></div>
+    </section>
+    <section class="card panel">
+      <div class="panel-head"><div class="panel-title"><span class="panel-icon"><svg class="std-icon"><use href="#i-info"/></svg></span>App support settings</div></div>
+      <p class="biz-note" style="color:var(--muted)">This is the support email and social links shown to every store owner in Help &amp; Support. Only you can edit this.</p>
+      <div id="adminAppSettingsInfo"><p class="biz-note">Loading…</p></div>
+    </section>
+  </div>
+
 </section>
 </main>
 </div>
@@ -1648,6 +1666,7 @@ function goToPanel(name) {
   if (name === 'customers') loadCustomers();
   else if (name === 'analytics') loadAnalytics();
   else if (name === 'plans') { loadExplorePlans(); loadPlanUsage(); }
+  else if (name === 'admin') { loadAdminPlanRequests(); loadAdminAppSettingsForm(); }
 }
 
 document.querySelectorAll('.side-nav .nav-item').forEach(item => {
@@ -1713,13 +1732,14 @@ function renderHelpContacts() {
   const host = document.getElementById('helpContactList');
   if (!host) return;
   const rows = [];
-  const email = bizStore && bizStore.support_email;
+  const settings = bizAppSettings;
+  const email = settings && settings.support_email;
   if (email) {
     rows.push('<a class="help-contact-row" href="mailto:' + bizEsc(email) + '?subject=Mjadala%20Business%20support">' +
       '<span class="panel-icon"><svg class="std-icon"><use href="#i-mail"/></svg></span>' +
-      '<span><strong>Email ' + bizEsc(bizStore.business_name || 'the store') + '</strong><small>' + bizEsc(email) + '</small></span></a>');
+      '<span><strong>Email Mjadala support</strong><small>' + bizEsc(email) + '</small></span></a>');
   }
-  const socials = Array.isArray(bizStore && bizStore.social_links) ? bizStore.social_links : [];
+  const socials = Array.isArray(settings && settings.social_links) ? settings.social_links : [];
   socials.forEach(item => {
     const label = (SOCIAL_PLATFORMS.find(p => p.key === item.platform) || {}).label || item.platform;
     rows.push('<div class="help-contact-row"><span class="panel-icon"><svg class="std-icon"><use href="#i-globe"/></svg></span>' +
@@ -1727,11 +1747,12 @@ function renderHelpContacts() {
   });
   host.innerHTML = rows.length
     ? rows.join('')
-    : '<p class="biz-note">This store hasn’t added support contact details yet.</p>';
+    : '<p class="biz-note">Mjadala support hasn’t added contact details yet.</p>';
 }
 
-function openHelpModal() {
+async function openHelpModal() {
   if (!helpModalBackdrop) return;
+  if (!bizAppSettings) await loadAppSupportSettings();
   renderHelpContacts();
   helpModalBackdrop.classList.add('open');
   helpModalBackdrop.setAttribute('aria-hidden', 'false');
@@ -1985,14 +2006,23 @@ async function loadBusinessDashboard() {
       renderStoreIdentity(bizStore);
       showOnlyPanel('view-overview');
       document.querySelectorAll('.side-nav .nav-item').forEach(x => x.classList.toggle('active', x.getAttribute('data-panel') === 'overview'));
+
+      try {
+        const { data: adminCheck } = await sb.rpc('mj_is_creator_admin');
+        window.bizIsAdmin = adminCheck === true;
+      } catch (_) { window.bizIsAdmin = false; }
+      bz('navAdmin').hidden = !window.bizIsAdmin;
+
       loadProducts();
       loadOrdersPreview();
       loadRecentOrders();
       loadSalesPerformance(dateRangeDays);
       loadSettings();
+      loadAppSupportSettings();
       loadNotifications();
       loadPlanUsage();
       subscribeBizNotifications();
+      if (window.bizIsAdmin) subscribeAdminPlanRequests();
     } else {
       const appRes = await sb.from('mj_business_applications')
         .select('business_name,status,created_at')
@@ -2123,8 +2153,6 @@ async function loadSettings() {
     ];
     const available = candidates.filter(c => Object.prototype.hasOwnProperty.call(row, c.key));
     const hasLogoField = Object.prototype.hasOwnProperty.call(row, 'logo_url');
-    const hasSupportEmail = Object.prototype.hasOwnProperty.call(row, 'support_email');
-    const hasSocialLinks = Object.prototype.hasOwnProperty.call(row, 'social_links');
 
     const logoHtml = '<div class="field" style="text-align:center">' +
       '<label>Profile picture</label>' +
@@ -2138,64 +2166,19 @@ async function loadSettings() {
       '<p class="biz-note" id="logoStatus" aria-live="polite"></p>' +
       '</div>';
 
-    const supportHtml = hasSupportEmail
-      ? '<div class="field"><label for="setting_support_email">Support email <span style="color:var(--red)">*</span></label>' +
-        '<input id="setting_support_email" type="email" required value="' + bizEsc(row.support_email || '') + '" placeholder="e.g. yourstore@gmail.com"></div>'
-      : '';
-
-    try { bizSocialDraft = Array.isArray(row.social_links) ? row.social_links.slice() : (row.social_links ? JSON.parse(row.social_links) : []); } catch (_) { bizSocialDraft = []; }
-
-    const socialHtml = hasSocialLinks
-      ? '<div class="field"><label>Social &amp; contact links</label>' +
-        '<div id="socialLinksList"></div>' +
-        '<div style="display:flex;gap:6px;margin-top:6px">' +
-        '<select id="socialPlatformSelect" style="flex:0 0 150px;border:1px solid var(--line);border-radius:10px;padding:10px 8px;background:#fff">' +
-        SOCIAL_PLATFORMS.map(p => '<option value="' + p.key + '">' + p.label + '</option>').join('') +
-        '</select>' +
-        '<input id="socialValueInput" placeholder="Link or handle, e.g. @yourstore" style="flex:1">' +
-        '<button type="button" id="socialAddBtn" style="border:0;border-radius:10px;background:var(--forest);color:#fff;padding:0 16px;font-weight:700">Add</button>' +
-        '</div></div>'
-      : '';
-
-    const hasAnyFields = available.length > 0 || hasSupportEmail || hasSocialLinks;
-
     host.innerHTML = (hasLogoField ? logoHtml : '') +
       (available.length ? available.map(c =>
         '<div class="field"><label for="setting_' + c.key + '">' + c.label + '</label>' +
         (c.key === 'description' ? '<textarea id="setting_' + c.key + '" rows="2">' + bizEsc(row[c.key] || '') + '</textarea>'
           : '<input id="setting_' + c.key + '" value="' + bizEsc(row[c.key] || '') + '">') + '</div>'
-      ).join('') : '') +
-      supportHtml + socialHtml +
-      (hasAnyFields
-        ? '<div class="owner-actions"><button type="button" id="settingsSave">Save changes</button></div><p class="biz-note" id="settingsStatus" aria-live="polite"></p>'
+      ).join('') + '<div class="owner-actions"><button type="button" id="settingsSave">Save changes</button></div><p class="biz-note" id="settingsStatus" aria-live="polite"></p>'
         : (hasLogoField ? '' : '<p class="biz-note">No editable store details were found on your business profile yet.</p>'));
 
-    if (hasSocialLinks) {
-      renderSocialLinksEditor();
-      bz('socialAddBtn').addEventListener('click', () => {
-        const select = bz('socialPlatformSelect'), input = bz('socialValueInput');
-        const value = input.value.trim();
-        if (!value) { input.focus(); return; }
-        bizSocialDraft.push({ platform: select.value, value });
-        input.value = '';
-        renderSocialLinksEditor();
-      });
-    }
-
-    if (hasAnyFields) {
+    if (available.length) {
       bz('settingsSave').addEventListener('click', async () => {
         const statusEl = bz('settingsStatus');
         const patch = {};
         available.forEach(c => { patch[c.key] = bz('setting_' + c.key).value.trim(); });
-        if (hasSupportEmail) {
-          const email = bz('setting_support_email').value.trim();
-          const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-          if (!emailOk) { statusEl.textContent = 'Support email is required and must be a valid email address.'; return; }
-          patch.support_email = email;
-        }
-        if (hasSocialLinks) {
-          patch.social_links = bizSocialDraft;
-        }
         statusEl.textContent = 'Saving…';
         const { error: saveErr } = await sb.from('business_profiles').update(patch).eq('user_id', bizUser.id);
         if (saveErr) { statusEl.textContent = 'Could not save: ' + saveErr.message; return; }
@@ -2213,26 +2196,78 @@ async function loadSettings() {
   }
 }
 
-function renderSocialLinksEditor() {
-  const host = bz('socialLinksList');
+// ---------- Admin-only: app-wide support contact (mj_app_settings, one row) ----------
+let bizAppSettings = null;
+async function loadAppSupportSettings() {
+  try {
+    const { data, error } = await sb.from('mj_app_settings').select('*').eq('id', 1).maybeSingle();
+    if (error) throw error;
+    bizAppSettings = data || { support_email: '', social_links: [] };
+  } catch (e) {
+    bizAppSettings = { support_email: '', social_links: [] };
+  }
+}
+
+function renderAdminSocialLinksEditor() {
+  const host = bz('adminSocialLinksList');
   if (!host) return;
   const labelFor = key => (SOCIAL_PLATFORMS.find(p => p.key === key) || {}).label || key;
   host.innerHTML = bizSocialDraft.length
     ? bizSocialDraft.map((item, i) =>
         '<div class="help-contact-row" style="margin-top:6px"><div style="flex:1"><strong>' + bizEsc(labelFor(item.platform)) + '</strong><br>' +
         '<small class="biz-note">' + bizEsc(item.value) + '</small></div>' +
-        '<button type="button" data-social-remove="' + i + '" style="border:0;background:transparent;color:var(--red);font-weight:800;font-size:16px;cursor:pointer">×</button></div>'
+        '<button type="button" data-admin-social-remove="' + i + '" style="border:0;background:transparent;color:var(--red);font-weight:800;font-size:16px;cursor:pointer">×</button></div>'
       ).join('')
     : '<p class="biz-note">No social or contact links added yet.</p>';
 }
 
 document.addEventListener('click', (e) => {
-  const removeBtn = e.target.closest('[data-social-remove]');
+  const removeBtn = e.target.closest('[data-admin-social-remove]');
   if (!removeBtn) return;
-  const idx = Number(removeBtn.getAttribute('data-social-remove'));
+  const idx = Number(removeBtn.getAttribute('data-admin-social-remove'));
   bizSocialDraft.splice(idx, 1);
-  renderSocialLinksEditor();
+  renderAdminSocialLinksEditor();
 });
+
+async function loadAdminAppSettingsForm() {
+  const host = bz('adminAppSettingsInfo');
+  if (!host) return;
+  if (!bizAppSettings) await loadAppSupportSettings();
+  bizSocialDraft = Array.isArray(bizAppSettings.social_links) ? bizAppSettings.social_links.slice() : [];
+  host.innerHTML =
+    '<div class="field"><label for="adminSupportEmail">Support email <span style="color:var(--red)">*</span></label>' +
+    '<input id="adminSupportEmail" type="email" required value="' + bizEsc(bizAppSettings.support_email || '') + '" placeholder="e.g. support@mjadala.app"></div>' +
+    '<div class="field"><label>Social &amp; contact links</label>' +
+    '<div id="adminSocialLinksList"></div>' +
+    '<div style="display:flex;gap:6px;margin-top:6px">' +
+    '<select id="adminSocialPlatformSelect" style="flex:0 0 150px;border:1px solid var(--line);border-radius:10px;padding:10px 8px;background:#fff">' +
+    SOCIAL_PLATFORMS.map(p => '<option value="' + p.key + '">' + p.label + '</option>').join('') +
+    '</select>' +
+    '<input id="adminSocialValueInput" placeholder="Link or handle, e.g. @mjadala" style="flex:1">' +
+    '<button type="button" id="adminSocialAddBtn" style="border:0;border-radius:10px;background:var(--forest);color:#fff;padding:0 16px;font-weight:700">Add</button>' +
+    '</div></div>' +
+    '<div class="owner-actions"><button type="button" id="adminAppSettingsSave">Save support settings</button></div>' +
+    '<p class="biz-note" id="adminAppSettingsStatus" aria-live="polite"></p>';
+  renderAdminSocialLinksEditor();
+  bz('adminSocialAddBtn').addEventListener('click', () => {
+    const select = bz('adminSocialPlatformSelect'), input = bz('adminSocialValueInput');
+    const value = input.value.trim();
+    if (!value) { input.focus(); return; }
+    bizSocialDraft.push({ platform: select.value, value });
+    input.value = '';
+    renderAdminSocialLinksEditor();
+  });
+  bz('adminAppSettingsSave').addEventListener('click', async () => {
+    const statusEl = bz('adminAppSettingsStatus');
+    const email = bz('adminSupportEmail').value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { statusEl.textContent = 'Enter a valid support email.'; return; }
+    statusEl.textContent = 'Saving…';
+    const { error } = await sb.from('mj_app_settings').upsert({ id: 1, support_email: email, social_links: bizSocialDraft });
+    if (error) { statusEl.textContent = 'Could not save: ' + error.message; return; }
+    bizAppSettings = { support_email: email, social_links: bizSocialDraft.slice() };
+    statusEl.textContent = 'Saved.';
+  });
+}
 
 function isPaymentConfigured(row) {
   const m = row.payment_method;
@@ -2426,26 +2461,185 @@ async function loadExplorePlans() {
       requestBtn.dataset.wired = '1';
       requestBtn.addEventListener('click', async () => {
         const selectedCard = host.querySelector('input[name="explorePlan"]:checked')?.closest('.biz-plan-card');
-        const selectedPlan = selectedCard?.querySelector('input')?.value;
+        const selectedPlanId = selectedCard?.querySelector('input')?.value;
         const selectedCycle = selectedCard?.dataset.cycle || 'monthly';
-        if (!selectedPlan) { requestStatus.textContent = 'Choose a plan first.'; return; }
-        if (!Object.prototype.hasOwnProperty.call(bizStore || {}, 'requested_plan_id')) {
-          requestStatus.textContent = 'Plan requests aren’t available on this database yet. Ask the Mjadala admin to add the request columns.';
-          return;
-        }
+        if (!selectedPlanId) { requestStatus.textContent = 'Choose a plan first.'; return; }
+        const plan = bizPlans.find(p => p.id === selectedPlanId);
+        if (!plan) { requestStatus.textContent = 'That plan could not be found.'; return; }
+
+        const monthly = Number(plan.price_kes) || 0;
+        const freeMonths = Number(plan.yearly_free_months) || 0;
+        const yearly = plan.price_yearly_kes != null && monthly > 0 ? Number(plan.price_yearly_kes) : monthly * Math.max(1, 12 - freeMonths);
+        const amount = selectedCycle === 'yearly' ? yearly : monthly;
+        const isFree = amount === 0;
+
+        requestBtn.disabled = true;
         requestStatus.textContent = 'Sending request…';
-        const patch = { requested_plan_id: selectedPlan };
-        if (Object.prototype.hasOwnProperty.call(bizStore, 'requested_billing_cycle')) patch.requested_billing_cycle = selectedCycle;
-        const { error } = await sb.from('business_profiles').update(patch).eq('user_id', bizUser.id);
-        if (error) { requestStatus.textContent = 'Could not send request: ' + error.message; return; }
-        Object.assign(bizStore, patch);
-        const planName = bizPlans.find(p => p.id === selectedPlan)?.plan_name || 'plan';
-        requestStatus.textContent = 'Requested ' + planName + '. The Mjadala team will confirm and activate it.';
+        try {
+          const payload = {
+            user_id: bizUser.id, plan_id: selectedPlanId, billing_cycle: selectedCycle, amount_kes: amount,
+            payment_status: isFree ? 'n/a' : 'pending', status: 'pending'
+          };
+          const { data: inserted, error } = await sb.from('mj_business_plan_requests').insert(payload).select('id').single();
+          if (error) throw error;
+          if (isFree) {
+            requestStatus.textContent = 'Requested ' + bizEsc(plan.plan_name) + '. A Mjadala admin will approve it shortly.';
+          } else {
+            const phone = (window.prompt('Enter the phone number for the M-Pesa prompt (e.g. 07XXXXXXXX), to pay KSh ' + amount.toLocaleString('en-KE') + ' for ' + plan.plan_name + ':') || '').trim();
+            if (!phone) {
+              requestStatus.textContent = 'Request saved as pending. Open "Explore plans" again to pay when ready.';
+            } else {
+              requestStatus.textContent = 'Starting the M-Pesa prompt…';
+              await startPlanRequestStk(inserted.id, phone, requestStatus);
+            }
+          }
+        } catch (err) {
+          requestStatus.textContent = 'Could not send request: ' + (err.message || err);
+        } finally {
+          requestBtn.disabled = false;
+        }
       });
     }
   } catch (e) {
     host.innerHTML = '<p class="biz-note">Plans could not load: ' + bizEsc(e.message) + '</p>';
   }
+}
+
+// ---------- Daraja (M-Pesa STK push) for paid business-plan requests ----------
+// Requires the daraja-business-plan-stk-push / daraja-business-plan-stk-query Supabase Edge
+// Functions to be deployed. If they are not deployed yet, this fails gracefully and the
+// request stays "pending" for an admin to confirm payment manually.
+async function startPlanRequestStk(requestId, phone, statusEl) {
+  try {
+    if (!sb.functions) throw new Error('Payments are not set up yet.');
+    const { data, error } = await sb.functions.invoke('daraja-business-plan-stk-push', { body: { request_id: requestId, phone } });
+    if (error) {
+      let detail = error.message;
+      if (error.context && typeof error.context.json === 'function') {
+        try { const body = await error.context.json(); if (body?.error) detail = body.error; } catch (_) {}
+      }
+      throw new Error(detail);
+    }
+    if (!data?.ok) throw new Error(data?.error || 'The M-Pesa prompt was not confirmed.');
+    statusEl.textContent = data.customer_message || 'Check your phone for the Safaricom prompt and enter your PIN. Never share your PIN with anyone, including Mjadala.';
+    watchPlanRequestPayment(requestId, statusEl);
+  } catch (err) {
+    statusEl.textContent = 'Could not start the M-Pesa prompt (' + (err.message || String(err)) + '). Your request is saved as pending — an admin can confirm payment manually, or try again.';
+  }
+}
+function watchPlanRequestPayment(requestId, statusEl) {
+  let finished = false, channel = null;
+  const apply = (row) => {
+    if (!row || finished) return;
+    if (row.payment_status === 'paid') {
+      statusEl.textContent = 'Paid. Your request is now with a Mjadala admin for approval.';
+      finished = true; if (channel && sb.removeChannel) sb.removeChannel(channel);
+    } else if (row.payment_status === 'rejected') {
+      statusEl.textContent = 'The M-Pesa payment was not completed. You can request this plan again.';
+      finished = true; if (channel && sb.removeChannel) sb.removeChannel(channel);
+    }
+  };
+  if (sb.channel) {
+    channel = sb.channel('biz-plan-pay-' + requestId)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'mj_business_plan_requests', filter: 'id=eq.' + requestId }, p => apply(p.new))
+      .subscribe();
+  }
+  let polls = 0;
+  const poller = setInterval(() => {
+    if (finished || ++polls > 30) { clearInterval(poller); return; }
+    if (polls >= 3 && polls % 3 === 1 && sb.functions) { sb.functions.invoke('daraja-business-plan-stk-query', { body: { request_id: requestId } }).catch(() => {}); }
+    sb.from('mj_business_plan_requests').select('payment_status').eq('id', requestId).maybeSingle().then(({ data }) => apply(data));
+  }, 4000);
+  setTimeout(() => { finished = true; clearInterval(poller); if (channel && sb.removeChannel) sb.removeChannel(channel); }, 150000);
+}
+
+// ---------- Admin: review plan requests ----------
+async function loadAdminPlanRequests() {
+  const host = bz('adminPlanRequestsList');
+  if (!host) return;
+  host.innerHTML = '<p class="biz-note">Loading…</p>';
+  try {
+    const { data, error } = await sb.from('mj_business_plan_requests')
+      .select('id,user_id,plan_id,billing_cycle,amount_kes,payment_status,status,created_at,mj_business_plans(plan_name),business_profiles!mj_business_plan_requests_user_id_fkey(business_name)')
+      .order('created_at', { ascending: false })
+      .limit(60);
+    let rows = data;
+    if (error) {
+      // the business_profiles relationship hint may not be detected — fall back to a plain select
+      const res2 = await sb.from('mj_business_plan_requests').select('id,user_id,plan_id,billing_cycle,amount_kes,payment_status,status,created_at,mj_business_plans(plan_name)').order('created_at', { ascending: false }).limit(60);
+      if (res2.error) throw res2.error;
+      rows = res2.data;
+    }
+    rows = rows || [];
+    const pending = rows.filter(r => r.status === 'pending');
+    if (!rows.length) { host.innerHTML = '<p class="biz-note">No plan requests yet.</p>'; return; }
+    host.innerHTML = rows.map(r => {
+      const storeName = r.business_profiles?.business_name || r.user_id.slice(0, 8);
+      const planName = r.mj_business_plans?.plan_name || 'Plan';
+      const payPill = r.payment_status === 'paid' ? '<span class="mj-ad-pill approved">Paid</span>'
+        : r.payment_status === 'rejected' ? '<span class="mj-ad-pill rejected">Payment rejected</span>'
+        : r.payment_status === 'n/a' ? '<span class="mj-ad-pill approved">Free plan</span>'
+        : '<span class="mj-ad-pill pending">Payment pending</span>';
+      const statusPill = r.status === 'approved' ? ' · Approved' : r.status === 'rejected' ? ' · Rejected' : '';
+      const canAct = r.status === 'pending';
+      return '<article class="eng-plan-row" style="flex-direction:column;align-items:stretch">' +
+        '<strong>' + bizEsc(storeName) + '</strong>' +
+        '<p class="eng-comm-desc" style="margin:2px 0">' + bizEsc(planName) + ' · ' + bizEsc(r.billing_cycle) + ' · KSh ' + (Number(r.amount_kes) || 0).toLocaleString('en-KE') + '</p>' +
+        '<p class="eng-pay-box" style="margin:4px 0">' + payPill + bizEsc(statusPill) + '</p>' +
+        (canAct
+          ? '<div class="eng-plan-actions" style="margin-top:7px"><button type="button" class="eng-btn-primary" data-plan-req-approve="' + r.id + '" data-plan-id="' + r.plan_id + '" data-cycle="' + bizEsc(r.billing_cycle) + '">Approve</button><button type="button" data-plan-req-reject="' + r.id + '">Reject</button></div>'
+          : '') +
+        '</article>';
+    }).join('');
+    host.querySelectorAll('[data-plan-req-approve]').forEach(b => b.addEventListener('click', async () => {
+      b.disabled = true;
+      try {
+        const requestId = b.getAttribute('data-plan-req-approve'), planId = b.getAttribute('data-plan-id'), cycle = b.getAttribute('data-cycle');
+        const { data: reqRow } = await sb.from('mj_business_plan_requests').select('user_id').eq('id', requestId).maybeSingle();
+        if (!reqRow) throw new Error('Request not found.');
+        const days = cycle === 'yearly' ? 365 : 30;
+        const endsAt = new Date(Date.now() + days * 86400000).toISOString();
+        const { error: subErr } = await sb.from('mj_business_subscriptions').insert({ user_id: reqRow.user_id, plan_id: planId, status: 'active', ends_at: endsAt });
+        if (subErr) throw subErr;
+        const { error: reqErr } = await sb.from('mj_business_plan_requests').update({ status: 'approved', approved_at: new Date().toISOString() }).eq('id', requestId);
+        if (reqErr) throw reqErr;
+        await loadAdminPlanRequests();
+      } catch (err) { alert(err.message || String(err)); b.disabled = false; }
+    }));
+    host.querySelectorAll('[data-plan-req-reject]').forEach(b => b.addEventListener('click', async () => {
+      const reason = prompt('Reason for rejecting this plan request (optional):') || '';
+      b.disabled = true;
+      const { error } = await sb.from('mj_business_plan_requests').update({ status: 'rejected', rejection_reason: reason || null }).eq('id', b.getAttribute('data-plan-req-reject'));
+      if (error) alert(error.message);
+      await loadAdminPlanRequests();
+    }));
+    const countBadge = bz('navAdminCount');
+    if (countBadge) { countBadge.hidden = pending.length === 0; countBadge.textContent = pending.length; }
+  } catch (e) {
+    host.innerHTML = '<p class="biz-note">Plan requests could not load: ' + bizEsc(e.message) + '</p>';
+  }
+}
+
+let bizAdminPlanReqChannel = null;
+function subscribeAdminPlanRequests() {
+  if (!sb || typeof sb.channel !== 'function' || bizAdminPlanReqChannel) return;
+  try {
+    bizAdminPlanReqChannel = sb.channel('admin-plan-requests')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'mj_business_plan_requests' }, () => {
+        loadNotifications();
+        if (!bz('view-admin')?.hidden) loadAdminPlanRequests();
+        else refreshAdminPendingBadge();
+      })
+      .subscribe();
+    refreshAdminPendingBadge();
+  } catch (_) { /* realtime unavailable */ }
+}
+async function refreshAdminPendingBadge() {
+  const countBadge = bz('navAdminCount');
+  if (!countBadge) return;
+  const { count } = await sb.from('mj_business_plan_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending');
+  countBadge.hidden = !count;
+  countBadge.textContent = count || 0;
 }
 
 document.getElementById('bottomNavExplore')?.addEventListener('click', (e) => {
@@ -2583,6 +2777,10 @@ async function loadNotifications() {
     });
     if (bizStore && bizStore.directory_status && bizStore.directory_status.toLowerCase() === 'pending') {
       items.push({ text: 'Your business application is still pending review.', when: null });
+    }
+    if (window.bizIsAdmin) {
+      const { count: pendingReqCount } = await sb.from('mj_business_plan_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending');
+      if (pendingReqCount) items.push({ text: pendingReqCount + ' business plan request' + (pendingReqCount === 1 ? '' : 's') + ' waiting for your approval.', when: new Date().toISOString() });
     }
     let lastSeen = 0;
     try { lastSeen = Number(localStorage.getItem('mjBizNotifSeen') || 0); } catch (e) {}
