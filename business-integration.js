@@ -152,6 +152,13 @@
     $('customerProductName').textContent = p.product_name;
     $('customerProductDescription').textContent = p.description || '';
     $('customerProductPrice').textContent = money(p.price);
+    const stockEl = $('customerProductStock');
+    if (stockEl) {
+      const qty = Number.isFinite(Number(p.stock_quantity)) ? Number(p.stock_quantity) : null;
+      stockEl.textContent = qty === null ? '' : (qty <= 0 ? 'Out of stock' : qty + (qty === 1 ? ' item left' : ' items left'));
+      stockEl.style.color = qty !== null && qty <= 3 ? '#a3312f' : '';
+    }
+    loadProductRating(p.id);
     $('customerWarranty').textContent = p.warranty_period || 'No warranty offered';
     $('customerReturns').textContent = p.return_terms || 'No additional return policy provided.';
     $('customerTerms').textContent = p.additional_terms || 'No additional terms provided.';
@@ -247,8 +254,14 @@
         ? `<img loading="lazy" src="${escapeHTML(image)}" alt="${escapeHTML(p.product_name)}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="market-image-fallback" hidden>${initials}</div>`
         : `<div class="market-image-fallback">${initials}</div>`;
       const qty = Number.isFinite(Number(p.stock_quantity)) ? Number(p.stock_quantity) : null;
-      return `<article class="market-item" data-open-product="${escapeHTML(p.id)}"><div class="market-image-wrap">${imagePart}<button type="button" class="market-fav" aria-pressed="false" aria-label="Save to favourites" data-fav-toggle onclick="event.stopPropagation();this.setAttribute('aria-pressed', this.getAttribute('aria-pressed')!=='true')"><svg class="std-icon"><use href="#i-heart"/></svg></button>${qty !== null && qty <= 5 ? `<span class="market-badge">${qty === 0 ? 'Out of stock' : qty + ' left'}</span>` : ''}</div><div class="market-body"><h4>${escapeHTML(p.product_name)}</h4><strong>${money(p.price)}</strong><p class="market-meta"><svg class="std-icon"><use href="#i-truck"/></svg> ${money(p.standard_delivery_fee || 0)} delivery</p></div><button type="button" class="market-cart" data-open-product="${escapeHTML(p.id)}" aria-label="View product"><svg class="std-icon"><use href="#i-cart"/></svg></button>${isOwner ? `<button type="button" class="market-remove" data-unpublish-product="${escapeHTML(p.id)}" onclick="event.stopPropagation()">Remove from marketplace</button>` : ''}</article>`;
+      return `<article class="market-item" data-open-product="${escapeHTML(p.id)}"><div class="market-image-wrap">${imagePart}<button type="button" class="market-fav" aria-pressed="false" aria-label="Save to favourites" data-fav-toggle onclick="event.stopPropagation();this.setAttribute('aria-pressed', this.getAttribute('aria-pressed')!=='true')"><svg class="std-icon"><use href="#i-heart"/></svg></button>${qty !== null && qty <= 5 ? `<span class="market-badge">${qty === 0 ? 'Out of stock' : qty + ' left'}</span>` : ''}</div><div class="market-body"><h4>${escapeHTML(p.product_name)}</h4><strong>${money(p.price)}</strong><p class="market-meta" data-rating-for="${escapeHTML(p.id)}"></p><p class="market-meta"><svg class="std-icon"><use href="#i-truck"/></svg> ${money(p.standard_delivery_fee || 0)} delivery</p></div><button type="button" class="market-cart" data-open-product="${escapeHTML(p.id)}" aria-label="View product"><svg class="std-icon"><use href="#i-cart"/></svg></button>${isOwner ? `<button type="button" class="market-remove" data-unpublish-product="${escapeHTML(p.id)}" onclick="event.stopPropagation()">Remove from marketplace</button>` : ''}</article>`;
     }).join('') + '</div>';
+    loadProductRatings(displayProducts.map(p => p.id)).then(map => {
+      for (const [id, r] of Object.entries(map)) {
+        const el = host.querySelector(`[data-rating-for="${CSS.escape(id)}"]`);
+        if (el) el.textContent = '★ ' + r.avg + ' (' + r.count + ')';
+      }
+    });
   }
   async function loadOwnerInventory() {
     if (!session?.user?.id) return;
@@ -271,6 +284,23 @@
     }
   }
   function escapeHTML(s) { return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  async function loadProductRatings(ids) {
+    if (!ids.length) return {};
+    try {
+      const { data, error } = await sb.rpc('mj_product_ratings', { p_product_ids: ids });
+      if (error) throw error;
+      const map = {};
+      for (const r of data || []) map[r.product_id] = { avg: Number(r.avg_rating), count: Number(r.review_count) };
+      return map;
+    } catch (e) { return {}; }
+  }
+  async function loadProductRating(id) {
+    const el = $('customerProductRating'); if (!el) return;
+    el.textContent = '';
+    const map = await loadProductRatings([id]);
+    const r = map[id];
+    el.textContent = r ? '★ ' + r.avg + ' (' + r.count + (r.count === 1 ? ' review' : ' reviews') + ')' : 'No reviews yet';
+  }
   function updateCartUI() {
     if (!activeProduct) return;
     const q = Math.max(0, Number($('qtyValue').textContent) || 0);
@@ -757,6 +787,26 @@
     el.textContent = String(Math.max(0, current - 1));
     updateCartUI();
   });
+  // ---------- Marketplace search / price filter (client-side over the loaded catalogue) ----------
+  function applyMarketFilter() {
+    const q = ($('marketSearchInput')?.value || '').trim().toLowerCase();
+    const maxPrice = Number($('marketMaxPrice')?.value);
+    const ceiling = Number.isFinite(maxPrice) && maxPrice > 0 ? maxPrice : null;
+    if (!q && ceiling === null) { renderCatalog(catalogProducts); return; }
+    const terms = q.split(/\s+/).filter(Boolean);
+    const matches = catalogProducts.filter(p => {
+      const haystack = [p.product_name, p.description].filter(Boolean).join(' ').toLowerCase();
+      const textMatch = !terms.length || terms.every(t => haystack.includes(t));
+      const price = Number(p.price);
+      const priceMatch = ceiling === null || (Number.isFinite(price) && price <= ceiling);
+      return textMatch && priceMatch;
+    });
+    renderCatalog(matches, true);
+  }
+  let marketFilterTimer;
+  $('marketSearchInput')?.addEventListener('input', () => { clearTimeout(marketFilterTimer); marketFilterTimer = setTimeout(applyMarketFilter, 250); });
+  $('marketMaxPrice')?.addEventListener('input', () => { clearTimeout(marketFilterTimer); marketFilterTimer = setTimeout(applyMarketFilter, 250); });
+
   let marketplaceChannel = null;
   function startMarketplaceRealtime(){ if(marketplaceChannel)sb.removeChannel(marketplaceChannel); marketplaceChannel=sb.channel('mjadala-marketplace').on('postgres_changes',{event:'*',schema:'public',table:'business_products'},()=>loadProduct()).subscribe(); }
 
@@ -791,10 +841,17 @@
         const { data: products } = await sb.from('business_products').select('id,product_name').in('id', productIds);
         (products || []).forEach(p => { names[p.id] = p.product_name; });
       }
+      const deliveredOrderIds = orders.filter(o => String(o.order_status).toLowerCase() === 'delivered').map(o => o.id);
+      let reviewed = new Set();
+      if (deliveredOrderIds.length) {
+        const { data: myReviews } = await sb.from('mj_product_reviews').select('order_id').in('order_id', deliveredOrderIds);
+        reviewed = new Set((myReviews || []).map(r => r.order_id));
+      }
       host.innerHTML = orders.map(o => {
         const name = names[o.product_id] || 'Product no longer listed';
         const date = new Date(o.created_at).toLocaleString('en-KE', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         const isPending = ['pending', 'unpaid'].includes(String(o.payment_status).toLowerCase());
+        const canReview = String(o.order_status).toLowerCase() === 'delivered' && !reviewed.has(o.id);
         return `<div class="row-card" style="flex-direction:column;align-items:stretch;gap:6px">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
             <div><h4 style="margin:0 0 2px">${escapeHTML(name)}</h4><p style="margin:0">${o.quantity} × ${money(o.unit_price)} · ${escapeHTML(o.delivery_method || 'standard')}</p></div>
@@ -804,12 +861,96 @@
           ${o.mpesa_receipt_number ? `<p class="cart-note" style="text-align:left;margin:0">M-Pesa receipt: ${escapeHTML(o.mpesa_receipt_number)}</p>` : ''}
           <p class="cart-note" style="text-align:left;margin:0">${escapeHTML(date)} · Order status: ${escapeHTML(o.order_status || 'pending')}</p>
           ${isPending ? `<button type="button" class="forest-btn check-order-status" data-order-id="${escapeHTML(o.id)}">Check payment status</button>` : ''}
+          ${canReview ? `<button type="button" class="forest-btn rate-order" data-order-id="${escapeHTML(o.id)}" data-product-id="${escapeHTML(o.product_id)}">Rate this product</button>` : ''}
         </div>`;
       }).join('');
     } catch (e) {
       host.innerHTML = '<p class="live-empty">Could not load your orders: ' + escapeHTML(errorText(e)) + '</p>';
     }
   }
+  function openRateDialog(orderId, productId) {
+    const existing = document.getElementById('liveModalBackdrop'); if (existing) existing.remove();
+    const b = document.createElement('div'); b.id = 'liveModalBackdrop'; b.className = 'live-modal-backdrop';
+    b.innerHTML = `<section class="live-modal" role="dialog" aria-modal="true" aria-label="Rate this product"><h3>Rate this product</h3>
+      <label>Rating<select id="rateStars"><option value="5">★★★★★ Excellent</option><option value="4">★★★★ Good</option><option value="3">★★★ Okay</option><option value="2">★★ Poor</option><option value="1">★ Very poor</option></select></label>
+      <label>Comment (optional)<textarea id="rateComment" maxlength="400" placeholder="What was your experience with this product/seller?"></textarea></label>
+      <p class="live-message" id="rateStatus" aria-live="polite"></p>
+      <button id="rateSave">Submit rating</button><button class="secondary" id="rateCancel">Cancel</button></section>`;
+    document.body.appendChild(b);
+    $('rateCancel').onclick = () => b.remove();
+    $('rateSave').onclick = async () => {
+      $('rateSave').disabled = true; $('rateStatus').textContent = 'Saving…';
+      try {
+        const { error } = await sb.from('mj_product_reviews').insert({ product_id: productId, order_id: orderId, reviewer_id: session.user.id, rating: Number($('rateStars').value), comment: $('rateComment').value.trim() || null });
+        if (error) throw error;
+        toast('Thanks for rating this product.');
+        b.remove();
+        await loadMyOrders();
+      } catch (e) { $('rateStatus').textContent = errorText(e); $('rateSave').disabled = false; }
+    };
+  }
+  document.addEventListener('click', e => {
+    const rateBtn = e.target.closest('.rate-order');
+    if (rateBtn) { e.preventDefault(); if (!requireSession()) return; openRateDialog(rateBtn.dataset.orderId, rateBtn.dataset.productId); }
+  });
+
+  // ---------- My Sales (seller order management) ----------
+  const sellerOrderStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+  async function loadMySales() {
+    const host = $('mySalesList'); if (!host) return;
+    if (!session?.user?.id) { host.innerHTML = '<p class="live-empty">Sign in to see sales on your products.</p>'; return; }
+    host.innerHTML = '<p class="live-empty">Loading your sales…</p>';
+    try {
+      const { data: myProducts, error: prodError } = await sb.from('business_products').select('id,product_name').eq('seller_id', session.user.id);
+      if (prodError) throw prodError;
+      const ids = (myProducts || []).map(p => p.id);
+      if (!ids.length) { host.innerHTML = '<p class="live-empty">You have no products yet, so no sales to show.</p>'; return; }
+      const names = {}; (myProducts || []).forEach(p => { names[p.id] = p.product_name; });
+      const { data: orders, error } = await sb.from('business_orders')
+        .select('id,product_id,buyer_id,quantity,unit_price,total_amount,delivery_method,delivery_address,order_status,payment_status,mpesa_receipt_number,created_at')
+        .in('product_id', ids).order('created_at', { ascending: false }).limit(150);
+      if (error) throw error;
+      if (!orders?.length) { host.innerHTML = '<p class="live-empty">No orders on your products yet.</p>'; return; }
+      host.innerHTML = orders.map(o => {
+        const date = new Date(o.created_at).toLocaleString('en-KE', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const options = sellerOrderStatuses.map(s => `<option value="${s}" ${s === o.order_status ? 'selected' : ''}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`).join('');
+        return `<div class="row-card" style="flex-direction:column;align-items:stretch;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+            <div><h4 style="margin:0 0 2px">${escapeHTML(names[o.product_id] || 'Product')}</h4><p style="margin:0">${o.quantity} × ${money(o.unit_price)} · ${escapeHTML(o.delivery_method || 'standard')}</p></div>
+            ${orderStatusBadge(o.payment_status)}
+          </div>
+          <p class="cart-note" style="text-align:left;margin:0">Delivery to: ${escapeHTML(o.delivery_address || '—')}</p>
+          <p class="cart-note" style="text-align:left;margin:0">${escapeHTML(date)} · Total ${money(o.total_amount)}</p>
+          <div class="field" style="margin:0"><label for="sale-status-${escapeHTML(o.id)}">Order status</label><select id="sale-status-${escapeHTML(o.id)}" class="seller-order-status" data-order-id="${escapeHTML(o.id)}">${options}</select></div>
+        </div>`;
+      }).join('');
+    } catch (e) {
+      host.innerHTML = '<p class="live-empty">Could not load your sales: ' + escapeHTML(errorText(e)) + '</p>';
+    }
+  }
+  $('mySalesRow')?.addEventListener('click', () => {
+    if (!requireSession()) return;
+    if ($('accountSection')) $('accountSection').style.display = 'none';
+    if ($('accountSectionTitle')) $('accountSectionTitle').style.display = 'none';
+    if ($('mySalesPanel')) $('mySalesPanel').style.display = 'block';
+    loadMySales();
+  });
+  $('backFromMySales')?.addEventListener('click', () => {
+    if ($('mySalesPanel')) $('mySalesPanel').style.display = 'none';
+    if ($('accountSection')) $('accountSection').style.display = 'block';
+    if ($('accountSectionTitle')) $('accountSectionTitle').style.display = 'flex';
+  });
+  document.addEventListener('change', async e => {
+    const sel = e.target.closest('.seller-order-status'); if (!sel) return;
+    const orderId = sel.dataset.orderId, newStatus = sel.value;
+    sel.disabled = true;
+    try {
+      const { error } = await sb.rpc('mj_seller_update_order_status', { p_order_id: orderId, p_status: newStatus });
+      if (error) throw error;
+      toast('Order status updated');
+    } catch (err) { toast('Could not update status: ' + errorText(err)); }
+    finally { sel.disabled = false; }
+  });
   window.mjadalaLoadMyOrders = loadMyOrders;
   $('myOrdersRow')?.addEventListener('click', () => {
     if (!requireSession()) return;

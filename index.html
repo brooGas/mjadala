@@ -356,14 +356,16 @@ body.mj-on-reels #wattAiLaunch{display:none}
       <div class="owner-actions"><button type="button" id="publishProduct">Publish product</button><button type="button" class="secondary" id="resetProductForm">Reset sample</button></div>
       <p id="publishStatus" style="margin:8px 0 0;font-size:11px" aria-live="polite">Sample listing is ready to edit.</p>
      </div>
-     <div class="section-title"><svg class="std-icon"><use href="#i-cart"/></svg> Mjadala marketplace <span class="subtle">Live listings</span></div><div id="businessProductCatalog"><p class="live-empty">Loading published products…</p></div>
+     <div class="section-title"><svg class="std-icon"><use href="#i-cart"/></svg> Mjadala marketplace <span class="subtle">Live listings</span></div>
+     <div class="field-grid" style="margin-bottom:8px"><div class="field" style="margin:0"><label for="marketSearchInput">Search products</label><input id="marketSearchInput" placeholder="Search by name or description"></div><div class="field" style="margin:0"><label for="marketMaxPrice">Max price (KSh)</label><input id="marketMaxPrice" type="number" min="0" placeholder="Any price"></div></div>
+     <div id="businessProductCatalog"><p class="live-empty">Loading published products…</p></div>
      <div class="product-card" style="display:none">
       <div class="product-detail-toolbar">
        <button type="button" id="backToMarketplace" class="mini-btn" aria-label="Back to marketplace" title="Back to marketplace">←</button>
        <button type="button" id="viewPoolOfferButton" class="mini-btn" style="display:none" aria-expanded="false">Pool Offer <span aria-hidden="true">⌄</span></button>
       </div>
       <div class="product-detail-layout">
-       <div class="product-detail-visual"><div class="thumb product-thumb">▧</div><strong class="product-price" id="customerProductPrice">KSh 0</strong>
+       <div class="product-detail-visual"><div class="thumb product-thumb">▧</div><strong class="product-price" id="customerProductPrice">KSh 0</strong><p class="cart-note" id="customerProductStock" style="margin:2px 0 6px!important;text-align:left!important"></p><p class="cart-note" id="customerProductRating" style="margin:0 0 6px!important;text-align:left!important"></p>
         <div class="qty-controls"><button class="qty-btn" id="qtyMinus" aria-label="Remove one">−</button><strong id="qtyValue">0</strong><button class="qty-btn" id="qtyPlus" aria-label="Add one">+</button></div>
        </div>
        <div class="product-detail-copy"><h4 id="customerProductName">No product selected</h4><p id="customerProductDescription">Published product details appear here.</p></div>
@@ -425,6 +427,8 @@ body.mj-on-reels #wattAiLaunch{display:none}
      <div class="menu-list" id="accountSection">
       <div class="menu-row" data-account-action="edit"><span class="micon"><svg class="std-icon"><use href="#i-edit"/></svg></span><span>Edit profile<small>Photo, name, bio and details</small></span><span class="chev">›</span></div>
       <div class="menu-row" id="myOrdersRow" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-truck"/></svg></span><span>My Orders<small>Track your purchases and payments</small></span><span class="chev">›</span></div>
+      <div class="menu-row" id="mySalesRow" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-briefcase"/></svg></span><span>My Sales<small>Manage orders on your products</small></span><span class="chev">›</span></div>
+      <div class="menu-row" id="quickPinRow" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-credit"/></svg></span><span>Quick PIN sign-in<small>Use a 6-digit PIN instead of a password</small></span><span class="chev">›</span></div>
       <div class="menu-row" id="reportedContentRow" style="display:none" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-flag"/></svg></span><span>Reported content<small>Review and action member reports</small></span><span class="chev">›</span></div>
       <div class="menu-row" data-account-action="privacy"><span class="micon"><svg class="std-icon"><use href="#i-shield"/></svg></span><span>Privacy & security<small>Control who sees your activity</small></span><span class="chev">›</span></div>
       <div class="menu-row" data-account-action="notifications"><span class="micon"><svg class="std-icon"><use href="#i-bell"/></svg></span><span>Notifications<small>Choose what you hear about</small></span><span class="chev">›</span></div>
@@ -439,8 +443,14 @@ body.mj-on-reels #wattAiLaunch{display:none}
       <div class="section-title"><span>My Orders</span><button class="forest-btn" id="backFromMyOrders" type="button">← Back</button></div>
       <div id="myOrdersList"><p class="live-empty">Loading your orders…</p></div>
      </div>
+     <div id="mySalesPanel" style="display:none">
+      <div class="section-title"><span>My Sales</span><button class="forest-btn" id="backFromMySales" type="button">← Back</button></div>
+      <div id="mySalesList"><p class="live-empty">Loading your sales…</p></div>
+     </div>
      <div id="reportedContentPanel" style="display:none">
       <div class="section-title"><span>Reported content</span><button class="forest-btn" id="backFromReportedContent" type="button">← Back</button></div>
+      <div id="reportCleanupStatus" class="live-message"></div>
+      <button type="button" class="forest-btn" id="runOrderCleanup" style="margin:0 0 10px;display:none">Run stale-order cleanup</button>
       <div id="reportedContentList"><p class="live-empty">Loading reports…</p></div>
      </div>
      <p class="subtle" style="text-align:center;margin:14px">Mjadala · Together we build.</p>
@@ -570,11 +580,11 @@ updateHeaderActions();
  if(typeof oldShow==='function'){window.showAccountPanel=function(title,rows){oldShow(title,rows);const icons={ '↪':'logout','↩':'chevron','⚠':'alert','▦':'grid','＋':'truck','▣':'credit','✓':'check','⚙':'settings','◐':'palette' };document.querySelectorAll('#accountPanelContent .micon').forEach((el,i)=>{const key=rows[i]?.icon;const n=icons[key];if(n)el.innerHTML=svg(n)})}}
 })();
 </script>
-<script src="business-integration.js?v=20261122-my-orders2"></script>
+<script src="business-integration.js?v=20261123-features1"></script>
 <script src="business-directory.js?v=20261102-business-subscriptions4" defer></script>
 <script src="advertising.js?v=20261110-2" defer></script>
 <script src="interaction-layer.js"></script>
-<script src="live-social.js?v=20261123-reports1" defer></script>
+<script src="live-social.js?v=20261123-features1" defer></script>
 <script src="engineering.js?v=20261110-3" defer></script>
 <script src="live-reels.js" defer></script>
 

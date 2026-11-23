@@ -34,6 +34,9 @@
     $('password').required = signupStep !== 'code';
     $('code').required = signupStep === 'code';
     $('password').autocomplete = signup ? 'new-password' : 'current-password';
+    $('password').minLength = signup ? 8 : 6;
+    $('password').placeholder = signup ? 'At least 8 characters' : 'At least 6 characters, or a 6-digit PIN';
+    $('forgotPasswordWrap').classList.toggle('hidden', signup || signupStep === 'code');
     $('submit').textContent = signup ? (signupStep === 'code' ? 'Verify code' : 'Send verification code') : 'Sign in';
     $('authHint').textContent = signupStep === 'code'
       ? `Enter the 6-digit code sent to ${pendingEmail}.`
@@ -48,6 +51,17 @@
   };
   $('signInTab').addEventListener('click', () => setMode('signin'));
   $('signUpTab').addEventListener('click', () => setMode('signup'));
+  $('forgotPasswordLink').addEventListener('click', async event => {
+    event.preventDefault();
+    const login = $('login').value.trim();
+    if (!login) { status('Enter your email or nickname above first, then tap "Forgot your password?" again.'); return; }
+    status('Sending a password reset link…');
+    try {
+      const { error } = await client.auth.resetPasswordForEmail(toEmail(login), { redirectTo: location.origin + '/reset-password.html' });
+      if (error) throw error;
+      status('Check your email for a link to reset your password.');
+    } catch (error) { status(error?.message || 'Could not send the reset link.'); }
+  });
   $('authForm').addEventListener('submit', async event => {
     event.preventDefault();
     const login = $('login').value.trim();
@@ -91,6 +105,7 @@
         $('passwordWrap').classList.add('hidden');
         $('nicknameWrap').classList.add('hidden');
         $('consentWrap').classList.add('hidden');
+        $('forgotPasswordWrap').classList.add('hidden');
         $('codeWrap').classList.remove('hidden');
         $('resendCode').classList.remove('hidden');
         $('login').required = false;
