@@ -195,9 +195,12 @@
     let memberCount = 0;
     if (pid) {
       try {
-        const { data, error } = await sb.from('business_orders').select('buyer_id').eq('pool_id', pid);
+        // Real membership lives in product_pool_members (one row per buyer whose order
+        // joined this pool). mj_pool_progress is a SECURITY DEFINER RPC so any shopper
+        // can see an accurate count without being granted raw access to other members' rows.
+        const { data, error } = await sb.rpc('mj_pool_progress', { p_pool_id: pid });
         if (error) throw error;
-        memberCount = new Set((data || []).map(r => r.buyer_id).filter(Boolean)).size;
+        memberCount = Math.max(0, Number(data) || 0);
       } catch (e) {
         console.warn('Could not load real pool progress:', errorText(e));
         if ($('poolProgressText')) $('poolProgressText').textContent = "Pool progress isn't available right now — try again shortly.";
@@ -541,9 +544,9 @@
     panel.innerHTML = `<p class="cart-note" style="margin-bottom:6px">Share this pool link so others can join instantly:</p>
       <p class="cart-note" id="poolShareLink" style="word-break:break-all;font-size:11px;background:rgba(127,127,127,.12);padding:6px 8px;border-radius:8px">${escapeHTML(link)}</p>
       <div class="pool-actions" style="margin-top:6px">
-        <a class="secondary" href="https://wa.me/?text=${waText}" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;display:inline-flex;align-items:center;justify-content:center">WhatsApp</a>
-        <a class="secondary" href="mailto:?subject=${mailSubject}&body=${mailBody}" style="text-decoration:none;text-align:center;display:inline-flex;align-items:center;justify-content:center">Email</a>
-        <button type="button" class="secondary" id="poolCopyLink">Copy link</button>
+        <a class="pool-share-btn" href="https://wa.me/?text=${waText}" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;display:inline-flex;align-items:center;justify-content:center">WhatsApp</a>
+        <a class="pool-share-btn" href="mailto:?subject=${mailSubject}&body=${mailBody}" style="text-decoration:none;text-align:center;display:inline-flex;align-items:center;justify-content:center">Email</a>
+        <button type="button" class="pool-share-btn" id="poolCopyLink">Copy link</button>
       </div>`;
     panel.style.display = 'block';
     panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -756,6 +759,81 @@
   });
   let marketplaceChannel = null;
   function startMarketplaceRealtime(){ if(marketplaceChannel)sb.removeChannel(marketplaceChannel); marketplaceChannel=sb.channel('mjadala-marketplace').on('postgres_changes',{event:'*',schema:'public',table:'business_products'},()=>loadProduct()).subscribe(); }
+
+  // ---------- My Orders (customer order history) ----------
+  function orderStatusBadge(paymentStatus) {
+    const s = String(paymentStatus || '').toLowerCase();
+    const map = {
+      paid:      { label: 'Paid',      bg: '#e3f3e6', fg: '#1f7a3d' },
+      pending:   { label: 'Pending',   bg: '#fdf3df', fg: '#8a6a1f' },
+      unpaid:    { label: 'Unpaid',    bg: '#fdf3df', fg: '#8a6a1f' },
+      failed:    { label: 'Failed',    bg: '#fbe4e4', fg: '#a3312f' },
+      cancelled: { label: 'Cancelled', bg: '#eceff1', fg: '#58646b' }
+    };
+    const o = map[s] || { label: paymentStatus || '—', bg: '#eceff1', fg: '#58646b' };
+    return `<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:800;white-space:nowrap;background:${o.bg};color:${o.fg}">${escapeHTML(o.label)}</span>`;
+  }
+  async function loadMyOrders() {
+    const host = $('myOrdersList'); if (!host) return;
+    if (!session?.user?.id) { host.innerHTML = '<p class="live-empty">Sign in to see your orders.</p>'; return; }
+    host.innerHTML = '<p class="live-empty">Loading your orders…</p>';
+    try {
+      const { data: orders, error } = await sb.from('business_orders')
+        .select('id,product_id,quantity,unit_price,delivery_fee,discount_amount,total_amount,delivery_method,delivery_address,order_status,payment_status,mpesa_receipt_number,created_at')
+        .eq('buyer_id', session.user.id)
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      if (!orders?.length) { host.innerHTML = '<p class="live-empty">You have not placed any orders yet.</p>'; return; }
+      const productIds = [...new Set(orders.map(o => o.product_id).filter(Boolean))];
+      const names = {};
+      if (productIds.length) {
+        const { data: products } = await sb.from('business_products').select('id,product_name').in('id', productIds);
+        (products || []).forEach(p => { names[p.id] = p.product_name; });
+      }
+      host.innerHTML = orders.map(o => {
+        const name = names[o.product_id] || 'Product no longer listed';
+        const date = new Date(o.created_at).toLocaleString('en-KE', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const isPending = ['pending', 'unpaid'].includes(String(o.payment_status).toLowerCase());
+        return `<div class="row-card" style="flex-direction:column;align-items:stretch;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+            <div><h4 style="margin:0 0 2px">${escapeHTML(name)}</h4><p style="margin:0">${o.quantity} × ${money(o.unit_price)} · ${escapeHTML(o.delivery_method || 'standard')}</p></div>
+            ${orderStatusBadge(o.payment_status)}
+          </div>
+          <div class="cart-line"><span>Total</span><strong>${money(o.total_amount)}</strong></div>
+          ${o.mpesa_receipt_number ? `<p class="cart-note" style="text-align:left;margin:0">M-Pesa receipt: ${escapeHTML(o.mpesa_receipt_number)}</p>` : ''}
+          <p class="cart-note" style="text-align:left;margin:0">${escapeHTML(date)} · Order status: ${escapeHTML(o.order_status || 'pending')}</p>
+          ${isPending ? `<button type="button" class="forest-btn check-order-status" data-order-id="${escapeHTML(o.id)}">Check payment status</button>` : ''}
+        </div>`;
+      }).join('');
+    } catch (e) {
+      host.innerHTML = '<p class="live-empty">Could not load your orders: ' + escapeHTML(errorText(e)) + '</p>';
+    }
+  }
+  window.mjadalaLoadMyOrders = loadMyOrders;
+  $('myOrdersRow')?.addEventListener('click', () => {
+    if (!requireSession()) return;
+    if ($('accountSection')) $('accountSection').style.display = 'none';
+    if ($('accountSectionTitle')) $('accountSectionTitle').style.display = 'none';
+    if ($('myOrdersPanel')) $('myOrdersPanel').style.display = 'block';
+    loadMyOrders();
+  });
+  $('myOrdersRow')?.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('myOrdersRow').click(); } });
+  $('backFromMyOrders')?.addEventListener('click', () => {
+    if ($('myOrdersPanel')) $('myOrdersPanel').style.display = 'none';
+    if ($('accountSection')) $('accountSection').style.display = 'block';
+    if ($('accountSectionTitle')) $('accountSectionTitle').style.display = 'flex';
+  });
+  document.addEventListener('click', async e => {
+    const checkBtn = e.target.closest('.check-order-status');
+    if (!checkBtn) return;
+    e.preventDefault();
+    const orderId = checkBtn.dataset.orderId;
+    checkBtn.disabled = true; checkBtn.textContent = 'Checking…';
+    try { await sb.functions.invoke('daraja-stk-query', { body: { order_id: orderId } }); } catch (_) { /* best-effort nudge */ }
+    await loadMyOrders();
+  });
+
   sb.auth.getSession().then(({data})=>{ session=data.session; if (!session) addAuthUI(); else if($('businessAuthPanel'))$('businessAuthPanel').style.display='none'; if(session){loadBusinessProfile(); if($('ownerPanel') && getComputedStyle($('ownerPanel')).display!=='none') loadOwnerInventory();} loadProduct(); startMarketplaceRealtime(); });
   sb.auth.onAuthStateChange((_event,newSession)=>{session=newSession;if(session){if($('businessAuthPanel'))$('businessAuthPanel').style.display='none';loadBusinessProfile(); if($('ownerPanel') && getComputedStyle($('ownerPanel')).display!=='none') loadOwnerInventory();}else{addAuthUI();$('myBusinessTitle').textContent='My Business';$('myBusinessOwner').textContent='Sign in to manage your business.';}loadProduct();});
 })();

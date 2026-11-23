@@ -37,6 +37,9 @@ button,input{font:inherit}button{cursor:pointer}
 .qty-btn{width:27px;height:27px;border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--green);font-weight:900}
 .cart-panel{border:1px solid var(--line);border-radius:16px;padding:12px;background:#fff;margin:8px 0 14px}
 .owner-panel{border:1px solid var(--line);border-radius:16px;padding:12px;background:var(--soft);margin:9px 0 13px}.owner-panel h4{margin:0 0 4px;font-size:13px}.owner-panel>p{font-size:11px;color:var(--muted);margin:0 0 10px}.field{display:flex;flex-direction:column;gap:4px;margin:8px 0}.field label{font-size:11px;font-weight:750;color:var(--ink)}.field input,.field textarea,.field select,.delivery-select{width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:var(--paper);color:var(--ink);font:inherit;font-size:12px}.field textarea{min-height:55px;resize:vertical}.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.owner-actions{display:flex;gap:8px;flex-wrap:wrap}.owner-actions button{border:0;border-radius:10px;padding:9px 11px;background:var(--green);color:white;font-size:11px;font-weight:800}.owner-actions .secondary{background:transparent;color:var(--green);border:1px solid #b9cdbd}.delivery-choice{margin:9px 0 4px}.delivery-choice label{display:block;font-size:11px;font-weight:750;margin-bottom:5px}.pool-progress,.pool-summary{margin:10px 0}.progress-track{height:7px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:7px}.progress-track span{display:block;height:100%;width:20%;background:var(--green);border-radius:99px;transition:width .2s}.pool-actions{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}.pool-actions button{border:0;border-radius:10px;padding:9px 10px;background:var(--green);color:white;font-size:11px;font-weight:800}.pool-actions .secondary{background:transparent;color:var(--green);border:1px solid #b9cdbd}.pool-share-btn{border:1px solid var(--green)!important;border-radius:10px;padding:9px 10px;background:var(--green)!important;color:#fff!important;font-size:11px;font-weight:800;flex:1 1 auto}.dark .pool-share-btn{background:var(--green)!important;border-color:var(--green)!important;color:#fff!important}.pool-member{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line);font-size:11px}.member-avatar{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--ivory);color:var(--green);font-weight:800}.pool-member span:nth-child(2){display:flex;flex-direction:column;gap:2px;flex:1}.pool-member small{color:var(--muted)}.member-status{font-size:10px;font-weight:800;color:var(--green)}.member-status.pending{color:var(--muted)}.std-icon{width:15px;height:15px;vertical-align:-3px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.field label .std-icon,.section-title .std-icon,.delivery-choice .std-icon{margin-right:4px}.pool-summary{border-top:1px solid var(--line);padding-top:5px}.dark .pool-actions .secondary{color:var(--ink);border-color:#54715d}.dark .member-avatar{background:#314838;color:#f7f2df}.dark .owner-panel{background:#1e2c23}.dark .field input,.dark .field textarea,.dark .field select,.dark .delivery-select{background:#17221b;color:var(--ink)}
+/* Default style for any new standalone action button: solid forest green, white text. */
+.forest-btn{border:0!important;border-radius:10px;padding:9px 11px;background:var(--green)!important;color:#fff!important;font-size:11px;font-weight:800}
+.dark .forest-btn{background:var(--green)!important;color:#fff!important}
 .cart-line{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12px;color:var(--muted)}
 .cart-line strong{color:var(--ink);font-variant-numeric:tabular-nums}
 .cart-total{border-top:1px solid var(--line);margin-top:5px;padding-top:10px;font-size:14px;color:var(--ink);font-weight:850}
@@ -421,6 +424,8 @@ body.mj-on-reels #wattAiLaunch{display:none}
      <div class="section-title" id="accountSectionTitle">Your account <span class="subtle">Profile shortcuts</span></div>
      <div class="menu-list" id="accountSection">
       <div class="menu-row" data-account-action="edit"><span class="micon"><svg class="std-icon"><use href="#i-edit"/></svg></span><span>Edit profile<small>Photo, name, bio and details</small></span><span class="chev">›</span></div>
+      <div class="menu-row" id="myOrdersRow" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-truck"/></svg></span><span>My Orders<small>Track your purchases and payments</small></span><span class="chev">›</span></div>
+      <div class="menu-row" id="reportedContentRow" style="display:none" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-flag"/></svg></span><span>Reported content<small>Review and action member reports</small></span><span class="chev">›</span></div>
       <div class="menu-row" data-account-action="privacy"><span class="micon"><svg class="std-icon"><use href="#i-shield"/></svg></span><span>Privacy & security<small>Control who sees your activity</small></span><span class="chev">›</span></div>
       <div class="menu-row" data-account-action="notifications"><span class="micon"><svg class="std-icon"><use href="#i-bell"/></svg></span><span>Notifications<small>Choose what you hear about</small></span><span class="chev">›</span></div>
       <div class="menu-row" id="appearanceRow" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-palette"/></svg></span><span>Appearance<small id="appearanceSummary">Light theme · tap to change</small></span><span class="chev">›</span></div>
@@ -429,6 +434,14 @@ body.mj-on-reels #wattAiLaunch{display:none}
      <div id="accountPanel" style="display:none">
       <div class="section-title"><span id="accountPanelTitle">Account options</span><button class="mini-btn" id="backToAccount">← Back</button></div>
       <div class="menu-list" id="accountPanelContent"></div>
+     </div>
+     <div id="myOrdersPanel" style="display:none">
+      <div class="section-title"><span>My Orders</span><button class="forest-btn" id="backFromMyOrders" type="button">← Back</button></div>
+      <div id="myOrdersList"><p class="live-empty">Loading your orders…</p></div>
+     </div>
+     <div id="reportedContentPanel" style="display:none">
+      <div class="section-title"><span>Reported content</span><button class="forest-btn" id="backFromReportedContent" type="button">← Back</button></div>
+      <div id="reportedContentList"><p class="live-empty">Loading reports…</p></div>
      </div>
      <p class="subtle" style="text-align:center;margin:14px">Mjadala · Together we build.</p>
     </section>
@@ -557,11 +570,11 @@ updateHeaderActions();
  if(typeof oldShow==='function'){window.showAccountPanel=function(title,rows){oldShow(title,rows);const icons={ '↪':'logout','↩':'chevron','⚠':'alert','▦':'grid','＋':'truck','▣':'credit','✓':'check','⚙':'settings','◐':'palette' };document.querySelectorAll('#accountPanelContent .micon').forEach((el,i)=>{const key=rows[i]?.icon;const n=icons[key];if(n)el.innerHTML=svg(n)})}}
 })();
 </script>
-<script src="business-integration.js?v=20261116-watt-shopping-bridge2"></script>
+<script src="business-integration.js?v=20261122-my-orders2"></script>
 <script src="business-directory.js?v=20261102-business-subscriptions4" defer></script>
 <script src="advertising.js?v=20261110-2" defer></script>
 <script src="interaction-layer.js"></script>
-<script src="live-social.js" defer></script>
+<script src="live-social.js?v=20261123-reports1" defer></script>
 <script src="engineering.js?v=20261110-3" defer></script>
 <script src="live-reels.js" defer></script>
 
