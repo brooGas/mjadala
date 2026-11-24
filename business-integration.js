@@ -103,6 +103,7 @@
     const discount = Math.min(90, Math.max(0, Number($('poolDiscount').value) || 0));
     return {
       seller_id: session.user.id, product_name:name, description, price, currency:'KES', image_urls:[], stock_quantity:stockQuantity,
+      category: $('sellerProductCategory')?.value || null,
       standard_delivery_fee: Math.max(0, Number($('sellerDeliveryFee').value) || 0),
       express_delivery_fee: Math.max(0, Number($('sellerExpressFee').value) || 0),
       pickup_available: $('sellerPickup').value !== 'delivery',
@@ -114,14 +115,33 @@
       pool_delivery_fee: Math.max(0, Number($('sellerPoolDeliveryFee').value) || 0), published:true
     };
   }
+  // Resize/compress a photo client-side before upload — keeps data usage and storage low on slow connections.
+  function compressImage(file, maxDim = 1280, quality = 0.82) {
+    return new Promise((resolve) => {
+      if (!file.type.startsWith('image/') || file.type === 'image/svg+xml') { resolve(file); return; }
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width <= maxDim && height <= maxDim && file.size < 400 * 1024) { resolve(file); return; }
+        const scale = Math.min(1, maxDim / Math.max(width, height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(width * scale); canvas.height = Math.round(height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(blob => { resolve(blob ? new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' }) : file); }, 'image/jpeg', quality);
+      };
+      img.onerror = () => resolve(file);
+      img.src = URL.createObjectURL(file);
+    });
+  }
   async function uploadPhotos(files) {
     const urls = [];
     for (const file of files) {
       if (!file.type.startsWith('image/')) continue;
       if (file.size > 8 * 1024 * 1024) throw new Error(file.name + ' is over the 8 MB image limit.');
-      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+      const compressed = await compressImage(file);
+      const ext = compressed.type === 'image/jpeg' ? 'jpg' : (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
       const path = `${session.user.id}/${crypto.randomUUID()}.${ext}`;
-      const { error } = await sb.storage.from('product-images').upload(path, file, {upsert:false, contentType:file.type});
+      const { error } = await sb.storage.from('product-images').upload(path, compressed, {upsert:false, contentType: compressed.type || file.type});
       if (error) throw error;
       const { data } = sb.storage.from('product-images').getPublicUrl(path);
       urls.push(data.publicUrl);
@@ -159,6 +179,18 @@
       stockEl.style.color = qty !== null && qty <= 3 ? '#a3312f' : '';
     }
     loadProductRating(p.id);
+    loadSellerBadges([p.seller_id]).then(map => {
+      const info = map[p.seller_id];
+      const el = $('customerProductDescription');
+      const existing = document.getElementById('customerProductSeller');
+      if (existing) existing.remove();
+      if (info?.name && el) {
+        const line = document.createElement('p');
+        line.id = 'customerProductSeller'; line.className = 'cart-note'; line.style.cssText = 'text-align:left!important;margin:0 0 4px!important';
+        line.innerHTML = 'Sold by ' + escapeHTML(info.name) + (info.verified ? ' <span class="verified-badge">' + verifiedBadgeSVG + ' Verified</span>' : '');
+        el.parentElement.insertBefore(line, el);
+      }
+    });
     $('customerWarranty').textContent = p.warranty_period || 'No warranty offered';
     $('customerReturns').textContent = p.return_terms || 'No additional return policy provided.';
     $('customerTerms').textContent = p.additional_terms || 'No additional terms provided.';
@@ -254,13 +286,19 @@
         ? `<img loading="lazy" src="${escapeHTML(image)}" alt="${escapeHTML(p.product_name)}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="market-image-fallback" hidden>${initials}</div>`
         : `<div class="market-image-fallback">${initials}</div>`;
       const qty = Number.isFinite(Number(p.stock_quantity)) ? Number(p.stock_quantity) : null;
-      return `<article class="market-item" data-open-product="${escapeHTML(p.id)}"><div class="market-image-wrap">${imagePart}<button type="button" class="market-fav" aria-pressed="false" aria-label="Save to favourites" data-fav-toggle onclick="event.stopPropagation();this.setAttribute('aria-pressed', this.getAttribute('aria-pressed')!=='true')"><svg class="std-icon"><use href="#i-heart"/></svg></button>${qty !== null && qty <= 5 ? `<span class="market-badge">${qty === 0 ? 'Out of stock' : qty + ' left'}</span>` : ''}</div><div class="market-body"><h4>${escapeHTML(p.product_name)}</h4><strong>${money(p.price)}</strong><p class="market-meta" data-rating-for="${escapeHTML(p.id)}"></p><p class="market-meta"><svg class="std-icon"><use href="#i-truck"/></svg> ${money(p.standard_delivery_fee || 0)} delivery</p></div><button type="button" class="market-cart" data-open-product="${escapeHTML(p.id)}" aria-label="View product"><svg class="std-icon"><use href="#i-cart"/></svg></button>${isOwner ? `<button type="button" class="market-remove" data-unpublish-product="${escapeHTML(p.id)}" onclick="event.stopPropagation()">Remove from marketplace</button>` : ''}</article>`;
+      return `<article class="market-item" data-open-product="${escapeHTML(p.id)}" data-category="${escapeHTML(p.category || '')}"><div class="market-image-wrap">${imagePart}<button type="button" class="market-fav" aria-pressed="false" aria-label="Save to favourites" data-fav-toggle onclick="event.stopPropagation();this.setAttribute('aria-pressed', this.getAttribute('aria-pressed')!=='true')"><svg class="std-icon"><use href="#i-heart"/></svg></button>${qty !== null && qty <= 5 ? `<span class="market-badge">${qty === 0 ? 'Out of stock' : qty + ' left'}</span>` : ''}</div><div class="market-body"><p class="market-meta" data-seller-for="${escapeHTML(p.id)}" data-seller-id="${escapeHTML(p.seller_id)}" style="min-height:12px"></p><h4>${escapeHTML(p.product_name)}</h4><strong>${money(p.price)}</strong><p class="market-meta" data-rating-for="${escapeHTML(p.id)}"></p><p class="market-meta"><svg class="std-icon"><use href="#i-truck"/></svg> ${money(p.standard_delivery_fee || 0)} delivery</p></div><button type="button" class="market-cart" data-open-product="${escapeHTML(p.id)}" aria-label="View product"><svg class="std-icon"><use href="#i-cart"/></svg></button>${isOwner ? `<button type="button" class="market-remove" data-unpublish-product="${escapeHTML(p.id)}" onclick="event.stopPropagation()">Remove from marketplace</button>` : ''}</article>`;
     }).join('') + '</div>';
     loadProductRatings(displayProducts.map(p => p.id)).then(map => {
       for (const [id, r] of Object.entries(map)) {
         const el = host.querySelector(`[data-rating-for="${CSS.escape(id)}"]`);
         if (el) el.textContent = '★ ' + r.avg + ' (' + r.count + ')';
       }
+    });
+    loadSellerBadges(displayProducts.map(p => p.seller_id)).then(map => {
+      host.querySelectorAll('[data-seller-for]').forEach(el => {
+        const info = map[el.dataset.sellerId];
+        if (info?.name) el.innerHTML = escapeHTML(info.name) + (info.verified ? ' <span class="verified-badge">' + verifiedBadgeSVG + ' Verified</span>' : '');
+      });
     });
   }
   async function loadOwnerInventory() {
@@ -284,6 +322,18 @@
     }
   }
   function escapeHTML(s) { return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  const verifiedBadgeSVG = '<svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>';
+  async function loadSellerBadges(sellerIds) {
+    const unique = [...new Set(sellerIds.filter(Boolean))];
+    if (!unique.length) return {};
+    try {
+      const { data, error } = await sb.from('business_profiles').select('user_id,business_name,directory_status').in('user_id', unique);
+      if (error) throw error;
+      const map = {};
+      for (const row of data || []) map[row.user_id] = { name: row.business_name, verified: row.directory_status === 'approved' };
+      return map;
+    } catch (e) { return {}; }
+  }
   async function loadProductRatings(ids) {
     if (!ids.length) return {};
     try {
@@ -792,20 +842,23 @@
     const q = ($('marketSearchInput')?.value || '').trim().toLowerCase();
     const maxPrice = Number($('marketMaxPrice')?.value);
     const ceiling = Number.isFinite(maxPrice) && maxPrice > 0 ? maxPrice : null;
-    if (!q && ceiling === null) { renderCatalog(catalogProducts); return; }
+    const category = $('marketCategoryFilter')?.value || '';
+    if (!q && ceiling === null && !category) { renderCatalog(catalogProducts); return; }
     const terms = q.split(/\s+/).filter(Boolean);
     const matches = catalogProducts.filter(p => {
       const haystack = [p.product_name, p.description].filter(Boolean).join(' ').toLowerCase();
       const textMatch = !terms.length || terms.every(t => haystack.includes(t));
       const price = Number(p.price);
       const priceMatch = ceiling === null || (Number.isFinite(price) && price <= ceiling);
-      return textMatch && priceMatch;
+      const categoryMatch = !category || p.category === category;
+      return textMatch && priceMatch && categoryMatch;
     });
     renderCatalog(matches, true);
   }
   let marketFilterTimer;
   $('marketSearchInput')?.addEventListener('input', () => { clearTimeout(marketFilterTimer); marketFilterTimer = setTimeout(applyMarketFilter, 250); });
   $('marketMaxPrice')?.addEventListener('input', () => { clearTimeout(marketFilterTimer); marketFilterTimer = setTimeout(applyMarketFilter, 250); });
+  $('marketCategoryFilter')?.addEventListener('change', applyMarketFilter);
 
   let marketplaceChannel = null;
   function startMarketplaceRealtime(){ if(marketplaceChannel)sb.removeChannel(marketplaceChannel); marketplaceChannel=sb.channel('mjadala-marketplace').on('postgres_changes',{event:'*',schema:'public',table:'business_products'},()=>loadProduct()).subscribe(); }
@@ -822,6 +875,19 @@
     };
     const o = map[s] || { label: paymentStatus || '—', bg: '#eceff1', fg: '#58646b' };
     return `<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:800;white-space:nowrap;background:${o.bg};color:${o.fg}">${escapeHTML(o.label)}</span>`;
+  }
+  function orderTimelineHTML(orderStatus) {
+    const stages = [{ key: 'pending', label: 'Placed' }, { key: 'processing', label: 'Processing' }, { key: 'shipped', label: 'Shipped' }, { key: 'delivered', label: 'Delivered' }];
+    const status = String(orderStatus || 'pending').toLowerCase();
+    if (status === 'cancelled') {
+      return `<div class="order-track"><div class="otrack-step cancelled"><div class="otrack-dot">✕</div><span>Cancelled</span></div></div>`;
+    }
+    const idx = Math.max(0, stages.findIndex(s => s.key === status));
+    return `<div class="order-track">${stages.map((s, i) => {
+      const cls = i < idx ? 'done' : i === idx ? 'active' : '';
+      const mark = i < idx ? '✓' : (i + 1);
+      return `<div class="otrack-step ${cls}"><div class="otrack-dot">${mark}</div><span>${s.label}</span></div>`;
+    }).join('')}</div>`;
   }
   async function loadMyOrders() {
     const host = $('myOrdersList'); if (!host) return;
@@ -859,7 +925,8 @@
           </div>
           <div class="cart-line"><span>Total</span><strong>${money(o.total_amount)}</strong></div>
           ${o.mpesa_receipt_number ? `<p class="cart-note" style="text-align:left;margin:0">M-Pesa receipt: ${escapeHTML(o.mpesa_receipt_number)}</p>` : ''}
-          <p class="cart-note" style="text-align:left;margin:0">${escapeHTML(date)} · Order status: ${escapeHTML(o.order_status || 'pending')}</p>
+          <p class="cart-note" style="text-align:left;margin:0">${escapeHTML(date)}</p>
+          ${orderTimelineHTML(o.order_status)}
           ${isPending ? `<button type="button" class="forest-btn check-order-status" data-order-id="${escapeHTML(o.id)}">Check payment status</button>` : ''}
           ${canReview ? `<button type="button" class="forest-btn rate-order" data-order-id="${escapeHTML(o.id)}" data-product-id="${escapeHTML(o.product_id)}">Rate this product</button>` : ''}
         </div>`;
@@ -871,17 +938,24 @@
   function openRateDialog(orderId, productId) {
     const existing = document.getElementById('liveModalBackdrop'); if (existing) existing.remove();
     const b = document.createElement('div'); b.id = 'liveModalBackdrop'; b.className = 'live-modal-backdrop';
+    const ratingWords = { 1: 'Very poor', 2: 'Poor', 3: 'Okay', 4: 'Good', 5: 'Excellent' };
     b.innerHTML = `<section class="live-modal" role="dialog" aria-modal="true" aria-label="Rate this product"><h3>Rate this product</h3>
-      <label>Rating<select id="rateStars"><option value="5">★★★★★ Excellent</option><option value="4">★★★★ Good</option><option value="3">★★★ Okay</option><option value="2">★★ Poor</option><option value="1">★ Very poor</option></select></label>
+      <div class="star-picker" role="radiogroup" aria-label="Star rating">${[1,2,3,4,5].map(n => `<button type="button" class="star-btn" data-star="${n}" aria-label="${n} star${n===1?'':'s'}">★</button>`).join('')}</div>
+      <p class="star-label" id="starLabel">Tap to rate</p>
       <label>Comment (optional)<textarea id="rateComment" maxlength="400" placeholder="What was your experience with this product/seller?"></textarea></label>
       <p class="live-message" id="rateStatus" aria-live="polite"></p>
-      <button id="rateSave">Submit rating</button><button class="secondary" id="rateCancel">Cancel</button></section>`;
+      <button id="rateSave" disabled>Submit rating</button><button class="secondary" id="rateCancel">Cancel</button></section>`;
     document.body.appendChild(b);
+    let selectedRating = 0;
+    const stars = [...b.querySelectorAll('.star-btn')];
+    function paintStars(n) { stars.forEach(s => s.classList.toggle('on', Number(s.dataset.star) <= n)); }
+    stars.forEach(s => s.addEventListener('click', () => { selectedRating = Number(s.dataset.star); paintStars(selectedRating); $('starLabel').textContent = ratingWords[selectedRating]; $('rateSave').disabled = false; }));
     $('rateCancel').onclick = () => b.remove();
     $('rateSave').onclick = async () => {
+      if (!selectedRating) return;
       $('rateSave').disabled = true; $('rateStatus').textContent = 'Saving…';
       try {
-        const { error } = await sb.from('mj_product_reviews').insert({ product_id: productId, order_id: orderId, reviewer_id: session.user.id, rating: Number($('rateStars').value), comment: $('rateComment').value.trim() || null });
+        const { error } = await sb.from('mj_product_reviews').insert({ product_id: productId, order_id: orderId, reviewer_id: session.user.id, rating: selectedRating, comment: $('rateComment').value.trim() || null });
         if (error) throw error;
         toast('Thanks for rating this product.');
         b.remove();
@@ -910,6 +984,12 @@
         .select('id,product_id,buyer_id,quantity,unit_price,total_amount,delivery_method,delivery_address,order_status,payment_status,mpesa_receipt_number,created_at')
         .in('product_id', ids).order('created_at', { ascending: false }).limit(150);
       if (error) throw error;
+      const earningsEl = $('mySalesEarnings');
+      if (earningsEl) {
+        const paidTotal = (orders || []).filter(o => String(o.payment_status).toLowerCase() === 'paid').reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
+        const paidCount = (orders || []).filter(o => String(o.payment_status).toLowerCase() === 'paid').length;
+        earningsEl.innerHTML = `<div class="owner-panel" style="margin:0 0 10px"><h4 style="margin:0 0 4px">Total earned</h4><p style="margin:0;font-size:20px;font-weight:900;color:var(--green)">${money(paidTotal)}</p><p class="subtle" style="margin:4px 0 0">From ${paidCount} paid order${paidCount === 1 ? '' : 's'}</p></div>`;
+      }
       if (!orders?.length) { host.innerHTML = '<p class="live-empty">No orders on your products yet.</p>'; return; }
       host.innerHTML = orders.map(o => {
         const date = new Date(o.created_at).toLocaleString('en-KE', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });

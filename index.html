@@ -40,6 +40,29 @@ button,input{font:inherit}button{cursor:pointer}
 /* Default style for any new standalone action button: solid forest green, white text. */
 .forest-btn{border:0!important;border-radius:10px;padding:9px 11px;background:var(--green)!important;color:#fff!important;font-size:11px;font-weight:800}
 .dark .forest-btn{background:var(--green)!important;color:#fff!important}
+/* Order delivery tracker: a WhatsApp-style step tracker, 4 stages. */
+.order-track{display:flex;align-items:flex-start;margin:8px 0;padding:2px 0}
+.order-track .otrack-step{flex:1;text-align:center;position:relative;font-size:9px;color:var(--muted);font-weight:750}
+.order-track .otrack-dot{width:20px;height:20px;border-radius:50%;background:var(--line);color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-size:11px;font-weight:900;position:relative;z-index:1}
+.order-track .otrack-step.done .otrack-dot{background:var(--green)}
+.order-track .otrack-step.active .otrack-dot{background:var(--green);box-shadow:0 0 0 4px #47806022}
+.order-track .otrack-step.cancelled .otrack-dot{background:#a3312f}
+.order-track .otrack-step:not(:last-child):after{content:"";position:absolute;top:10px;left:50%;width:100%;height:2px;background:var(--line);z-index:0}
+.order-track .otrack-step.done:not(:last-child):after{background:var(--green)}
+.order-track .otrack-step.active span{color:var(--green);font-weight:850}
+/* Star rating: tappable, not a dropdown. */
+.star-picker{display:flex;gap:6px;justify-content:center;margin:6px 0 10px}
+.star-picker button{border:0;background:transparent;font-size:30px;line-height:1;color:#d8dccf;padding:2px;cursor:pointer;transition:transform .1s}
+.star-picker button.on{color:#e3b23c}
+.star-picker button:active{transform:scale(1.15)}
+.star-label{text-align:center;font-size:12px;font-weight:800;color:var(--green);min-height:16px;margin:0 0 6px}
+/* Verified seller badge. */
+.verified-badge{display:inline-flex;align-items:center;gap:3px;color:var(--green);font-weight:800;font-size:10px}
+.verified-badge svg{width:11px;height:11px}
+/* Bottom-sheet style confirm modal (block/unblock, destructive actions) — WhatsApp-like. */
+.confirm-sheet-row{display:flex;gap:8px;margin-top:10px}
+.confirm-sheet-row button{flex:1}
+.confirm-sheet-row .danger{background:#a3312f!important;color:#fff!important}
 .cart-line{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12px;color:var(--muted)}
 .cart-line strong{color:var(--ink);font-variant-numeric:tabular-nums}
 .cart-total{border-top:1px solid var(--line);margin-top:5px;padding-top:10px;font-size:14px;color:var(--ink);font-weight:850}
@@ -343,6 +366,7 @@ body.mj-on-reels #wattAiLaunch{display:none}
       <div class="drop-zone" id="productPhotoDrop"><div class="drop-icon"><svg class="std-icon"><use href="#i-upload"/></svg></div><strong>Drop product photos here</strong><p>Or select images from your device</p><input id="productPhotos" type="file" accept="image/*" multiple hidden><button type="button" id="chooseProductPhotos">Choose product photos</button><div class="file-name" id="productPhotoNames">No product photos selected</div></div>
       <div class="field"><label for="sellerProductName">Product name</label><input id="sellerProductName" placeholder="Enter your product name" required></div>
       <div class="field"><label for="sellerProductDescription">Description and key details</label><textarea id="sellerProductDescription" placeholder="Describe this product and its key details"></textarea></div>
+      <div class="field"><label for="sellerProductCategory">Category</label><select id="sellerProductCategory"><option value="">Select a category</option><option>Electronics</option><option>Fashion & Clothing</option><option>Food & Groceries</option><option>Home & Living</option><option>Beauty & Health</option><option>Agriculture</option><option>Services</option><option>Other</option></select></div>
       <div class="field-grid"><div class="field"><label for="sellerProductPrice"><svg class="std-icon"><use href="#i-credit"/></svg> Price per item (KSh)</label><input id="sellerProductPrice" type="number" min="0" placeholder="Enter price" required></div><div class="field"><label for="sellerProductQty">Available quantity (items)</label><input id="sellerProductQty" type="number" min="0" step="1" value="1" required></div></div><div class="field-grid"><div class="field"><label for="sellerDeliveryFee"><svg class="std-icon"><use href="#i-truck"/></svg> Standard delivery (KSh)</label><input id="sellerDeliveryFee" type="number" min="0" value="150"></div></div><div class="field-grid"><div class="field"><label for="sellerExpressFee"><svg class="std-icon"><use href="#i-truck"/></svg> Express delivery (KSh)</label><input id="sellerExpressFee" type="number" min="0" value="300"></div><div class="field"><label for="sellerPoolDeliveryFee"><svg class="std-icon"><use href="#i-users"/></svg> Pool delivery per customer (KSh)</label><input id="sellerPoolDeliveryFee" type="number" min="0" value="100"></div></div><p class="subtle" style="font-size:11px">You set delivery prices for this product. Pool delivery is a separate optional price you choose for each participant; it is not automatically calculated from standard delivery.</p>
       <div class="field" style="border:1px solid var(--line);border-radius:10px;padding:10px"><label style="display:flex;align-items:center;gap:8px"><input id="sellerPoolEnabled" type="checkbox" style="width:auto"> <svg class="std-icon"><use href="#i-users"/></svg> Offer group-buy pooling to customers</label><p class="subtle" style="font-size:11px;margin:5px 0 0">The business owner decides whether this product supports pooling. If enabled, customers can join voluntarily.</p></div>
       <div id="sellerPoolSettings" style="display:none"><div class="field-grid"><div class="field"><label for="poolMinimum"><svg class="std-icon"><use href="#i-users"/></svg> Minimum pool size</label><input id="poolMinimum" type="number" min="2" max="50" value="5"></div><div class="field"><label for="poolDiscount"><svg class="std-icon"><use href="#i-check"/></svg> Pool item discount (%)</label><input id="poolDiscount" type="number" min="0" max="90" value="10"></div></div>
@@ -358,6 +382,7 @@ body.mj-on-reels #wattAiLaunch{display:none}
      </div>
      <div class="section-title"><svg class="std-icon"><use href="#i-cart"/></svg> Mjadala marketplace <span class="subtle">Live listings</span></div>
      <div class="field-grid" style="margin-bottom:8px"><div class="field" style="margin:0"><label for="marketSearchInput">Search products</label><input id="marketSearchInput" placeholder="Search by name or description"></div><div class="field" style="margin:0"><label for="marketMaxPrice">Max price (KSh)</label><input id="marketMaxPrice" type="number" min="0" placeholder="Any price"></div></div>
+     <div class="field" style="margin:0 0 8px"><label for="marketCategoryFilter">Category</label><select id="marketCategoryFilter"><option value="">All categories</option><option>Electronics</option><option>Fashion & Clothing</option><option>Food & Groceries</option><option>Home & Living</option><option>Beauty & Health</option><option>Agriculture</option><option>Services</option><option>Other</option></select></div>
      <div id="businessProductCatalog"><p class="live-empty">Loading published products…</p></div>
      <div class="product-card" style="display:none">
       <div class="product-detail-toolbar">
@@ -429,6 +454,7 @@ body.mj-on-reels #wattAiLaunch{display:none}
       <div class="menu-row" id="myOrdersRow" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-truck"/></svg></span><span>My Orders<small>Track your purchases and payments</small></span><span class="chev">›</span></div>
       <div class="menu-row" id="mySalesRow" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-briefcase"/></svg></span><span>My Sales<small>Manage orders on your products</small></span><span class="chev">›</span></div>
       <div class="menu-row" id="quickPinRow" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-credit"/></svg></span><span>Quick PIN sign-in<small>Use a 6-digit PIN instead of a password</small></span><span class="chev">›</span></div>
+      <div class="menu-row" id="blockedUsersRow" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-close"/></svg></span><span>Blocked accounts<small>Manage people you don't want to see</small></span><span class="chev">›</span></div>
       <div class="menu-row" id="reportedContentRow" style="display:none" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-flag"/></svg></span><span>Reported content<small>Review and action member reports</small></span><span class="chev">›</span></div>
       <div class="menu-row" data-account-action="privacy"><span class="micon"><svg class="std-icon"><use href="#i-shield"/></svg></span><span>Privacy & security<small>Control who sees your activity</small></span><span class="chev">›</span></div>
       <div class="menu-row" data-account-action="notifications"><span class="micon"><svg class="std-icon"><use href="#i-bell"/></svg></span><span>Notifications<small>Choose what you hear about</small></span><span class="chev">›</span></div>
@@ -445,10 +471,16 @@ body.mj-on-reels #wattAiLaunch{display:none}
      </div>
      <div id="mySalesPanel" style="display:none">
       <div class="section-title"><span>My Sales</span><button class="forest-btn" id="backFromMySales" type="button">← Back</button></div>
+      <div id="mySalesEarnings"></div>
       <div id="mySalesList"><p class="live-empty">Loading your sales…</p></div>
+     </div>
+     <div id="blockedUsersPanel" style="display:none">
+      <div class="section-title"><span>Blocked accounts</span><button class="forest-btn" id="backFromBlockedUsers" type="button">← Back</button></div>
+      <div id="blockedUsersList"><p class="live-empty">Loading…</p></div>
      </div>
      <div id="reportedContentPanel" style="display:none">
       <div class="section-title"><span>Reported content</span><button class="forest-btn" id="backFromReportedContent" type="button">← Back</button></div>
+      <div id="storeOverviewBox" style="display:none"></div>
       <div id="reportCleanupStatus" class="live-message"></div>
       <button type="button" class="forest-btn" id="runOrderCleanup" style="margin:0 0 10px;display:none">Run stale-order cleanup</button>
       <div id="reportedContentList"><p class="live-empty">Loading reports…</p></div>
@@ -580,11 +612,11 @@ updateHeaderActions();
  if(typeof oldShow==='function'){window.showAccountPanel=function(title,rows){oldShow(title,rows);const icons={ '↪':'logout','↩':'chevron','⚠':'alert','▦':'grid','＋':'truck','▣':'credit','✓':'check','⚙':'settings','◐':'palette' };document.querySelectorAll('#accountPanelContent .micon').forEach((el,i)=>{const key=rows[i]?.icon;const n=icons[key];if(n)el.innerHTML=svg(n)})}}
 })();
 </script>
-<script src="business-integration.js?v=20261123-features1"></script>
+<script src="business-integration.js?v=20261123-features2"></script>
 <script src="business-directory.js?v=20261102-business-subscriptions4" defer></script>
 <script src="advertising.js?v=20261110-2" defer></script>
 <script src="interaction-layer.js"></script>
-<script src="live-social.js?v=20261123-features1" defer></script>
+<script src="live-social.js?v=20261123-features2" defer></script>
 <script src="engineering.js?v=20261110-3" defer></script>
 <script src="live-reels.js" defer></script>
 
