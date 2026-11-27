@@ -138,7 +138,8 @@
     for (const file of files) {
       if (!file.type.startsWith('image/')) continue;
       if (file.size > 8 * 1024 * 1024) throw new Error(file.name + ' is over the 8 MB image limit.');
-      const compressed = await compressImage(file);
+      const dataSaver = (() => { try { return localStorage.getItem('mjadala_data_saver') === '1'; } catch (_) { return false; } })();
+      const compressed = dataSaver ? await compressImage(file, 800, 0.6) : await compressImage(file);
       const ext = compressed.type === 'image/jpeg' ? 'jpg' : (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
       const path = `${session.user.id}/${crypto.randomUUID()}.${ext}`;
       const { error } = await sb.storage.from('product-images').upload(path, compressed, {upsert:false, contentType: compressed.type || file.type});
@@ -214,15 +215,53 @@
       $('poolDiscount').value = p.pool_discount_percent || 0; $('sellerPoolDeliveryFee').value = p.pool_delivery_fee || 0;
       $('poolDeliveryDisplay').textContent = money(p.pool_delivery_fee || 0);
       $('poolDeliveryExplanation').textContent = 'Seller-set pool delivery fee per customer: ' + money(p.pool_delivery_fee || 0) + '. Final discount eligibility is checked by the server when you order.';
+      if ($('poolAreaSelect') && !$('poolAreaSelect').dataset.filled) {
+        $('poolAreaSelect').innerHTML = '<option value="">Prefer not to say</option>' + KENYA_AREAS.map(a => `<option value="${a}">${a}</option>`).join('');
+        $('poolAreaSelect').dataset.filled = '1';
+      }
       if (!isOwnProduct) {
-        // Find any already-open pool for this product so progress/discount reflect real data as soon as the product opens.
-        sb.from('product_pools').select('id').eq('product_id', p.id).eq('pool_status', 'open').order('created_at', { ascending: false }).limit(1).maybeSingle()
-          .then(({ data }) => { if (activeProduct?.id === p.id) { poolId = data?.id || null; refreshPoolProgress(poolId); } })
+        // Load every open pool for this product (not just the newest) so a shopper can
+        // pick the one nearest their own area instead of always starting a fresh one.
+        sb.from('product_pools').select('id,area,created_at').eq('product_id', p.id).eq('pool_status', 'open').order('created_at', { ascending: false }).limit(8)
+          .then(async ({ data }) => {
+            if (activeProduct?.id !== p.id) return;
+            const pools = data || [];
+            if (pools.length > 1) {
+              poolId = null;
+              await renderPoolNearbyList(pools);
+              refreshPoolProgress(null);
+            } else {
+              if ($('poolNearbyList')) $('poolNearbyList').innerHTML = '';
+              poolId = pools[0]?.id || null;
+              refreshPoolProgress(poolId);
+            }
+          })
           .catch(() => { refreshPoolProgress(null); });
       } else {
         refreshPoolProgress(null);
       }
     }
+  }
+  const KENYA_AREAS = ['Nairobi','Mombasa','Kisumu','Nakuru','Eldoret','Kiambu','Machakos','Kajiado','Kilifi','Kakamega','Meru','Nyeri','Uasin Gishu','Kisii','Bungoma','Other'];
+  async function renderPoolNearbyList(pools) {
+    const host = $('poolNearbyList'); if (!host) return;
+    const myArea = ($('poolAreaSelect')?.value || '').trim();
+    const counts = await Promise.all(pools.map(pl => sb.rpc('mj_pool_progress', { p_pool_id: pl.id }).then(r => Number(r.data) || 0).catch(() => 0)));
+    host.innerHTML = '<p class="cart-note" style="margin-bottom:6px">There are a few open pools for this product. Join one near you, or start your own below.</p>' +
+      pools.map((pl, i) => {
+        const near = myArea && pl.area === myArea;
+        return `<div class="pool-near-row">
+          <div class="grow"><b>${pl.area ? escapeHTML(pl.area) : 'Area not shared'}${near ? ' · nearest to you' : ''}</b><small>${counts[i]} joined so far</small></div>
+          <button type="button" class="forest-btn" data-join-specific-pool="${pl.id}">Join</button>
+        </div>`;
+      }).join('');
+  }
+  async function handleJoinSpecificPool(pid) {
+    if (!requireSession()) return;
+    poolId = pid;
+    await refreshPoolProgress(poolId);
+    if ($('poolStatus')) $('poolStatus').textContent = 'You picked a nearby pool. Complete checkout to place your order in it.';
+    toast('Joined that pool. Complete checkout to confirm.');
   }
   async function refreshPoolProgress(pid) {
     if (!activeProduct?.pooling_enabled) return;
@@ -574,7 +613,8 @@
         if (existing.data?.id) {
           poolId = existing.data.id;
         } else {
-          const {data,error} = await sb.from('product_pools').insert({product_id:activeProduct.id,created_by:session.user.id,pool_name:activeProduct.product_name+' group buy',pool_status:'open'}).select('id').single();
+          const area = $('poolAreaSelect')?.value || null;
+          const {data,error} = await sb.from('product_pools').insert({product_id:activeProduct.id,created_by:session.user.id,pool_name:activeProduct.product_name+' group buy',pool_status:'open',area}).select('id').single();
           if (error) throw error; poolId=data.id;
         }
       }
@@ -798,6 +838,8 @@
     if (leaveButton) { e.preventDefault(); e.stopImmediatePropagation(); handleLeavePool(); return; }
     const inviteButton = e.target.closest('#invitePoolButton');
     if (inviteButton) { e.preventDefault(); e.stopImmediatePropagation(); handleInvitePool(); return; }
+    const nearbyJoin = e.target.closest('[data-join-specific-pool]');
+    if (nearbyJoin) { e.preventDefault(); e.stopImmediatePropagation(); handleJoinSpecificPool(nearbyJoin.dataset.joinSpecificPool); return; }
   }, true);
   $('sellerPoolEnabled')?.addEventListener('change', () => {
     const enabled = $('sellerPoolEnabled').checked;

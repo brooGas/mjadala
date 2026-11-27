@@ -111,15 +111,22 @@
  async function checkAdminAndWireModeration(){
   const row=$('reportedContentRow');
   if(!row)return;
-  if(!state.session){row.style.display='none';state.isReportAdmin=false;return;}
+  if(!state.session){row.style.display='none';state.isReportAdmin=false;state.isCreatorAdmin=false;return;}
   try{
-   const{data,error}=await sb.rpc('mj_is_creator_admin');
-   if(error)throw error;
-   state.isReportAdmin=data===true;
+   const[{data:isAdmin,error:adminErr},{data:isCreator,error:creatorErr}]=await Promise.all([
+    sb.rpc('mj_is_admin').catch(()=>({data:null,error:true})),
+    sb.rpc('mj_is_creator_admin')
+   ]);
+   if(creatorErr)throw creatorErr;
+   // mj_is_admin() is the newer, broader check (creator OR an assigned admin). Fall back to
+   // the creator-only check if mj_is_admin() isn't deployed yet, so older databases still work.
+   state.isReportAdmin=(adminErr?isCreator===true:isAdmin===true);
+   state.isCreatorAdmin=isCreator===true;
    row.style.display=state.isReportAdmin?'':'none';
    const cleanupBtn=$('runOrderCleanup');
    if(cleanupBtn)cleanupBtn.style.display=state.isReportAdmin?'':'none';
-  }catch(e){state.isReportAdmin=false;row.style.display='none';}
+   if($('adminManageToggle'))$('adminManageToggle').style.display=state.isCreatorAdmin?'':'none';
+  }catch(e){state.isReportAdmin=false;state.isCreatorAdmin=false;row.style.display='none';}
  }
  $('runOrderCleanup')?.addEventListener('click',async()=>{
   if(!state.isReportAdmin)return;
@@ -156,8 +163,58 @@
   if($('accountSection'))$('accountSection').style.display='none';
   if($('accountSectionTitle'))$('accountSectionTitle').style.display='none';
   if($('reportedContentPanel'))$('reportedContentPanel').style.display='block';
-  await loadStoreOverview();
   await loadReportedContent();
+  await loadStoreOverview();
+  if(state.isCreatorAdmin)await loadAdminsList();
+ });
+ // Generic accordion rows used inside the admin panel: tap a header to expand/collapse its body.
+ document.addEventListener('click',e=>{
+  const head=e.target.closest('[data-accordion]');if(!head)return;
+  if(head.id==='adminManageToggle'&&!state.isCreatorAdmin)return;
+  const body=head.nextElementSibling;if(!body||!body.classList.contains('accordion-body'))return;
+  const expanded=head.getAttribute('aria-expanded')==='true';
+  head.setAttribute('aria-expanded',expanded?'false':'true');
+  body.style.display=expanded?'none':'block';
+ });
+ async function loadAdminsList(){
+  const host=$('adminManageList');if(!host)return;
+  host.innerHTML='<p class="live-empty">Loading admins…</p>';
+  try{
+   const{data,error}=await sb.from('mj_admins').select('user_id,assigned_at').eq('is_active',true).order('assigned_at',{ascending:false});
+   if(error)throw error;
+   const rows=data||[];
+   if(!rows.length){host.innerHTML='<p class="live-empty">You have not assigned any admins yet.</p>';return;}
+   await profileMap(rows.map(r=>r.user_id));
+   host.innerHTML=rows.map(r=>`<div class="admin-row"><div class="grow"><b>${esc(userOf(r.user_id).display_name)}</b><small>Admin since ${new Date(r.assigned_at).toLocaleDateString('en-KE')}</small></div><button type="button" class="forest-btn" data-remove-admin="${esc(r.user_id)}">Remove</button></div>`).join('');
+  }catch(e){host.innerHTML='<p class="live-empty">Could not load admins: '+esc(e.message)+'</p>';}
+ }
+ $('adminAddButton')?.addEventListener('click',async()=>{
+  const input=$('adminAddNickname'),status=$('adminManageStatus');
+  const nickname=(input?.value||'').trim().replace(/^@/,'');
+  if(!nickname){status.textContent='Enter a nickname first.';return;}
+  $('adminAddButton').disabled=true;status.textContent='Looking up that member…';
+  try{
+   const{data:person,error:lookupError}=await sb.from('profiles').select('id,nickname').ilike('nickname',nickname).maybeSingle();
+   if(lookupError)throw lookupError;
+   if(!person){status.textContent='No member found with that nickname.';return;}
+   const{error}=await sb.from('mj_admins').upsert({user_id:person.id,assigned_by:state.session.user.id,is_active:true,assigned_at:new Date().toISOString()},{onConflict:'user_id'});
+   if(error)throw error;
+   status.textContent=person.nickname+' is now an admin.';
+   input.value='';
+   await loadAdminsList();
+  }catch(e){status.textContent='Could not grant admin: '+e.message;}
+  finally{$('adminAddButton').disabled=false;}
+ });
+ document.addEventListener('click',async e=>{
+  const btn=e.target.closest('[data-remove-admin]');if(!btn)return;
+  if(!state.isCreatorAdmin)return;
+  btn.disabled=true;btn.textContent='Removing…';
+  try{
+   const{error}=await sb.from('mj_admins').update({is_active:false}).eq('user_id',btn.dataset.removeAdmin);
+   if(error)throw error;
+   toast('Admin access removed.');
+   await loadAdminsList();
+  }catch(e){toast('Could not remove: '+e.message);btn.disabled=false;btn.textContent='Remove';}
  });
  $('backFromReportedContent')?.addEventListener('click',()=>{
   if($('reportedContentPanel'))$('reportedContentPanel').style.display='none';
@@ -248,6 +305,91 @@
    renderFeed();
   }catch(err){toast('Could not unblock: '+err.message);btn.disabled=false;btn.textContent='Unblock';}
  });
+ // ---------- Privacy & security ----------
+ async function loadPrivacyPanel(){
+  if(!state.session)return;
+  try{
+   const{data,error}=await sb.from('mj_user_presence').select('show_online').eq('user_id',state.session.user.id).maybeSingle();
+   if(error)throw error;
+   if($('privacyShowOnline'))$('privacyShowOnline').checked=data?.show_online!==false;
+  }catch(e){if($('privacyShowOnline'))$('privacyShowOnline').checked=true;}
+ }
+ $('privacyRow')?.addEventListener('click',()=>{
+  if(!state.session){authDialog();return;}
+  if($('accountSection'))$('accountSection').style.display='none';
+  if($('accountSectionTitle'))$('accountSectionTitle').style.display='none';
+  if($('privacyPanel'))$('privacyPanel').style.display='block';
+  loadPrivacyPanel();
+ });
+ $('backFromPrivacy')?.addEventListener('click',()=>{
+  if($('privacyPanel'))$('privacyPanel').style.display='none';
+  if($('accountSection'))$('accountSection').style.display='block';
+  if($('accountSectionTitle'))$('accountSectionTitle').style.display='flex';
+ });
+ $('privacyBlockedLink')?.addEventListener('click',()=>{
+  if($('privacyPanel'))$('privacyPanel').style.display='none';
+  if($('blockedUsersPanel'))$('blockedUsersPanel').style.display='block';
+  loadBlockedUsersPanel();
+ });
+ $('privacyShowOnline')?.addEventListener('change',async()=>{
+  if(!state.session)return;
+  const show=$('privacyShowOnline').checked;
+  try{
+   const{error}=await sb.from('mj_user_presence').upsert({user_id:state.session.user.id,last_seen_at:new Date().toISOString(),show_online:show},{onConflict:'user_id'});
+   if(error)throw error;
+   try{localStorage.setItem('mjadala_show_online',show?'1':'0');}catch(_){}
+   if($('privacyStatus'))$('privacyStatus').textContent=show?'Others can see when you are online.':'Your online status is now hidden from others.';
+  }catch(e){if($('privacyStatus'))$('privacyStatus').textContent='Could not save: '+e.message;$('privacyShowOnline').checked=!show;}
+ });
+ // ---------- Notifications (reuse the real notification feed behind the bell icon) ----------
+ $('notificationsRow')?.addEventListener('click',()=>{
+  if(!state.session){authDialog();return;}
+  if(typeof openContextNotifications==='function')openContextNotifications();
+ });
+ // ---------- Settings ----------
+ function applyDataSaverCheckbox(){
+  try{if($('settingsDataSaver'))$('settingsDataSaver').checked=localStorage.getItem('mjadala_data_saver')==='1';}catch(_){}
+ }
+ $('settingsRow')?.addEventListener('click',()=>{
+  if($('accountSection'))$('accountSection').style.display='none';
+  if($('accountSectionTitle'))$('accountSectionTitle').style.display='none';
+  if($('settingsPanel'))$('settingsPanel').style.display='block';
+  applyDataSaverCheckbox();
+ });
+ $('backFromSettings')?.addEventListener('click',()=>{
+  if($('settingsPanel'))$('settingsPanel').style.display='none';
+  if($('accountSection'))$('accountSection').style.display='block';
+  if($('accountSectionTitle'))$('accountSectionTitle').style.display='flex';
+ });
+ $('settingsDataSaver')?.addEventListener('change',()=>{
+  try{localStorage.setItem('mjadala_data_saver',$('settingsDataSaver').checked?'1':'0');}catch(_){}
+  if($('settingsStatus'))$('settingsStatus').textContent=$('settingsDataSaver').checked?'Data saver is on. Photos you upload will be smaller.':'Data saver is off.';
+ });
+ $('settingsClearQueue')?.addEventListener('click',()=>{
+  const n=readOfflineQueue().length;
+  writeOfflineQueue([]);
+  if($('settingsStatus'))$('settingsStatus').textContent=n?`Cleared ${n} pending post(s).`:'There were no pending posts to clear.';
+  toast('Pending posts cleared');
+ });
+ $('settingsTerms')?.addEventListener('click',()=>window.open('/terms.html','_blank'));
+ $('settingsPrivacyPolicy')?.addEventListener('click',()=>window.open('/privacy.html','_blank'));
+ $('settingsAbout')?.addEventListener('click',()=>{if($('settingsStatus'))$('settingsStatus').textContent='Mjadala — built in Kenya, for Kenya. Version 1.1.';});
+ $('settingsBugReport')?.addEventListener('click',()=>{
+  if(!state.session){authDialog();return;}
+  const b=modal('Report a problem',`<label>What went wrong?<textarea id="bugReportBody" maxlength="800" placeholder="Describe what happened, and what you expected instead"></textarea></label><p class="live-message" id="bugReportStatus"></p><button id="bugReportSend">Send report</button><button class="secondary" id="bugReportCancel">Cancel</button>`);
+  $('bugReportCancel').onclick=()=>b.remove();
+  $('bugReportSend').onclick=async()=>{
+   const body=$('bugReportBody').value.trim();
+   if(!body){$('bugReportStatus').textContent='Please describe the problem first.';return;}
+   $('bugReportSend').disabled=true;$('bugReportStatus').textContent='Sending…';
+   try{
+    const{error}=await sb.from('mj_bug_reports').insert({user_id:state.session.user.id,message:body,page:location.pathname});
+    if(error)throw error;
+    toast('Thanks — your report was sent.');
+    b.remove();
+   }catch(e){$('bugReportStatus').textContent='Could not send: '+e.message;$('bugReportSend').disabled=false;}
+  };
+ });
  async function loadPeople(){const host=$('livePeople');if(!host)return;if(state.peopleLoaded&&state.session)return;if(!state.session){state.peopleLoaded=true;host.innerHTML='<p class="live-empty">Sign in to discover and follow real Mjadala members.</p>';return;}const{data,error}=await sb.from('profiles').select('id,nickname,avatar_url,bio').neq('id',state.session.user.id).limit(8);if(error){host.innerHTML=`<p class="live-empty">People could not be loaded: ${esc(error.message)}</p>`;return;}state.peopleLoaded=true;const ids=(data||[]).map(p=>p.id);if(ids.length){const{data:followRows,error:followError}=await sb.from('shorts_creator_follows').select('creator_id').eq('follower_id',state.session.user.id).in('creator_id',ids);if(!followError)state.following=new Set((followRows||[]).map(x=>String(x.creator_id)));}host.innerHTML=(data||[]).map(p=>`<div class="row-card"><div class="avatar">${p.avatar_url?`<img loading="lazy" alt="" src="${esc(p.avatar_url)}">`:esc((p.nickname||'M').slice(0,1).toUpperCase())}</div><div class="grow"><h4>${esc(p.nickname||'Mjadala member')}</h4><p>${esc(p.bio||'Member of the Mjadala community')}</p></div><button class="mini-btn" data-follow-person="${p.id}" aria-pressed="${state.following.has(String(p.id))}">${state.following.has(String(p.id))?'Following':'Follow'}</button></div>`).join('')||'<p class="live-empty">No other public profiles are available yet.</p>';}
  async function toggleFollowPerson(id,button){if(!state.session){authDialog();return;}if(id===state.session.user.id)return;const was=state.following.has(String(id));button.disabled=true;button.textContent=was?'Unfollowing…':'Following…';try{if(was){const{error}=await sb.from('shorts_creator_follows').delete().eq('follower_id',state.session.user.id).eq('creator_id',id);if(error)throw error;state.following.delete(String(id));}else{const{error}=await sb.from('shorts_creator_follows').insert({follower_id:state.session.user.id,creator_id:id});if(error)throw error;state.following.add(String(id));}button.textContent=was?'Follow':'Following';button.setAttribute('aria-pressed',String(!was));const followCount=Number($('liveFollowingCount').textContent)||0;$('liveFollowingCount').textContent=Math.max(0,followCount+(was?-1:1));}catch(e){button.textContent=was?'Following':'Follow';toast('Follow update failed: '+e.message);}finally{button.disabled=false;}}
  document.addEventListener('click',e=>{const b=e.target.closest('[data-follow-person]');if(b)toggleFollowPerson(b.dataset.followPerson,b);});
@@ -321,10 +463,24 @@
  function photoDialog(){if(!state.session){authDialog();return;}const b=modal('Choose and crop profile photo',`<p class="live-message">Choose a photo from your gallery or camera, then zoom and reposition it inside the circle.</p><input id="cropFile" type="file" accept="image/*" capture="user"><div class="crop-stage"><canvas id="cropCanvas" width="320" height="320" aria-label="Cropped profile photo preview"></canvas></div><label>Zoom <input id="cropZoom" type="range" min="1" max="3" step="0.05" value="1"></label><label>Horizontal position <input id="cropX" type="range" min="-1" max="1" step="0.01" value="0"></label><label>Vertical position <input id="cropY" type="range" min="-1" max="1" step="0.01" value="0"></label><p id="cropStatus" class="live-message"></p><button id="cropSave">Save cropped photo</button><button id="cropCancel" class="secondary">Cancel</button>`);const canvas=$('cropCanvas'),ctx=canvas.getContext('2d');function draw(){ctx.clearRect(0,0,320,320);ctx.fillStyle='#e8eee8';ctx.fillRect(0,0,320,320);const im=state.cropImage;if(!im)return;const scale=Math.max(320/im.width,320/im.height)*state.cropScale;const w=im.width*scale,h=im.height*scale;const x=(320-w)/2+state.cropX*(w-320)/2,y=(320-h)/2+state.cropY*(h-320)/2;ctx.save();ctx.beginPath();ctx.arc(160,160,158,0,Math.PI*2);ctx.clip();ctx.drawImage(im,x,y,w,h);ctx.restore();} $('cropFile').onchange=()=>{const f=$('cropFile').files?.[0];if(!f)return;if(!f.type.startsWith('image/')){$('cropStatus').textContent='Choose an image file.';return;}if(f.size>12*1024*1024){$('cropStatus').textContent='Choose a photo under 12 MB.';return;}const im=new Image();im.onload=()=>{state.cropImage=im;state.cropScale=1;state.cropX=0;state.cropY=0;draw();};im.onerror=()=>$('cropStatus').textContent='Could not open that image.';im.src=URL.createObjectURL(f);};$('cropZoom').oninput=()=>{state.cropScale=+$('cropZoom').value;draw();};$('cropX').oninput=()=>{state.cropX=+$('cropX').value;draw();};$('cropY').oninput=()=>{state.cropY=+$('cropY').value;draw();};$('cropCancel').onclick=()=>b.remove();$('cropSave').onclick=async()=>{if(!state.cropImage){$('cropStatus').textContent='Choose a photo first.';return;}const btn=$('cropSave');btn.disabled=true;$('cropStatus').textContent='Saving…';try{const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.86));if(!blob)throw new Error('Could not create cropped image.');const path=`${state.session.user.id}/${Date.now()}.jpg`;const{error:upErr}=await sb.storage.from('mj-profile-photos').upload(path,blob,{contentType:'image/jpeg',upsert:true});if(upErr)throw upErr;const{data}=sb.storage.from('mj-profile-photos').getPublicUrl(path);const{error}=await sb.from('profiles').update({avatar_url:data.publicUrl}).eq('id',state.session.user.id);if(error)throw error;const avatar=$('profileAvatarButton');avatar.innerHTML=`<img alt="Your profile photo" src="${esc(data.publicUrl)}">`;const p=state.profiles.get(state.session.user.id)||{};p.avatar_url=data.publicUrl;state.profiles.set(state.session.user.id,p);b.remove();toast('Cropped profile photo saved');}catch(e){$('cropStatus').textContent='Could not save: '+e.message;btn.disabled=false;}};}
  $('profileAvatarButton')?.addEventListener('click',photoDialog);$('profilePhotoEdit')?.addEventListener('click',photoDialog);
  function loadProfile(){if(!state.session)return;const id=state.session.user.id;sb.from('profiles').select('id,nickname,avatar_url,bio').eq('id',id).maybeSingle().then(({data,error})=>{if(error){console.warn('Profile unavailable',error.message);return;}if(!data)return;state.profiles.set(id,{...data,display_name:data.display_name||data.nickname||data.full_name||data.username||state.session.user.email?.split('@')[0]||'Mjadala member',username:data.username||state.session.user.email?.split('@')[0]||'member'});$('liveProfileName').textContent=state.profiles.get(id).display_name;$('liveProfileHandle').textContent='@'+state.profiles.get(id).username;$('liveProfileBio').textContent=data.bio||'Welcome to Mjadala';if(data.avatar_url)$('profileAvatarButton').innerHTML=`<img alt="Your profile photo" src="${esc(data.avatar_url)}">`;sb.from('mj_posts').select('id',{count:'exact',head:true}).eq('author_id',id).then(r=>{$('livePostCount').textContent=r.count??0;});sb.from('shorts_creator_follows').select('follower_id',{count:'exact',head:true}).eq('creator_id',id).then(r=>{$('liveFollowerCount').textContent=r.count??0;});sb.from('shorts_creator_follows').select('creator_id',{count:'exact',head:true}).eq('follower_id',id).then(r=>{$('liveFollowingCount').textContent=r.count??0;});});}
- async function heartbeat(){if(!state.session)return;const{error}=await sb.from('mj_user_presence').upsert({user_id:state.session.user.id,last_seen_at:new Date().toISOString(),show_online:true},{onConflict:'user_id'});if(error)console.warn('Presence update skipped:',error.message);else setStatus('Online',true);}
+ async function heartbeat(){
+  if(!state.session)return;
+  let showOnline=true;
+  try{const stored=localStorage.getItem('mjadala_show_online');if(stored!==null)showOnline=stored==='1';}catch(_){}
+  const{error}=await sb.from('mj_user_presence').upsert({user_id:state.session.user.id,last_seen_at:new Date().toISOString(),show_online:showOnline},{onConflict:'user_id'});
+  if(error)console.warn('Presence update skipped:',error.message);else setStatus('Online',true);
+ }
+ async function syncOnlinePreference(){
+  if(!state.session)return;
+  try{
+   const{data,error}=await sb.from('mj_user_presence').select('show_online').eq('user_id',state.session.user.id).maybeSingle();
+   if(error)throw error;
+   localStorage.setItem('mjadala_show_online',data?.show_online===false?'0':'1');
+  }catch(e){/* best-effort; heartbeat() defaults to visible */}
+ }
  function startPresence(){clearInterval(state.presenceTimer);if(!state.session){setStatus('Offline',false);return;}heartbeat();state.presenceTimer=setInterval(()=>{if(document.visibilityState==='visible')heartbeat();},90000);}
  function startRealtime(){if(state.channel)sb.removeChannel(state.channel);state.channel=sb.channel('mjadala-live-social').on('postgres_changes',{event:'*',schema:'public',table:'mj_posts'},()=>loadFeed()).on('postgres_changes',{event:'*',schema:'public',table:'mj_comments'},()=>{loadFeed();if(state.refreshComments)state.refreshComments();}).on('postgres_changes',{event:'*',schema:'public',table:'mj_communities'},()=>loadCommunities()).on('postgres_changes',{event:'*',schema:'public',table:'mj_post_likes'},()=>loadFeed()).on('postgres_changes',{event:'*',schema:'public',table:'mj_trending_stories'},()=>loadTrendStories()).on('postgres_changes',{event:'*',schema:'public',table:'mj_community_members'},()=>loadCommunities()).subscribe();}
- async function refreshAll(){profileButton();await loadBlockedList();if(navigator.onLine)flushOfflineQueue();await loadFeed();await loadTrendStories();renderTrendAdmin();await loadCommunities();loadPeople();loadProfile();await checkAdminAndWireModeration();if($('liveJoinRequests')&&!$('liveJoinRequests').hidden)await loadJoinRequests();startPresence();}
+ async function refreshAll(){profileButton();await loadBlockedList();await syncOnlinePreference();if(navigator.onLine)flushOfflineQueue();await loadFeed();await loadTrendStories();renderTrendAdmin();await loadCommunities();loadPeople();loadProfile();await checkAdminAndWireModeration();if($('liveJoinRequests')&&!$('liveJoinRequests').hidden)await loadJoinRequests();startPresence();}
  showCommunityTab('topics');
 sb.auth.onAuthStateChange((_event,session)=>{state.session=session;state.peopleLoaded=false;profileButton();setStatus(session?'Connected':'Offline',false);setTimeout(()=>refreshAll(),0);});
  sb.auth.getSession().then(({data,error})=>{if(error)console.warn(error.message);state.session=data.session;profileButton();refreshAll();startRealtime();}).catch(e=>console.error('Could not initialize Mjadala social:',e));

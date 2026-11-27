@@ -63,6 +63,9 @@ button,input{font:inherit}button{cursor:pointer}
 .confirm-sheet-row{display:flex;gap:8px;margin-top:10px}
 .confirm-sheet-row button{flex:1}
 .confirm-sheet-row .danger{background:#a3312f!important;color:#fff!important}
+.pool-near-row{display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid var(--line);border-radius:12px;margin:0 0 8px;background:var(--paper)}.pool-near-row .grow{flex:1;min-width:0}.pool-near-row b{display:block;font-size:12px}.pool-near-row small{color:var(--muted);font-size:10px}
+.accordion-body{border:1px solid var(--line);border-top:0;border-radius:0 0 13px 13px;padding:10px;margin:-9px 0 9px}
+.admin-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line);font-size:11px}.admin-row .grow{flex:1}.admin-row small{display:block;color:var(--muted)}
 .cart-line{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12px;color:var(--muted)}
 .cart-line strong{color:var(--ink);font-variant-numeric:tabular-nums}
 .cart-total{border-top:1px solid var(--line);margin-top:5px;padding-top:10px;font-size:14px;color:var(--ink);font-weight:850}
@@ -399,6 +402,8 @@ body.mj-on-reels #wattAiLaunch{display:none}
      <div class="section-title" id="poolSectionHeading" style="display:none"><svg class="std-icon"><use href="#i-users"/></svg> Group-buy pool <span class="subtle">Optional for customers</span></div>
      <div class="owner-panel" id="poolPanel" style="display:none">
       <h4><svg class="std-icon"><use href="#i-users"/></svg> Buy together, save together</h4><p>Start a pool page and invite friends. Each participant selects their own quantity and places a separate order. Pool discounts apply once the minimum number of participants is reached.</p>
+      <div class="field"><label for="poolAreaSelect"><svg class="std-icon"><use href="#i-users"/></svg> Your area (to find nearby pools)</label><select id="poolAreaSelect"><option value="">Prefer not to say</option></select></div>
+      <div id="poolNearbyList"></div>
       <div class="pool-progress"><div class="cart-line"><span>Pool members</span><strong><span id="poolMemberCount">1</span> / <span id="poolMinimumDisplay">5</span> minimum</strong></div><div class="progress-track"><span id="poolProgressFill"></span></div><p id="poolProgressText" class="subtle" style="font-size:11px;margin-top:5px">Invite 4 more people to unlock the group offer.</p></div>
       <div class="pool-actions"><button type="button" id="joinPoolButton">Join this pool</button><button type="button" class="secondary" id="invitePoolButton">Invite people</button><button type="button" class="secondary" id="leavePoolButton">Leave pool</button></div>
       <div class="pool-summary"><div class="cart-line"><span>Regular item price</span><strong id="poolRegularPrice">KSh 1,850</strong></div><div class="cart-line"><span>Pool item price when unlocked</span><strong id="poolDiscountPrice">KSh 1,665</strong></div><div class="cart-line"><span>Pool delivery per customer</span><strong id="poolDeliveryDisplay">KSh 100</strong></div><div class="cart-line cart-total"><span>Your pool estimate (1 item)</span><strong id="poolPersonalTotal">KSh 1,790</strong></div></div>
@@ -455,11 +460,11 @@ body.mj-on-reels #wattAiLaunch{display:none}
       <div class="menu-row" id="mySalesRow" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-briefcase"/></svg></span><span>My Sales<small>Manage orders on your products</small></span><span class="chev">›</span></div>
       <div class="menu-row" id="quickPinRow" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-credit"/></svg></span><span>Quick PIN sign-in<small>Use a 6-digit PIN instead of a password</small></span><span class="chev">›</span></div>
       <div class="menu-row" id="blockedUsersRow" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-close"/></svg></span><span>Blocked accounts<small>Manage people you don't want to see</small></span><span class="chev">›</span></div>
-      <div class="menu-row" id="reportedContentRow" style="display:none" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-flag"/></svg></span><span>Reported content<small>Review and action member reports</small></span><span class="chev">›</span></div>
-      <div class="menu-row" data-account-action="privacy"><span class="micon"><svg class="std-icon"><use href="#i-shield"/></svg></span><span>Privacy & security<small>Control who sees your activity</small></span><span class="chev">›</span></div>
-      <div class="menu-row" data-account-action="notifications"><span class="micon"><svg class="std-icon"><use href="#i-bell"/></svg></span><span>Notifications<small>Choose what you hear about</small></span><span class="chev">›</span></div>
+      <div class="menu-row" id="reportedContentRow" style="display:none" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-flag"/></svg></span><span>Admin panel<small>Reports, store insights & admin roles</small></span><span class="chev">›</span></div>
+      <div class="menu-row" id="privacyRow" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-shield"/></svg></span><span>Privacy & security<small>Control who sees your activity</small></span><span class="chev">›</span></div>
+      <div class="menu-row" id="notificationsRow" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-bell"/></svg></span><span>Notifications<small>Choose what you hear about</small></span><span class="chev">›</span></div>
       <div class="menu-row" id="appearanceRow" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-palette"/></svg></span><span>Appearance<small id="appearanceSummary">Light theme · tap to change</small></span><span class="chev">›</span></div>
-      <div class="menu-row" data-account-action="settings"><span class="micon"><svg class="std-icon"><use href="#i-settings"/></svg></span><span>Settings<small>App preferences and controls</small></span><span class="chev">›</span></div>
+      <div class="menu-row" id="settingsRow" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-settings"/></svg></span><span>Settings<small>App preferences and controls</small></span><span class="chev">›</span></div>
      </div>
      <div id="accountPanel" style="display:none">
       <div class="section-title"><span id="accountPanelTitle">Account options</span><button class="mini-btn" id="backToAccount">← Back</button></div>
@@ -479,11 +484,50 @@ body.mj-on-reels #wattAiLaunch{display:none}
       <div id="blockedUsersList"><p class="live-empty">Loading…</p></div>
      </div>
      <div id="reportedContentPanel" style="display:none">
-      <div class="section-title"><span>Reported content</span><button class="forest-btn" id="backFromReportedContent" type="button">← Back</button></div>
-      <div id="storeOverviewBox" style="display:none"></div>
-      <div id="reportCleanupStatus" class="live-message"></div>
-      <button type="button" class="forest-btn" id="runOrderCleanup" style="margin:0 0 10px;display:none">Run stale-order cleanup</button>
-      <div id="reportedContentList"><p class="live-empty">Loading reports…</p></div>
+      <div class="section-title"><span>Admin panel</span><button class="forest-btn" id="backFromReportedContent" type="button">← Back</button></div>
+      <p class="subtle" style="margin:0 0 10px">Visible only to you and anyone you give an admin role. Tap a section to expand it.</p>
+      <button type="button" class="detail-accordion" data-accordion aria-expanded="true"><span><svg class="std-icon"><use href="#i-flag"/></svg> Reported content</span><span class="accordion-chevron">⌄</span></button>
+      <div class="accordion-body" style="display:block">
+       <div id="reportedContentList"><p class="live-empty">Loading reports…</p></div>
+      </div>
+      <button type="button" class="detail-accordion" data-accordion aria-expanded="false"><span><svg class="std-icon"><use href="#i-briefcase"/></svg> Store overview</span><span class="accordion-chevron">⌄</span></button>
+      <div class="accordion-body" style="display:none">
+       <div id="storeOverviewBox"></div>
+      </div>
+      <button type="button" class="detail-accordion" data-accordion aria-expanded="false"><span><svg class="std-icon"><use href="#i-truck"/></svg> Order maintenance</span><span class="accordion-chevron">⌄</span></button>
+      <div class="accordion-body" style="display:none">
+       <p class="subtle" style="font-size:11px;margin:0 0 8px">Cancels orders stuck unpaid for over 24 hours and releases their stock.</p>
+       <button type="button" class="forest-btn" id="runOrderCleanup" style="margin:0 0 10px">Run stale-order cleanup</button>
+       <div id="reportCleanupStatus" class="live-message"></div>
+      </div>
+      <button type="button" class="detail-accordion" data-accordion id="adminManageToggle" style="display:none" aria-expanded="false"><span><svg class="std-icon"><use href="#i-user"/></svg> Manage admins</span><span class="accordion-chevron">⌄</span></button>
+      <div class="accordion-body" id="adminManageBody" style="display:none">
+       <p class="subtle" style="font-size:11px;margin:0 0 8px">Only you (the app creator) can grant or remove admin access. People you add here can review reports and see store overview, but cannot manage other admins.</p>
+       <div class="field-grid"><div class="field" style="grid-column:1/3"><label for="adminAddNickname">Grant admin by nickname</label><input id="adminAddNickname" placeholder="e.g. janedoe"></div></div>
+       <button type="button" class="forest-btn" id="adminAddButton" style="margin:4px 0 10px">Grant admin role</button>
+       <p id="adminManageStatus" class="live-message"></p>
+       <div id="adminManageList"><p class="live-empty">Loading admins…</p></div>
+      </div>
+     </div>
+     <div id="privacyPanel" style="display:none">
+      <div class="section-title"><span>Privacy & security</span><button class="forest-btn" id="backFromPrivacy" type="button">← Back</button></div>
+      <div class="field" style="border:1px solid var(--line);border-radius:10px;padding:10px"><label style="display:flex;align-items:center;gap:8px"><input id="privacyShowOnline" type="checkbox" style="width:auto"> Show my online status to others</label><p class="subtle" style="font-size:11px;margin:5px 0 0">When off, other members won't see "Online now" on your profile.</p></div>
+      <div class="menu-list" style="margin-top:10px">
+       <div class="menu-row" id="privacyBlockedLink" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-close"/></svg></span><span>Blocked accounts<small>Manage people you don't want to see</small></span><span class="chev">›</span></div>
+      </div>
+      <p id="privacyStatus" class="live-message"></p>
+     </div>
+     <div id="settingsPanel" style="display:none">
+      <div class="section-title"><span>Settings</span><button class="forest-btn" id="backFromSettings" type="button">← Back</button></div>
+      <div class="field" style="border:1px solid var(--line);border-radius:10px;padding:10px"><label style="display:flex;align-items:center;gap:8px"><input id="settingsDataSaver" type="checkbox" style="width:auto"> Data saver mode</label><p class="subtle" style="font-size:11px;margin:5px 0 0">Shrinks photos further before uploading, to use less data.</p></div>
+      <div class="menu-list" style="margin-top:10px">
+       <div class="menu-row" id="settingsBugReport" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-flag"/></svg></span><span>Report a problem<small>Tell us about a bug or issue</small></span><span class="chev">›</span></div>
+       <div class="menu-row" id="settingsClearQueue" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-close"/></svg></span><span>Clear pending posts<small>Remove posts waiting to send when offline</small></span><span class="chev">›</span></div>
+       <div class="menu-row" id="settingsTerms" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-shield"/></svg></span><span>Terms of Service<small>Read our terms</small></span><span class="chev">›</span></div>
+       <div class="menu-row" id="settingsPrivacyPolicy" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-shield"/></svg></span><span>Privacy Policy<small>How we handle your data</small></span><span class="chev">›</span></div>
+       <div class="menu-row" id="settingsAbout" role="button" tabindex="0"><span class="micon"><svg class="std-icon"><use href="#i-sparkles"/></svg></span><span>About Mjadala<small id="settingsVersion">Version 1.1</small></span><span class="chev">›</span></div>
+      </div>
+      <p id="settingsStatus" class="live-message"></p>
      </div>
      <p class="subtle" style="text-align:center;margin:14px">Mjadala · Together we build.</p>
     </section>
@@ -612,11 +656,11 @@ updateHeaderActions();
  if(typeof oldShow==='function'){window.showAccountPanel=function(title,rows){oldShow(title,rows);const icons={ '↪':'logout','↩':'chevron','⚠':'alert','▦':'grid','＋':'truck','▣':'credit','✓':'check','⚙':'settings','◐':'palette' };document.querySelectorAll('#accountPanelContent .micon').forEach((el,i)=>{const key=rows[i]?.icon;const n=icons[key];if(n)el.innerHTML=svg(n)})}}
 })();
 </script>
-<script src="business-integration.js?v=20261123-features2"></script>
+<script src="business-integration.js?v=20261127-features3"></script>
 <script src="business-directory.js?v=20261102-business-subscriptions4" defer></script>
 <script src="advertising.js?v=20261110-2" defer></script>
 <script src="interaction-layer.js"></script>
-<script src="live-social.js?v=20261123-features2" defer></script>
+<script src="live-social.js?v=20261127-features3" defer></script>
 <script src="engineering.js?v=20261110-3" defer></script>
 <script src="live-reels.js" defer></script>
 
